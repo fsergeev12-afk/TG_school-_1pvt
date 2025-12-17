@@ -1,0 +1,159 @@
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import * as TelegramBot from 'node-telegram-bot-api';
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class TelegramBotService implements OnModuleInit {
+  private readonly logger = new Logger(TelegramBotService.name);
+  private bot: TelegramBot;
+
+  constructor(private configService: ConfigService) {}
+
+  onModuleInit() {
+    const token = this.configService.get<string>('TELEGRAM_BOT_TOKEN');
+
+    if (!token) {
+      this.logger.error('TELEGRAM_BOT_TOKEN не найден в .env файле!');
+      return;
+    }
+
+    // Для локальной разработки используем polling
+    // Для продакшена переключимся на webhook
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+
+    this.bot = new TelegramBot(token, {
+      polling: !isProduction, // polling для dev, webhook для prod
+    });
+
+    this.logger.log('Telegram Bot инициализирован');
+    this.logger.log(`Режим: ${isProduction ? 'webhook' : 'polling'}`);
+  }
+
+  /**
+   * Получить инстанс бота
+   */
+  getBot(): TelegramBot {
+    return this.bot;
+  }
+
+  /**
+   * Отправить сообщение пользователю
+   */
+  async sendMessage(
+    chatId: number,
+    text: string,
+    options?: TelegramBot.SendMessageOptions,
+  ): Promise<TelegramBot.Message> {
+    try {
+      return await this.bot.sendMessage(chatId, text, {
+        parse_mode: 'HTML',
+        ...options,
+      });
+    } catch (error) {
+      this.logger.error(`Ошибка отправки сообщения: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Отправить welcome сообщение (объединенное: приглашение + welcome)
+   */
+  async sendWelcomeMessage(
+    telegramId: number,
+    creatorName: string,
+    courseName: string,
+    accessToken: string,
+  ): Promise<void> {
+    const botUsername = this.configService.get<string>('TELEGRAM_BOT_USERNAME');
+    const link = `https://t.me/${botUsername}?start=${accessToken}`;
+
+    const message = `
+🎓 Привет! <b>${creatorName}</b> приглашает тебя на курс "<b>${courseName}</b>"!
+
+Переходи на платформу, чтобы начать обучение:
+🔗 ${link}
+
+📌 Закрепи это сообщение — здесь всегда будет актуальная ссылка на курс!
+    `.trim();
+
+    await this.sendMessage(telegramId, message);
+    this.logger.log(`Welcome сообщение отправлено пользователю ${telegramId}`);
+  }
+
+  /**
+   * Отправить демо-уведомление (через 10 секунд после активации)
+   */
+  async sendDemoNotification(
+    telegramId: number,
+    creatorName: string,
+    accessToken: string,
+  ): Promise<void> {
+    const botUsername = this.configService.get<string>('TELEGRAM_BOT_USERNAME');
+    const link = `https://t.me/${botUsername}?start=${accessToken}`;
+
+    // Ждем 10 секунд (в продакшене будет через Bull Queue)
+    setTimeout(async () => {
+      const message = `
+📚 Новый урок доступен!
+
+От <b>${creatorName}</b>:
+Переходи на платформу, чтобы начать обучение.
+🔗 ${link}
+      `.trim();
+
+      await this.sendMessage(telegramId, message);
+      this.logger.log(`Демо-уведомление отправлено пользователю ${telegramId}`);
+    }, 10000); // 10 секунд
+  }
+
+  /**
+   * Отправить broadcast сообщение (ручная рассылка от создателя)
+   */
+  async sendBroadcastMessage(
+    telegramId: number,
+    creatorName: string,
+    messageText: string,
+    accessToken: string,
+  ): Promise<void> {
+    const botUsername = this.configService.get<string>('TELEGRAM_BOT_USERNAME');
+    const link = `https://t.me/${botUsername}?start=${accessToken}`;
+
+    const message = `
+От <b>${creatorName}</b>:
+${messageText}
+
+🔗 ${link}
+    `.trim();
+
+    await this.sendMessage(telegramId, message);
+    this.logger.log(`Broadcast сообщение отправлено пользователю ${telegramId}`);
+  }
+
+  /**
+   * Настроить webhook (для продакшена)
+   */
+  async setWebhook(url: string): Promise<void> {
+    try {
+      await this.bot.setWebHook(url);
+      this.logger.log(`Webhook установлен: ${url}`);
+    } catch (error) {
+      this.logger.error(`Ошибка установки webhook: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Удалить webhook (для разработки)
+   */
+  async deleteWebhook(): Promise<void> {
+    try {
+      await this.bot.deleteWebHook();
+      this.logger.log('Webhook удален');
+    } catch (error) {
+      this.logger.error(`Ошибка удаления webhook: ${error.message}`);
+      throw error;
+    }
+  }
+}
+
+
