@@ -95,11 +95,10 @@ export class PromoCodesService {
       code: dto.code.toUpperCase(),
       type: dto.type,
       discountValue: dto.type === 'free' ? null : dto.discountValue,
-      maxUsages: dto.maxUsages || null,
+      usageLimit: dto.maxUsages || null,
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
-      description: dto.description,
       isActive: true,
-      usageCount: 0,
+      usedCount: 0,
     });
 
     return this.promoCodeRepository.save(promoCode);
@@ -145,11 +144,7 @@ export class PromoCodesService {
     }
 
     if (dto.maxUsages !== undefined) {
-      promoCode.maxUsages = dto.maxUsages;
-    }
-
-    if (dto.description !== undefined) {
-      promoCode.description = dto.description;
+      promoCode.usageLimit = dto.maxUsages;
     }
 
     if (dto.isActive !== undefined) {
@@ -196,7 +191,7 @@ export class PromoCodesService {
     }
 
     // Проверка лимита использований
-    if (promoCode.maxUsages && promoCode.usageCount >= promoCode.maxUsages) {
+    if (promoCode.usageLimit && promoCode.usedCount >= promoCode.usageLimit) {
       return { valid: false, message: 'Достигнут лимит использований промокода' };
     }
 
@@ -250,7 +245,7 @@ export class PromoCodesService {
     await this.usageRepository.save(usage);
 
     // Увеличиваем счётчик использований
-    promoCode.usageCount += 1;
+    promoCode.usedCount += 1;
     await this.promoCodeRepository.save(promoCode);
 
     const { discountAmount, finalPrice } = this.calculateDiscount(promoCode, originalPrice);

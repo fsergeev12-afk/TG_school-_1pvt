@@ -13,6 +13,7 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true, // для доступа из локальной сети
+    allowedHosts: ['.loca.lt', 'localhost'], // для localtunnel
   },
 });
 

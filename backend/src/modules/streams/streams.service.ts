@@ -108,16 +108,15 @@ export class StreamsService {
   async update(id: string, creatorId: string, dto: UpdateStreamDto): Promise<Stream> {
     const stream = await this.findOneByCreator(id, creatorId);
 
-    // Преобразуем дату если есть
-    const updateData: Partial<Stream> = {
-      ...dto,
-    };
-
-    if (dto.startsAt) {
-      updateData.startsAt = new Date(dto.startsAt);
+    // Обновляем поля (исключаем startsAt из spread чтобы обработать отдельно)
+    const { startsAt, ...rest } = dto;
+    
+    Object.assign(stream, rest);
+    
+    if (startsAt) {
+      stream.startsAt = new Date(startsAt);
     }
 
-    Object.assign(stream, updateData);
     return this.streamRepository.save(stream);
   }
 

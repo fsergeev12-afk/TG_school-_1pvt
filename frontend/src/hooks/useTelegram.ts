@@ -19,6 +19,7 @@ interface TelegramWebApp {
     link_color?: string;
     button_color?: string;
     button_text_color?: string;
+    secondary_bg_color?: string;
   };
   ready: () => void;
   expand: () => void;
@@ -68,6 +69,7 @@ export const useTelegram = () => {
           link_color: '#2481cc',
           button_color: '#2481cc',
           button_text_color: '#ffffff',
+          secondary_bg_color: '#f5f5f5',
         },
         ready: () => console.log('[DEV] Telegram WebApp ready'),
         expand: () => console.log('[DEV] Telegram WebApp expand'),
