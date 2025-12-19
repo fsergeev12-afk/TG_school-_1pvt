@@ -10,15 +10,22 @@ export default function LessonDetailPage() {
   // const { data: lesson } = useLesson(id!);
 
   // Моковые данные
-  const lesson = {
+  const lesson: {
+    id: string | undefined;
+    title: string;
+    description: string;
+    videoType: 'external' | 'telegram';
+    videoExternalUrl: string;
+    materials: { id: string; fileName: string; fileType: 'pdf' | 'doc'; fileSizeBytes: number }[];
+  } = {
     id,
     title: 'Основы работы',
     description: 'В этом уроке вы узнаете основные принципы работы с платформой. Мы разберём ключевые концепции и научимся применять их на практике.',
-    videoType: 'external' as const,
+    videoType: 'external',
     videoExternalUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
     materials: [
-      { id: '1', fileName: 'Презентация урока.pdf', fileType: 'pdf' as const, fileSizeBytes: 2500000 },
-      { id: '2', fileName: 'Дополнительные материалы.pdf', fileType: 'pdf' as const, fileSizeBytes: 1200000 },
+      { id: '1', fileName: 'Презентация урока.pdf', fileType: 'pdf', fileSizeBytes: 2500000 },
+      { id: '2', fileName: 'Дополнительные материалы.pdf', fileType: 'pdf', fileSizeBytes: 1200000 },
     ],
   };
 

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/layout';
-import { Card, Badge } from '../../components/ui';
+import { Card } from '../../components/ui';
 
 // Моковые данные для демонстрации
 const mockBlocks = [

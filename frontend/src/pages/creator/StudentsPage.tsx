@@ -7,7 +7,6 @@ export default function StudentsPage() {
   const { data: streams } = useStreams();
   const [selectedStreamId, setSelectedStreamId] = useState<string | null>(null);
   
-  const selectedStream = streams?.find(s => s.id === selectedStreamId);
   const { data: students } = useStreamStudents(selectedStreamId || '');
   const { data: stats } = useStudentStats(selectedStreamId || '');
 
