@@ -279,7 +279,11 @@ export default function StreamDetailPage() {
               <h4 className="font-medium text-[var(--tg-theme-text-color)] mb-3">
                 🎟️ Промокоды
               </h4>
-              <Button variant="secondary" fullWidth>
+              <Button 
+                variant="secondary" 
+                fullWidth
+                onClick={() => navigate(`/creator/streams/${id}/promo-codes`)}
+              >
                 Управление промокодами →
               </Button>
             </Card>
