@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { webApp, user: tgUser } = useTelegram();
-  const { setUser, setLoading, user, isLoading } = useAuthStore();
+  const { setUser, user, isLoading } = useAuthStore();
 
   // Отладка
   console.log('[App] webApp:', !!webApp, 'tgUser:', tgUser, 'user:', user, 'isLoading:', isLoading);
