@@ -8,6 +8,7 @@ interface PageHeaderProps {
   title: string;
   subtitle?: string;
   showBack?: boolean;
+  onBack?: () => void;
   action?: React.ReactNode;
 }
 
@@ -15,9 +16,18 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   title,
   subtitle,
   showBack = false,
+  onBack,
   action,
 }) => {
   const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-10 bg-[var(--tg-theme-bg-color)] px-4 py-3 safe-area-pt">
@@ -25,7 +35,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
         <div className="flex items-center gap-3">
           {showBack && (
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               className="p-1 -ml-1 text-[var(--tg-theme-link-color)]"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
