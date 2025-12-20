@@ -1,24 +1,40 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useStream, useStreamStudents, useSendBroadcast, useDeleteStream } from '../../api/hooks';
+import { 
+  useStream, 
+  useStreamStudents, 
+  useSendBroadcast, 
+  useDeleteStream,
+  useStreamSchedule,
+  useAutoSchedule,
+  useCourse
+} from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Button, Card, Input } from '../../components/ui';
+import { Button, Card, Input, Modal } from '../../components/ui';
 import { useUIStore } from '../../store';
 
-type TabType = 'students' | 'broadcast' | 'payments' | 'settings';
+type TabType = 'students' | 'schedule' | 'broadcast' | 'payments' | 'settings';
 
 export default function StreamDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: stream, isLoading } = useStream(id!);
   const { data: students } = useStreamStudents(id!);
+  const { data: schedules } = useStreamSchedule(id!);
+  const { data: course } = useCourse(stream?.courseId || '');
   const sendBroadcast = useSendBroadcast();
   const deleteStream = useDeleteStream();
+  const autoSchedule = useAutoSchedule();
   const { showToast } = useUIStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('students');
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Schedule modal
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [intervalDays, setIntervalDays] = useState(1);
 
   const handleSendBroadcast = async () => {
     if (!broadcastMessage.trim() || !id) return;
@@ -42,6 +58,21 @@ export default function StreamDetailPage() {
     }
   };
 
+  const handleAutoSchedule = async () => {
+    if (!id || !startDate) return;
+    try {
+      await autoSchedule.mutateAsync({
+        streamId: id,
+        startDate,
+        intervalDays,
+      });
+      setScheduleModalOpen(false);
+      showToast('Расписание создано!', 'success');
+    } catch {
+      showToast('Ошибка создания расписания', 'error');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -60,6 +91,7 @@ export default function StreamDetailPage() {
 
   const tabs = [
     { id: 'students' as TabType, label: 'Ученики' },
+    { id: 'schedule' as TabType, label: '📅' },
     { id: 'broadcast' as TabType, label: 'Рассылка' },
     { id: 'payments' as TabType, label: 'Оплаты' },
     { id: 'settings' as TabType, label: '⚙️' },
@@ -67,6 +99,26 @@ export default function StreamDetailPage() {
 
   const activatedCount = students?.filter(s => s.invitationStatus === 'activated').length || 0;
   const paidCount = students?.filter(s => s.paymentStatus === 'paid').length || 0;
+
+  // Get all lessons from course
+  const allLessons = course?.blocks?.flatMap((block, blockIdx) => 
+    block.lessons?.map((lesson, lessonIdx) => ({
+      ...lesson,
+      blockTitle: block.title,
+      blockIndex: blockIdx + 1,
+      lessonIndex: lessonIdx + 1,
+    })) || []
+  ) || [];
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
   return (
     <div>
@@ -149,6 +201,71 @@ export default function StreamDetailPage() {
                 </div>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Вкладка "Расписание" */}
+        {activeTab === 'schedule' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
+                📅 Расписание уроков
+              </h3>
+              {stream.scheduleEnabled && (
+                <Button size="sm" onClick={() => setScheduleModalOpen(true)}>
+                  ⚡ Авто
+                </Button>
+              )}
+            </div>
+
+            {!stream.scheduleEnabled ? (
+              <Card className="text-center py-8">
+                <div className="text-4xl mb-3">📅</div>
+                <p className="text-[var(--tg-theme-hint-color)]">
+                  Расписание отключено
+                </p>
+                <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
+                  Все уроки доступны сразу после оплаты
+                </p>
+              </Card>
+            ) : (
+              <div className="space-y-2">
+                {allLessons.map((lesson) => {
+                  const schedule = schedules?.find(s => s.lessonId === lesson.id);
+                  return (
+                    <Card key={lesson.id} padding="sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs text-[var(--tg-theme-hint-color)]">
+                            {lesson.blockIndex}.{lesson.lessonIndex}
+                          </span>
+                          <div className="font-medium text-sm text-[var(--tg-theme-text-color)] truncate">
+                            {lesson.title}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {schedule ? (
+                            <div className={`text-xs ${schedule.isOpened ? 'text-green-600' : 'text-[var(--tg-theme-hint-color)]'}`}>
+                              {schedule.isOpened ? '✅ Открыт' : formatDate(schedule.scheduledOpenAt)}
+                            </div>
+                          ) : (
+                            <span className="text-xs text-[var(--tg-theme-hint-color)]">
+                              Не назначено
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+
+                {allLessons.length === 0 && (
+                  <p className="text-sm text-[var(--tg-theme-hint-color)] text-center py-4">
+                    В курсе пока нет уроков
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
@@ -329,7 +446,62 @@ export default function StreamDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Auto Schedule Modal */}
+      <Modal
+        isOpen={scheduleModalOpen}
+        onClose={() => setScheduleModalOpen(false)}
+        title="⚡ Автоматическое расписание"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+            Уроки будут открываться автоматически с заданным интервалом
+          </p>
+
+          <Input
+            label="Дата начала *"
+            type="datetime-local"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+              Интервал между уроками
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {[1, 2, 3, 7].map((days) => (
+                <button
+                  key={days}
+                  onClick={() => setIntervalDays(days)}
+                  className={`p-3 rounded-xl border-2 text-sm transition-colors ${
+                    intervalDays === days
+                      ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/10'
+                      : 'border-[var(--tg-theme-hint-color)]/30'
+                  }`}
+                >
+                  {days === 1 ? 'Каждый день' : days === 7 ? 'Раз в неделю' : `${days} дня`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-3 bg-blue-50 rounded-xl">
+            <p className="text-xs text-blue-800">
+              ℹ️ Всего {allLessons.length} уроков будут открыты с интервалом {intervalDays} {intervalDays === 1 ? 'день' : 'дня'}
+            </p>
+          </div>
+
+          <Button
+            fullWidth
+            onClick={handleAutoSchedule}
+            loading={autoSchedule.isPending}
+            disabled={!startDate}
+          >
+            Создать расписание
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
-
