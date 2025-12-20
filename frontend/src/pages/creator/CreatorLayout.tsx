@@ -4,10 +4,11 @@ import { CreatorBottomNav } from '../../components/layout';
 // Pages
 import CoursesPage from './CoursesPage';
 import CourseDetailPage from './CourseDetailPage';
-import StudentsPage from './StudentsPage';
+import StreamsPage from './StreamsPage';
+import StreamDetailPage from './StreamDetailPage';
 import ChatsPage from './ChatsPage';
 import ChatDetailPage from './ChatDetailPage';
-import StatsPage from './StatsPage';
+import SettingsPage from './SettingsPage';
 
 export default function CreatorLayout() {
   return (
@@ -16,13 +17,15 @@ export default function CreatorLayout() {
         <Route path="/" element={<Navigate to="courses" replace />} />
         <Route path="courses" element={<CoursesPage />} />
         <Route path="courses/:id" element={<CourseDetailPage />} />
-        <Route path="students" element={<StudentsPage />} />
+        <Route path="streams" element={<StreamsPage />} />
+        <Route path="streams/:id" element={<StreamDetailPage />} />
         <Route path="chats" element={<ChatsPage />} />
         <Route path="chats/:id" element={<ChatDetailPage />} />
-        <Route path="stats" element={<StatsPage />} />
+        <Route path="settings" element={<SettingsPage />} />
       </Routes>
       <CreatorBottomNav />
     </div>
   );
 }
+
 

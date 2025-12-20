@@ -77,3 +77,17 @@ export const useMarkAsRead = () => {
   });
 };
 
+// ============ Broadcasts ============
+export const useSendBroadcast = () => {
+  return useMutation({
+    mutationFn: async ({ streamId, message }: { streamId: string; message: string }) => {
+      const { data } = await apiClient.post(`/notifications/broadcast`, { 
+        streamId, 
+        message 
+      });
+      return data;
+    },
+  });
+};
+
+

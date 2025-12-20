@@ -69,6 +69,10 @@ export interface Stream {
   students?: StreamStudent[];
   schedules?: LessonSchedule[];
   createdAt: string;
+  // Computed stats for list view
+  studentsCount?: number;
+  activatedCount?: number;
+  paidCount?: number;
 }
 
 export interface StreamStudent {
@@ -79,6 +83,9 @@ export interface StreamStudent {
   telegramUsername?: string;
   telegramFirstName?: string;
   telegramLastName?: string;
+  // Aliases for convenience
+  firstName?: string;
+  lastName?: string;
   invitationStatus: 'invited' | 'activated';
   paymentStatus: 'unpaid' | 'paid';
   accessToken: string;
@@ -200,4 +207,5 @@ export interface UploadResult {
   storageType: 'telegram' | 'local';
   url?: string;
 }
+
 
