@@ -3,5 +3,6 @@ export { Input, Textarea } from './Input';
 export { Card, CardHeader } from './Card';
 export { Badge } from './Badge';
 export { Modal } from './Modal';
+export { SortableList, SortableItem } from './SortableList';
 
 

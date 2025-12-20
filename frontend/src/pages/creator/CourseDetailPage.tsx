@@ -1,10 +1,21 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useCourse, useCreateBlock, useCreateLesson, useUpdateLesson, usePublishCourse, useUnpublishCourse } from '../../api/hooks';
+import { 
+  useCourse, 
+  useCreateBlock, 
+  useCreateLesson, 
+  useUpdateLesson, 
+  usePublishCourse, 
+  useUnpublishCourse,
+  useReorderBlocks,
+  useReorderLessons,
+  useDeleteBlock,
+  useDeleteLesson
+} from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Card, Badge, Button, Input, Modal } from '../../components/ui';
+import { Card, Badge, Button, Input, Modal, SortableList } from '../../components/ui';
 import { useUIStore } from '../../store';
-import { Lesson } from '../../types';
+import { Block, Lesson } from '../../types';
 
 type VideoType = 'telegram' | 'external' | null;
 
@@ -24,11 +35,18 @@ export default function CourseDetailPage() {
   const updateLesson = useUpdateLesson();
   const publishCourse = usePublishCourse();
   const unpublishCourse = useUnpublishCourse();
+  const reorderBlocks = useReorderBlocks();
+  const reorderLessons = useReorderLessons();
+  const deleteBlock = useDeleteBlock();
+  const deleteLesson = useDeleteLesson();
   const { showToast } = useUIStore();
 
   // Block creation
   const [isAddingBlock, setIsAddingBlock] = useState(false);
   const [newBlockTitle, setNewBlockTitle] = useState('');
+
+  // Expanded blocks
+  const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set());
 
   // Lesson modal
   const [lessonModalOpen, setLessonModalOpen] = useState(false);
@@ -41,15 +59,50 @@ export default function CourseDetailPage() {
     videoUrl: '',
   });
 
+  // Delete confirmation
+  const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
+  const [deletingLessonId, setDeletingLessonId] = useState<string | null>(null);
+
+  const toggleBlockExpanded = (blockId: string) => {
+    const newExpanded = new Set(expandedBlocks);
+    if (newExpanded.has(blockId)) {
+      newExpanded.delete(blockId);
+    } else {
+      newExpanded.add(blockId);
+    }
+    setExpandedBlocks(newExpanded);
+  };
+
   const handleAddBlock = async () => {
     if (!newBlockTitle.trim() || !id) return;
     try {
-      await createBlock.mutateAsync({ courseId: id, title: newBlockTitle.trim() });
+      const block = await createBlock.mutateAsync({ courseId: id, title: newBlockTitle.trim() });
       setNewBlockTitle('');
       setIsAddingBlock(false);
+      setExpandedBlocks(new Set([...expandedBlocks, block.id]));
       showToast('Блок добавлен!', 'success');
     } catch {
       showToast('Ошибка добавления блока', 'error');
+    }
+  };
+
+  const handleDeleteBlock = async (blockId: string) => {
+    try {
+      await deleteBlock.mutateAsync(blockId);
+      setDeletingBlockId(null);
+      showToast('Блок удалён', 'success');
+    } catch {
+      showToast('Ошибка удаления блока', 'error');
+    }
+  };
+
+  const handleDeleteLesson = async (lessonId: string) => {
+    try {
+      await deleteLesson.mutateAsync(lessonId);
+      setDeletingLessonId(null);
+      showToast('Урок удалён', 'success');
+    } catch {
+      showToast('Ошибка удаления урока', 'error');
     }
   };
 
@@ -85,7 +138,6 @@ export default function CourseDetailPage() {
 
     try {
       if (editingLesson) {
-        // Update existing lesson
         await updateLesson.mutateAsync({
           id: editingLesson.id,
           title: lessonForm.title.trim(),
@@ -95,7 +147,6 @@ export default function CourseDetailPage() {
         });
         showToast('Урок обновлён!', 'success');
       } else if (lessonBlockId) {
-        // Create new lesson
         await createLesson.mutateAsync({
           blockId: lessonBlockId,
           title: lessonForm.title.trim(),
@@ -126,6 +177,29 @@ export default function CourseDetailPage() {
     }
   };
 
+  const handleBlocksReorder = async (reorderedBlocks: Block[]) => {
+    if (!id) return;
+    try {
+      await reorderBlocks.mutateAsync({
+        courseId: id,
+        orderedIds: reorderedBlocks.map(b => b.id),
+      });
+    } catch {
+      showToast('Ошибка сортировки', 'error');
+    }
+  };
+
+  const handleLessonsReorder = async (blockId: string, reorderedLessons: Lesson[]) => {
+    try {
+      await reorderLessons.mutateAsync({
+        blockId,
+        orderedIds: reorderedLessons.map(l => l.id),
+      });
+    } catch {
+      showToast('Ошибка сортировки', 'error');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -143,6 +217,7 @@ export default function CourseDetailPage() {
   }
 
   const totalLessons = course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0;
+  const blocks = course.blocks || [];
 
   return (
     <div>
@@ -173,7 +248,7 @@ export default function CourseDetailPage() {
             )}
             <div className="flex-1">
               <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                {course.blocks?.length || 0} блоков • {totalLessons} уроков
+                {blocks.length} блоков • {totalLessons} уроков
               </p>
               {course.description && (
                 <p className="text-sm text-[var(--tg-theme-text-color)] mt-1 line-clamp-2">
@@ -205,9 +280,14 @@ export default function CourseDetailPage() {
 
         {/* Структура курса */}
         <div>
-          <h2 className="font-semibold text-[var(--tg-theme-text-color)] mb-3">
-            Структура курса
-          </h2>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-[var(--tg-theme-text-color)]">
+              Структура курса
+            </h2>
+            <span className="text-xs text-[var(--tg-theme-hint-color)]">
+              ⋮⋮ перетащите для сортировки
+            </span>
+          </div>
 
           {/* Форма добавления блока */}
           {isAddingBlock && (
@@ -241,7 +321,7 @@ export default function CourseDetailPage() {
             </Card>
           )}
 
-          {course.blocks?.length === 0 && !isAddingBlock ? (
+          {blocks.length === 0 && !isAddingBlock ? (
             <Card className="text-center py-8">
               <p className="text-[var(--tg-theme-hint-color)]">
                 Добавьте первый блок курса
@@ -252,47 +332,136 @@ export default function CourseDetailPage() {
             </Card>
           ) : (
             <div className="space-y-3">
-              {course.blocks?.map((block, blockIndex) => (
-                <Card key={block.id} padding="sm">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-[var(--tg-theme-text-color)]">
-                      📂 {blockIndex + 1}. {block.title}
-                    </span>
-                    <span className="text-xs text-[var(--tg-theme-hint-color)]">
-                      {block.lessons?.length || 0} уроков
-                    </span>
-                  </div>
-
-                  {block.lessons?.map((lesson, lessonIndex) => (
-                    <div
-                      key={lesson.id}
-                      onClick={() => openEditLesson(lesson, block.id)}
-                      className="flex items-center gap-2 py-2 pl-4 border-l-2 border-[var(--tg-theme-hint-color)]/20 cursor-pointer hover:bg-[var(--tg-theme-hint-color)]/5 rounded-r-lg transition-colors"
+              <SortableList
+                items={blocks}
+                onReorder={handleBlocksReorder}
+                renderItem={(block, blockIndex) => (
+                  <Card padding="sm" className="bg-[var(--tg-theme-secondary-bg-color)]">
+                    {/* Block Header */}
+                    <div 
+                      className="flex items-center justify-between cursor-pointer"
+                      onClick={() => toggleBlockExpanded(block.id)}
                     >
-                      <span className="text-sm text-[var(--tg-theme-hint-color)]">
-                        {blockIndex + 1}.{lessonIndex + 1}
-                      </span>
-                      <span className="text-sm text-[var(--tg-theme-text-color)] flex-1 truncate">
-                        {lesson.title}
-                      </span>
-                      {lesson.videoType && (
-                        <span className="text-xs">
-                          {lesson.videoType === 'telegram' ? '📹' : '🔗'}
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-lg">📂</span>
+                        <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
+                          {blockIndex + 1}. {block.title}
                         </span>
-                      )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-[var(--tg-theme-hint-color)]">
+                          {block.lessons?.length || 0} уроков
+                        </span>
+                        {deletingBlockId === block.id ? (
+                          <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button
+                              size="sm"
+                              className="bg-red-500 hover:bg-red-600 text-xs px-2 py-1"
+                              onClick={() => handleDeleteBlock(block.id)}
+                              loading={deleteBlock.isPending}
+                            >
+                              Да
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="text-xs px-2 py-1"
+                              onClick={() => setDeletingBlockId(null)}
+                            >
+                              Нет
+                            </Button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingBlockId(block.id);
+                            }}
+                            className="text-[var(--tg-theme-hint-color)] hover:text-red-500 p-1"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                        <span className="text-[var(--tg-theme-hint-color)]">
+                          {expandedBlocks.has(block.id) ? '▼' : '▶'}
+                        </span>
+                      </div>
                     </div>
-                  ))}
 
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full mt-2"
-                    onClick={() => openCreateLesson(block.id)}
-                  >
-                    + Добавить урок
-                  </Button>
-                </Card>
-              ))}
+                    {/* Block Content (Lessons) */}
+                    {expandedBlocks.has(block.id) && (
+                      <div className="mt-3 pt-3 border-t border-[var(--tg-theme-hint-color)]/20">
+                        {block.lessons && block.lessons.length > 0 ? (
+                          <SortableList
+                            items={block.lessons}
+                            onReorder={(reordered) => handleLessonsReorder(block.id, reordered)}
+                            renderItem={(lesson, lessonIndex) => (
+                              <div
+                                className="flex items-center gap-2 py-2 px-2 bg-[var(--tg-theme-bg-color)] rounded-lg cursor-pointer hover:bg-[var(--tg-theme-hint-color)]/5 transition-colors"
+                                onClick={() => openEditLesson(lesson, block.id)}
+                              >
+                                <span className="text-xs text-[var(--tg-theme-hint-color)] w-8">
+                                  {blockIndex + 1}.{lessonIndex + 1}
+                                </span>
+                                <span className="text-sm text-[var(--tg-theme-text-color)] flex-1 truncate">
+                                  {lesson.title}
+                                </span>
+                                {lesson.videoType && (
+                                  <span className="text-xs">
+                                    {lesson.videoType === 'telegram' ? '🎬' : '🔗'}
+                                  </span>
+                                )}
+                                {deletingLessonId === lesson.id ? (
+                                  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                      onClick={() => handleDeleteLesson(lesson.id)}
+                                      className="text-xs text-red-500 px-1"
+                                    >
+                                      ✓
+                                    </button>
+                                    <button
+                                      onClick={() => setDeletingLessonId(null)}
+                                      className="text-xs text-[var(--tg-theme-hint-color)] px-1"
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDeletingLessonId(lesson.id);
+                                    }}
+                                    className="text-[var(--tg-theme-hint-color)] hover:text-red-500 text-xs"
+                                  >
+                                    🗑️
+                                  </button>
+                                )}
+                              </div>
+                            )}
+                          />
+                        ) : (
+                          <p className="text-xs text-[var(--tg-theme-hint-color)] text-center py-2">
+                            Пока нет уроков
+                          </p>
+                        )}
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openCreateLesson(block.id);
+                          }}
+                        >
+                          + Добавить урок
+                        </Button>
+                      </div>
+                    )}
+                  </Card>
+                )}
+              />
 
               {!isAddingBlock && (
                 <Button variant="secondary" fullWidth onClick={() => setIsAddingBlock(true)}>
