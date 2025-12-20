@@ -14,6 +14,7 @@ import { ChatsController } from './chats.controller';
 // Related modules
 import { AuthModule } from '../auth/auth.module';
 import { TelegramBotModule } from '../telegram-bot/telegram-bot.module';
+import { UsersModule } from '../users/users.module';
 
 // Related entities
 import { Stream } from '../streams/entities/stream.entity';
@@ -29,6 +30,7 @@ import { StreamStudent } from '../streams/entities/stream-student.entity';
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => TelegramBotModule),
+    forwardRef(() => UsersModule),
   ],
   controllers: [
     ChatsController,
@@ -41,4 +43,5 @@ import { StreamStudent } from '../streams/entities/stream-student.entity';
   ],
 })
 export class ChatsModule {}
+
 

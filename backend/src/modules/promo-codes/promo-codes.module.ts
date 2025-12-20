@@ -13,6 +13,7 @@ import { PromoCodesController, PromoCodesPublicController } from './promo-codes.
 
 // Related modules
 import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
 
 // Related entities (для связей)
 import { Stream } from '../streams/entities/stream.entity';
@@ -27,6 +28,7 @@ import { StreamStudent } from '../streams/entities/stream-student.entity';
       StreamStudent,
     ]),
     forwardRef(() => AuthModule),
+    forwardRef(() => UsersModule),
   ],
   controllers: [
     PromoCodesController,
@@ -40,4 +42,5 @@ import { StreamStudent } from '../streams/entities/stream-student.entity';
   ],
 })
 export class PromoCodesModule {}
+
 

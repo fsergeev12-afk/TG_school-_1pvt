@@ -20,6 +20,7 @@ import { LessonScheduleController, LessonAccessController } from './lesson-sched
 // Related modules
 import { AuthModule } from '../auth/auth.module';
 import { CoursesModule } from '../courses/courses.module';
+import { UsersModule } from '../users/users.module';
 
 // Related entities (для связей)
 import { Course } from '../courses/entities/course.entity';
@@ -37,6 +38,7 @@ import { Lesson } from '../courses/entities/lesson.entity';
     ConfigModule,
     forwardRef(() => AuthModule),
     forwardRef(() => CoursesModule),
+    forwardRef(() => UsersModule),
   ],
   controllers: [
     StreamsController,
@@ -57,4 +59,5 @@ import { Lesson } from '../courses/entities/lesson.entity';
   ],
 })
 export class StreamsModule {}
+
 

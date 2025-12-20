@@ -3,6 +3,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
+import { TelegramAuthGuard } from './guards/telegram-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [
@@ -10,8 +12,8 @@ import { UsersModule } from '../users/users.module';
     forwardRef(() => UsersModule),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService],
+  providers: [AuthService, TelegramAuthGuard, RolesGuard],
+  exports: [AuthService, TelegramAuthGuard, RolesGuard],
 })
 export class AuthModule {}
 

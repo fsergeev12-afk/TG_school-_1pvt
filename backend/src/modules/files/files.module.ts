@@ -12,6 +12,7 @@ import { FilesController } from './files.controller';
 // Related modules
 import { AuthModule } from '../auth/auth.module';
 import { TelegramBotModule } from '../telegram-bot/telegram-bot.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TelegramBotModule } from '../telegram-bot/telegram-bot.module';
     }),
     forwardRef(() => AuthModule),
     forwardRef(() => TelegramBotModule),
+    forwardRef(() => UsersModule),
   ],
   controllers: [
     FilesController,
@@ -33,4 +35,5 @@ import { TelegramBotModule } from '../telegram-bot/telegram-bot.module';
   ],
 })
 export class FilesModule {}
+
 

@@ -19,11 +19,13 @@ import { LessonsController, LessonController } from './lessons.controller';
 
 // Auth module for guards
 import { AuthModule } from '../auth/auth.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Course, Block, Lesson, LessonMaterial]),
     forwardRef(() => AuthModule), // Для TelegramAuthGuard
+    forwardRef(() => UsersModule), // Для UsersService в guard
   ],
   controllers: [
     CoursesController,

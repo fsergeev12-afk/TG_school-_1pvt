@@ -17,6 +17,7 @@ import {
 // Related modules
 import { AuthModule } from '../auth/auth.module';
 import { PromoCodesModule } from '../promo-codes/promo-codes.module';
+import { UsersModule } from '../users/users.module';
 
 // Related entities
 import { Stream } from '../streams/entities/stream.entity';
@@ -31,6 +32,7 @@ import { StreamStudent } from '../streams/entities/stream-student.entity';
     ]),
     forwardRef(() => AuthModule),
     forwardRef(() => PromoCodesModule),
+    forwardRef(() => UsersModule),
   ],
   controllers: [
     PaymentsController,
@@ -45,4 +47,5 @@ import { StreamStudent } from '../streams/entities/stream-student.entity';
   ],
 })
 export class PaymentsModule {}
+
 
