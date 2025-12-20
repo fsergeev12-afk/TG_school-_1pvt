@@ -51,44 +51,34 @@ function AppContent() {
   // Аутентификация
   useEffect(() => {
     const authenticate = async () => {
-      if (!webApp?.initData) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const { data } = await apiClient.get('/auth/me');
-        setUser(data);
-      } catch (error) {
-        console.error('Auth error:', error);
-        // Если нет пользователя — создаём мок для тестирования
-        if (tgUser) {
-          setUser({
-            id: 'mock-creator-id',
-            telegramId: tgUser.id,
-            firstName: tgUser.first_name,
-            lastName: tgUser.last_name,
-            telegramUsername: tgUser.username,
-            role: 'creator', // Для тестирования интерфейса создателя
-            createdAt: new Date().toISOString(),
-          });
-        } else {
-          // Мок пользователь для разработки без Telegram
-          setUser({
-            id: 'dev-creator-id',
-            telegramId: 123456789,
-            firstName: 'Тестовый',
-            lastName: 'Создатель',
-            telegramUsername: 'test_creator',
-            role: 'creator',
-            createdAt: new Date().toISOString(),
-          });
+      // Если есть реальные данные Telegram - пробуем авторизоваться
+      if (webApp?.initData) {
+        try {
+          const { data } = await apiClient.get('/auth/me');
+          setUser(data);
+          return;
+        } catch (error) {
+          console.error('Auth error:', error);
         }
       }
+
+      // Мок пользователь для разработки/тестирования
+      // Роль: creator для тестирования интерфейса создателя
+      setUser({
+        id: 'dev-creator-id',
+        telegramId: tgUser?.id || 123456789,
+        firstName: tgUser?.first_name || 'Тестовый',
+        lastName: tgUser?.last_name || 'Создатель',
+        telegramUsername: tgUser?.username || 'test_creator',
+        role: 'creator',
+        createdAt: new Date().toISOString(),
+      });
     };
 
-    authenticate();
-  }, [webApp, tgUser, setUser, setLoading]);
+    if (webApp) {
+      authenticate();
+    }
+  }, [webApp, tgUser, setUser]);
 
   if (!webApp) {
     return <LoadingScreen message="Открывайте приложение через Telegram" />;
