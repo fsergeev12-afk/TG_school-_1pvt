@@ -177,7 +177,7 @@ export default function CreateCoursePage() {
         </div>
       </div>
 
-      <div className="p-4 pb-32">
+      <div className="p-4 pb-40">
         {/* Шаг 1: Информация */}
         {step === 1 && (
           <div className="space-y-4">
@@ -381,8 +381,8 @@ export default function CreateCoursePage() {
         )}
       </div>
 
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 safe-area-pb">
+      {/* Footer - above BottomNav */}
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20">
         {step === 1 ? (
           <Button
             fullWidth
