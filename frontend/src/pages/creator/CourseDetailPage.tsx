@@ -1,11 +1,45 @@
+import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useCourse } from '../../api/hooks';
+import { useCourse, useCreateBlock, useCreateLesson } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Card, Badge, Button } from '../../components/ui';
+import { Card, Badge, Button, Input } from '../../components/ui';
+import { useUIStore } from '../../store';
 
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: course, isLoading } = useCourse(id!);
+  const createBlock = useCreateBlock();
+  const createLesson = useCreateLesson();
+  const { showToast } = useUIStore();
+
+  const [isAddingBlock, setIsAddingBlock] = useState(false);
+  const [newBlockTitle, setNewBlockTitle] = useState('');
+  const [addingLessonToBlockId, setAddingLessonToBlockId] = useState<string | null>(null);
+  const [newLessonTitle, setNewLessonTitle] = useState('');
+
+  const handleAddBlock = async () => {
+    if (!newBlockTitle.trim() || !id) return;
+    try {
+      await createBlock.mutateAsync({ courseId: id, title: newBlockTitle.trim() });
+      setNewBlockTitle('');
+      setIsAddingBlock(false);
+      showToast('Блок добавлен!', 'success');
+    } catch {
+      showToast('Ошибка добавления блока', 'error');
+    }
+  };
+
+  const handleAddLesson = async (blockId: string) => {
+    if (!newLessonTitle.trim()) return;
+    try {
+      await createLesson.mutateAsync({ blockId, title: newLessonTitle.trim() });
+      setNewLessonTitle('');
+      setAddingLessonToBlockId(null);
+      showToast('Урок добавлен!', 'success');
+    } catch {
+      showToast('Ошибка добавления урока', 'error');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -81,12 +115,44 @@ export default function CourseDetailPage() {
             Структура курса
           </h2>
 
-          {course.blocks?.length === 0 ? (
+          {/* Форма добавления блока */}
+          {isAddingBlock && (
+            <Card className="mb-3 space-y-2">
+              <Input
+                placeholder="Название блока"
+                value={newBlockTitle}
+                onChange={(e) => setNewBlockTitle(e.target.value)}
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <Button
+                  fullWidth
+                  size="sm"
+                  onClick={handleAddBlock}
+                  loading={createBlock.isPending}
+                >
+                  Добавить
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    setIsAddingBlock(false);
+                    setNewBlockTitle('');
+                  }}
+                >
+                  Отмена
+                </Button>
+              </div>
+            </Card>
+          )}
+
+          {course.blocks?.length === 0 && !isAddingBlock ? (
             <Card className="text-center py-8">
               <p className="text-[var(--tg-theme-hint-color)]">
                 Добавьте первый блок курса
               </p>
-              <Button className="mt-3" size="sm">
+              <Button className="mt-3" size="sm" onClick={() => setIsAddingBlock(true)}>
                 + Добавить блок
               </Button>
             </Card>
@@ -120,15 +186,54 @@ export default function CourseDetailPage() {
                     </div>
                   ))}
 
-                  <Button variant="ghost" size="sm" className="w-full mt-2">
-                    + Добавить урок
-                  </Button>
+                  {/* Форма добавления урока */}
+                  {addingLessonToBlockId === block.id ? (
+                    <div className="mt-2 space-y-2">
+                      <Input
+                        placeholder="Название урока"
+                        value={newLessonTitle}
+                        onChange={(e) => setNewLessonTitle(e.target.value)}
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          fullWidth
+                          size="sm"
+                          onClick={() => handleAddLesson(block.id)}
+                          loading={createLesson.isPending}
+                        >
+                          Добавить
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => {
+                            setAddingLessonToBlockId(null);
+                            setNewLessonTitle('');
+                          }}
+                        >
+                          Отмена
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full mt-2"
+                      onClick={() => setAddingLessonToBlockId(block.id)}
+                    >
+                      + Добавить урок
+                    </Button>
+                  )}
                 </Card>
               ))}
 
-              <Button variant="secondary" fullWidth>
-                + Добавить блок
-              </Button>
+              {!isAddingBlock && (
+                <Button variant="secondary" fullWidth onClick={() => setIsAddingBlock(true)}>
+                  + Добавить блок
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -136,4 +241,5 @@ export default function CourseDetailPage() {
     </div>
   );
 }
+
 
