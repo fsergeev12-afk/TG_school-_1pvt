@@ -7,7 +7,7 @@ async function bootstrap() {
 
   // Включаем CORS для frontend
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: true, // Разрешаем все origins для тестирования
     credentials: true,
   });
 
@@ -24,7 +24,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const port = process.env.PORT || 3000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0'); // Слушаем на всех интерфейсах
 
   console.log(`
   🚀 Backend запущен на http://localhost:${port}
