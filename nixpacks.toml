@@ -10,3 +10,4 @@ dependsOn = ["install"]
 
 [start]
 cmd = "cd /app/backend && node dist/main.js"
+
