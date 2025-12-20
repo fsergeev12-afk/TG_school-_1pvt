@@ -7,11 +7,11 @@ import * as path from 'path';
 
 const isSQLite = process.env.DATABASE_TYPE === 'sqlite' || !process.env.DATABASE_TYPE;
 
-// SQLite конфигурация (для локальной разработки)
+// SQLite конфигурация (для локальной разработки и Railway)
 const sqliteConfig: TypeOrmModuleOptions = {
   type: 'sqlite',
   database: process.env.DATABASE_NAME || 'database.sqlite',
-  synchronize: process.env.NODE_ENV === 'development', // true для dev, false для prod
+  synchronize: true, // Для SQLite всегда true (MVP)
   logging: process.env.NODE_ENV === 'development',
   entities: [path.join(__dirname, '../**/*.entity{.ts,.js}')],
   migrations: [path.join(__dirname, '../database/migrations/*{.ts,.js}')],
