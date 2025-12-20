@@ -96,8 +96,6 @@ export function SortableList<T extends { id: string }>({
       const newItems = arrayMove(items, oldIndex, newIndex);
       onReorder(newItems);
     }
-
-    setActiveId(null);
   };
 
   return (
