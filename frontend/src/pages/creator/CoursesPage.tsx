@@ -1,32 +1,11 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCourses, useCreateCourse } from '../../api/hooks';
+import { useCourses } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Button, Card, Badge, Input } from '../../components/ui';
-import { useUIStore } from '../../store';
+import { Button, Card, Badge } from '../../components/ui';
 
 export default function CoursesPage() {
   const navigate = useNavigate();
   const { data: courses, isLoading } = useCourses();
-  const createCourse = useCreateCourse();
-  const { showToast } = useUIStore();
-  
-  const [isCreating, setIsCreating] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-
-  const handleCreate = async () => {
-    if (!newTitle.trim()) return;
-    
-    try {
-      const course = await createCourse.mutateAsync({ title: newTitle.trim() });
-      setNewTitle('');
-      setIsCreating(false);
-      showToast('Курс создан!', 'success');
-      navigate(`/creator/courses/${course.id}`);
-    } catch {
-      showToast('Ошибка создания курса', 'error');
-    }
-  };
 
   return (
     <div>
@@ -34,42 +13,13 @@ export default function CoursesPage() {
         title="Мои курсы"
         subtitle={courses ? `${courses.length} курсов` : undefined}
         action={
-          <Button size="sm" onClick={() => setIsCreating(true)}>
+          <Button size="sm" onClick={() => navigate('/creator/courses/new')}>
             + Создать
           </Button>
         }
       />
 
       <div className="p-4 space-y-3">
-        {/* Форма создания */}
-        {isCreating && (
-          <Card className="space-y-3">
-            <Input
-              placeholder="Название курса"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              autoFocus
-            />
-            <div className="flex gap-2">
-              <Button
-                fullWidth
-                onClick={handleCreate}
-                loading={createCourse.isPending}
-              >
-                Создать
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setIsCreating(false);
-                  setNewTitle('');
-                }}
-              >
-                Отмена
-              </Button>
-            </div>
-          </Card>
-        )}
 
         {/* Загрузка */}
         {isLoading && (
@@ -85,8 +35,11 @@ export default function CoursesPage() {
             <p className="text-[var(--tg-theme-hint-color)]">
               У вас пока нет курсов
             </p>
-            <Button className="mt-4" onClick={() => setIsCreating(true)}>
-              Создать первый курс
+            <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
+              Создайте первый курс для старта
+            </p>
+            <Button className="mt-4" onClick={() => navigate('/creator/courses/new')}>
+              + Создать курс
             </Button>
           </div>
         )}

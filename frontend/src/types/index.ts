@@ -38,6 +38,7 @@ export interface Lesson {
   videoType?: 'telegram' | 'external';
   videoTelegramFileId?: string;
   videoExternalUrl?: string;
+  videoUrl?: string; // Alias for videoExternalUrl
   videoDuration?: number;
   displayOrder: number;
   materials: LessonMaterial[];

@@ -81,6 +81,21 @@ export const usePublishCourse = () => {
   });
 };
 
+export const useUnpublishCourse = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await apiClient.post<Course>(`/courses/${id}/unpublish`);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course', data.id] });
+    },
+  });
+};
+
 // ============ Blocks ============
 export const useCreateBlock = () => {
   const queryClient = useQueryClient();
@@ -142,7 +157,13 @@ export const useCreateLesson = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ blockId, ...dto }: { blockId: string; title: string; description?: string }) => {
+    mutationFn: async ({ blockId, ...dto }: { 
+      blockId: string; 
+      title: string; 
+      description?: string;
+      videoType?: string;
+      videoUrl?: string;
+    }) => {
       const { data } = await apiClient.post<Lesson>(`/blocks/${blockId}/lessons`, dto);
       return data;
     },
@@ -156,7 +177,13 @@ export const useUpdateLesson = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, ...dto }: { id: string; title?: string; description?: string; videoType?: string; videoTelegramFileId?: string; videoExternalUrl?: string }) => {
+    mutationFn: async ({ id, ...dto }: { 
+      id: string; 
+      title?: string; 
+      description?: string; 
+      videoType?: string; 
+      videoUrl?: string;
+    }) => {
       const { data } = await apiClient.patch<Lesson>(`/lessons/${id}`, dto);
       return data;
     },

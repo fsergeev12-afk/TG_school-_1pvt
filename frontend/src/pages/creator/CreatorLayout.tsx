@@ -3,6 +3,7 @@ import { CreatorBottomNav } from '../../components/layout';
 
 // Pages
 import CoursesPage from './CoursesPage';
+import CreateCoursePage from './CreateCoursePage';
 import CourseDetailPage from './CourseDetailPage';
 import StreamsPage from './StreamsPage';
 import StreamDetailPage from './StreamDetailPage';
@@ -17,6 +18,7 @@ export default function CreatorLayout() {
       <Routes>
         <Route path="/" element={<Navigate to="courses" replace />} />
         <Route path="courses" element={<CoursesPage />} />
+        <Route path="courses/new" element={<CreateCoursePage />} />
         <Route path="courses/:id" element={<CourseDetailPage />} />
         <Route path="streams" element={<StreamsPage />} />
         <Route path="streams/:id" element={<StreamDetailPage />} />
