@@ -12,7 +12,7 @@ import StudentLayout from './pages/student/StudentLayout';
 // Pages
 import LoadingScreen from './components/shared/LoadingScreen';
 
-// Create Query Client
+// Create Query Client for API requests
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
