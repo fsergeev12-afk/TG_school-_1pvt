@@ -9,4 +9,4 @@ cmds = ["cd /app/backend && npm run build"]
 dependsOn = ["install"]
 
 [start]
-cmd = "cd /app/backend && npm run start:prod"
+cmd = "cd /app/backend && node dist/main.js"
