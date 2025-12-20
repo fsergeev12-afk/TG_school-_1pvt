@@ -61,19 +61,28 @@ function AppContent() {
         setUser(data);
       } catch (error) {
         console.error('Auth error:', error);
-        // Если нет пользователя — он будет создан при первом запросе
+        // Если нет пользователя — создаём мок для тестирования
         if (tgUser) {
           setUser({
-            id: '',
+            id: 'mock-creator-id',
             telegramId: tgUser.id,
             firstName: tgUser.first_name,
             lastName: tgUser.last_name,
             telegramUsername: tgUser.username,
-            role: 'student',
+            role: 'creator', // Для тестирования интерфейса создателя
             createdAt: new Date().toISOString(),
           });
         } else {
-          setUser(null);
+          // Мок пользователь для разработки без Telegram
+          setUser({
+            id: 'dev-creator-id',
+            telegramId: 123456789,
+            firstName: 'Тестовый',
+            lastName: 'Создатель',
+            telegramUsername: 'test_creator',
+            role: 'creator',
+            createdAt: new Date().toISOString(),
+          });
         }
       }
     };
