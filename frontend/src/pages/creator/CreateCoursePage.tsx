@@ -32,7 +32,6 @@ export default function CreateCoursePage() {
   // Шаг 1: Информация о курсе
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
   // Шаг 2: Структура
@@ -52,7 +51,6 @@ export default function CreateCoursePage() {
         showToast('Файл слишком большой (макс 5MB)', 'error');
         return;
       }
-      setCoverFile(file);
       const reader = new FileReader();
       reader.onload = () => setCoverPreview(reader.result as string);
       reader.readAsDataURL(file);
@@ -60,7 +58,6 @@ export default function CreateCoursePage() {
   };
 
   const removeCover = () => {
-    setCoverFile(null);
     setCoverPreview(null);
   };
 

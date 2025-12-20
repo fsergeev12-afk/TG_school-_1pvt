@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   DndContext,
   closestCenter,
@@ -76,8 +76,6 @@ export function SortableList<T extends { id: string }>({
   onReorder,
   renderItem,
 }: SortableListProps<T>) {
-  const [activeId, setActiveId] = useState<string | null>(null);
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -106,7 +104,6 @@ export function SortableList<T extends { id: string }>({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
-      onDragStart={(event) => setActiveId(event.active.id as string)}
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
