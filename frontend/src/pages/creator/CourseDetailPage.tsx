@@ -79,9 +79,9 @@ export default function CourseDetailPage() {
     videoUrl: '',
   });
 
-  // Delete confirmation
-  const [deletingBlockId, setDeletingBlockId] = useState<string | null>(null);
-  const [deletingLessonId, setDeletingLessonId] = useState<string | null>(null);
+  // Delete confirmation modals
+  const [deleteBlockConfirm, setDeleteBlockConfirm] = useState<{ id: string; title: string } | null>(null);
+  const [deleteLessonConfirm, setDeleteLessonConfirm] = useState<{ id: string; title: string } | null>(null);
 
   const toggleBlockExpanded = (blockId: string) => {
     const newExpanded = new Set(expandedBlocks);
@@ -144,20 +144,30 @@ export default function CourseDetailPage() {
     }
   };
 
-  const handleDeleteBlock = async (blockId: string) => {
+  const confirmDeleteBlock = (block: Block) => {
+    setDeleteBlockConfirm({ id: block.id, title: block.title });
+  };
+
+  const handleDeleteBlock = async () => {
+    if (!deleteBlockConfirm) return;
     try {
-      await deleteBlock.mutateAsync(blockId);
-      setDeletingBlockId(null);
+      await deleteBlock.mutateAsync(deleteBlockConfirm.id);
+      setDeleteBlockConfirm(null);
       showToast('Блок удалён', 'success');
     } catch {
       showToast('Ошибка удаления блока', 'error');
     }
   };
 
-  const handleDeleteLesson = async (lessonId: string) => {
+  const confirmDeleteLesson = (lesson: Lesson) => {
+    setDeleteLessonConfirm({ id: lesson.id, title: lesson.title });
+  };
+
+  const handleDeleteLesson = async () => {
+    if (!deleteLessonConfirm) return;
     try {
-      await deleteLesson.mutateAsync(lessonId);
-      setDeletingLessonId(null);
+      await deleteLesson.mutateAsync(deleteLessonConfirm.id);
+      setDeleteLessonConfirm(null);
       showToast('Урок удалён', 'success');
     } catch {
       showToast('Ошибка удаления урока', 'error');
@@ -467,36 +477,15 @@ export default function CourseDetailPage() {
                         >
                           ✏️
                         </button>
-                        {deletingBlockId === block.id ? (
-                          <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                            <Button
-                              size="sm"
-                              className="bg-red-500 hover:bg-red-600 text-xs px-2 py-1"
-                              onClick={() => handleDeleteBlock(block.id)}
-                              loading={deleteBlock.isPending}
-                            >
-                              Да
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="text-xs px-2 py-1"
-                              onClick={() => setDeletingBlockId(null)}
-                            >
-                              Нет
-                            </Button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeletingBlockId(block.id);
-                            }}
-                            className="text-[var(--tg-theme-hint-color)] hover:text-red-500 p-1.5"
-                          >
-                            🗑️
-                          </button>
-                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            confirmDeleteBlock(block);
+                          }}
+                          className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
+                        >
+                          🗑️
+                        </button>
                         <span className="text-[var(--tg-theme-hint-color)] ml-1">
                           {expandedBlocks.has(block.id) ? '▼' : '▶'}
                         </span>
@@ -526,32 +515,15 @@ export default function CourseDetailPage() {
                                     {lesson.videoType === 'telegram' ? '🎬' : '🔗'}
                                   </span>
                                 )}
-                                {deletingLessonId === lesson.id ? (
-                                  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                      onClick={() => handleDeleteLesson(lesson.id)}
-                                      className="text-xs text-red-500 px-1"
-                                    >
-                                      ✓
-                                    </button>
-                                    <button
-                                      onClick={() => setDeletingLessonId(null)}
-                                      className="text-xs text-[var(--tg-theme-hint-color)] px-1"
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setDeletingLessonId(lesson.id);
-                                    }}
-                                    className="text-[var(--tg-theme-hint-color)] hover:text-red-500 p-1.5 text-sm"
-                                  >
-                                    ✕
-                                  </button>
-                                )}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    confirmDeleteLesson(lesson);
+                                  }}
+                                  className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
+                                >
+                                  🗑️
+                                </button>
                               </div>
                             )}
                           />
@@ -849,6 +821,74 @@ export default function CourseDetailPage() {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* Delete Block Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteBlockConfirm}
+        onClose={() => setDeleteBlockConfirm(null)}
+        title="🗑️ Удалить блок?"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-[var(--tg-theme-text-color)]">
+            Вы уверены, что хотите удалить блок <strong>"{deleteBlockConfirm?.title}"</strong>?
+          </p>
+          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+            Все уроки в этом блоке также будут удалены. Это действие нельзя отменить.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => setDeleteBlockConfirm(null)}
+            >
+              Отмена
+            </Button>
+            <Button
+              fullWidth
+              className="bg-red-500 hover:bg-red-600"
+              onClick={handleDeleteBlock}
+              loading={deleteBlock.isPending}
+            >
+              Удалить
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Lesson Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteLessonConfirm}
+        onClose={() => setDeleteLessonConfirm(null)}
+        title="🗑️ Удалить урок?"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-[var(--tg-theme-text-color)]">
+            Вы уверены, что хотите удалить урок <strong>"{deleteLessonConfirm?.title}"</strong>?
+          </p>
+          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+            Это действие нельзя отменить.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => setDeleteLessonConfirm(null)}
+            >
+              Отмена
+            </Button>
+            <Button
+              fullWidth
+              className="bg-red-500 hover:bg-red-600"
+              onClick={handleDeleteLesson}
+              loading={deleteLesson.isPending}
+            >
+              Удалить
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

@@ -77,6 +77,10 @@ export default function CreateCoursePage() {
   const [filePreviewOpen, setFilePreviewOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FileDraft | null>(null);
 
+  // Модалки подтверждения удаления
+  const [deleteBlockConfirm, setDeleteBlockConfirm] = useState<{ id: string; title: string } | null>(null);
+  const [deleteLessonConfirm, setDeleteLessonConfirm] = useState<{ blockId: string; lessonId: string; title: string } | null>(null);
+
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,8 +126,14 @@ export default function CreateCoursePage() {
     }
   };
 
-  const removeBlock = (blockId: string) => {
-    setBlocks(blocks.filter((b) => b.id !== blockId));
+  const confirmDeleteBlock = (block: BlockDraft) => {
+    setDeleteBlockConfirm({ id: block.id, title: block.title });
+  };
+
+  const removeBlock = () => {
+    if (!deleteBlockConfirm) return;
+    setBlocks(blocks.filter((b) => b.id !== deleteBlockConfirm.id));
+    setDeleteBlockConfirm(null);
   };
 
   const startEditBlock = (block: BlockDraft) => {
@@ -292,14 +302,20 @@ export default function CreateCoursePage() {
     setLessonModalOpen(false);
   };
 
-  const removeLesson = (e: React.MouseEvent, blockId: string, lessonId: string) => {
+  const confirmDeleteLesson = (e: React.MouseEvent, blockId: string, lesson: LessonDraft) => {
     e.preventDefault();
     e.stopPropagation();
+    setDeleteLessonConfirm({ blockId, lessonId: lesson.id, title: lesson.title });
+  };
+
+  const removeLesson = () => {
+    if (!deleteLessonConfirm) return;
     setBlocks(blocks.map(block =>
-      block.id === blockId
-        ? { ...block, lessons: block.lessons.filter(l => l.id !== lessonId) }
+      block.id === deleteLessonConfirm.blockId
+        ? { ...block, lessons: block.lessons.filter(l => l.id !== deleteLessonConfirm.lessonId) }
         : block
     ));
+    setDeleteLessonConfirm(null);
   };
 
   const handleLessonsReorder = (blockId: string, reordered: LessonDraft[]) => {
@@ -514,7 +530,7 @@ export default function CreateCoursePage() {
                           ✏️
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); removeBlock(block.id); }}
+                          onClick={(e) => { e.stopPropagation(); confirmDeleteBlock(block); }}
                           className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                         >
                           🗑️
@@ -549,10 +565,10 @@ export default function CreateCoursePage() {
                                   </span>
                                 )}
                                 <button
-                                  onClick={(e) => removeLesson(e, block.id, lesson.id)}
-                                  className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500 text-sm"
+                                  onClick={(e) => confirmDeleteLesson(e, block.id, lesson)}
+                                  className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                                 >
-                                  ✕
+                                  🗑️
                                 </button>
                               </div>
                             )}
@@ -854,6 +870,69 @@ export default function CreateCoursePage() {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Delete Block Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteBlockConfirm}
+        onClose={() => setDeleteBlockConfirm(null)}
+        title="🗑️ Удалить блок?"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-[var(--tg-theme-text-color)]">
+            Вы уверены, что хотите удалить блок <strong>"{deleteBlockConfirm?.title}"</strong>?
+          </p>
+          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+            Все уроки в этом блоке также будут удалены.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => setDeleteBlockConfirm(null)}
+            >
+              Отмена
+            </Button>
+            <Button
+              fullWidth
+              className="bg-red-500 hover:bg-red-600"
+              onClick={removeBlock}
+            >
+              Удалить
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Lesson Confirmation Modal */}
+      <Modal
+        isOpen={!!deleteLessonConfirm}
+        onClose={() => setDeleteLessonConfirm(null)}
+        title="🗑️ Удалить урок?"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-[var(--tg-theme-text-color)]">
+            Вы уверены, что хотите удалить урок <strong>"{deleteLessonConfirm?.title}"</strong>?
+          </p>
+          <div className="flex gap-2">
+            <Button
+              fullWidth
+              variant="secondary"
+              onClick={() => setDeleteLessonConfirm(null)}
+            >
+              Отмена
+            </Button>
+            <Button
+              fullWidth
+              className="bg-red-500 hover:bg-red-600"
+              onClick={removeLesson}
+            >
+              Удалить
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
