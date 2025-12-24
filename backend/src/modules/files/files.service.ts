@@ -137,34 +137,33 @@ export class FilesService {
   }
 
   /**
-   * Загрузить видео урока в Telegram
+   * Загрузить видео урока в Telegram (в технический канал)
    */
   async uploadVideo(
     file: Express.Multer.File,
-    chatId: number,
+    _userId?: number, // Не используется, файлы идут в канал
   ): Promise<UploadResult> {
     this.validateFile(file, 'video');
+
+    // ID технического канала для хранения файлов
+    const storageChannelId = this.configService.get<string>('TELEGRAM_STORAGE_CHANNEL_ID');
+    if (!storageChannelId) {
+      throw new BadRequestException('Хранилище файлов не настроено (TELEGRAM_STORAGE_CHANNEL_ID)');
+    }
 
     try {
       // Сохраняем во временный файл
       const tempPath = path.join(this.uploadsDir, 'temp', `${Date.now()}_${file.originalname}`);
       fs.writeFileSync(tempPath, file.buffer);
 
-      // Отправляем в Telegram и получаем file_id
+      // Отправляем в технический канал Telegram
       const bot = this.telegramBotService.getBot();
-      const message = await bot.sendVideo(chatId, tempPath, {
-        caption: 'Загрузка видео...',
+      const message = await bot.sendVideo(storageChannelId, tempPath, {
+        caption: `🎬 ${file.originalname}`,
       });
 
       // Удаляем временный файл
       fs.unlinkSync(tempPath);
-
-      // Удаляем сообщение из чата (оно было только для загрузки)
-      try {
-        await bot.deleteMessage(chatId, message.message_id);
-      } catch {
-        // Игнорируем ошибку удаления
-      }
 
       const video = message.video;
       if (!video) {
@@ -186,34 +185,33 @@ export class FilesService {
   }
 
   /**
-   * Загрузить материал урока в Telegram
+   * Загрузить материал урока в Telegram (в технический канал)
    */
   async uploadMaterial(
     file: Express.Multer.File,
-    chatId: number,
+    _userId?: number, // Не используется, файлы идут в канал
   ): Promise<UploadResult> {
     this.validateFile(file, 'material');
+
+    // ID технического канала для хранения файлов
+    const storageChannelId = this.configService.get<string>('TELEGRAM_STORAGE_CHANNEL_ID');
+    if (!storageChannelId) {
+      throw new BadRequestException('Хранилище файлов не настроено (TELEGRAM_STORAGE_CHANNEL_ID)');
+    }
 
     try {
       // Сохраняем во временный файл
       const tempPath = path.join(this.uploadsDir, 'temp', `${Date.now()}_${file.originalname}`);
       fs.writeFileSync(tempPath, file.buffer);
 
-      // Отправляем в Telegram и получаем file_id
+      // Отправляем в технический канал Telegram
       const bot = this.telegramBotService.getBot();
-      const message = await bot.sendDocument(chatId, tempPath, {
-        caption: '📄 Загрузка документа...',
+      const message = await bot.sendDocument(storageChannelId, tempPath, {
+        caption: `📄 ${file.originalname}`,
       });
 
       // Удаляем временный файл
       fs.unlinkSync(tempPath);
-
-      // Удаляем сообщение из чата (чтобы не засорять)
-      try {
-        await bot.deleteMessage(chatId, message.message_id);
-      } catch {
-        // Игнорируем ошибку удаления
-      }
 
       const document = message.document;
       if (!document) {
@@ -232,7 +230,7 @@ export class FilesService {
 
     } catch (error) {
       this.logger.error(`Ошибка загрузки материала: ${error.message}`);
-      throw new BadRequestException(`Ошибка загрузки: ${error.message}. Убедитесь, что вы отправили /start боту @Bllocklyyy_bot`);
+      throw new BadRequestException(`Ошибка загрузки файла. Проверьте настройки хранилища.`);
     }
   }
 
