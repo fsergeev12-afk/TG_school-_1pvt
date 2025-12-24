@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   useCourse, 
   useCreateBlock,
@@ -33,7 +33,8 @@ interface LessonFormData {
 
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data: course, isLoading } = useCourse(id!);
+  const navigate = useNavigate();
+  const { data: course, isLoading, refetch } = useCourse(id!);
   const createBlock = useCreateBlock();
   const updateBlock = useUpdateBlock();
   const createLesson = useCreateLesson();
@@ -83,6 +84,10 @@ export default function CourseDetailPage() {
   const [deleteBlockConfirm, setDeleteBlockConfirm] = useState<{ id: string; title: string } | null>(null);
   const [deleteLessonConfirm, setDeleteLessonConfirm] = useState<{ id: string; title: string } | null>(null);
 
+  // Track unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
+
   const toggleBlockExpanded = (blockId: string) => {
     const newExpanded = new Set(expandedBlocks);
     if (newExpanded.has(blockId)) {
@@ -105,6 +110,7 @@ export default function CourseDetailPage() {
       setNewBlockTitle('');
       setAddBlockModalOpen(false);
       setExpandedBlocks(new Set([...expandedBlocks, block.id]));
+      setHasUnsavedChanges(true);
       showToast('Блок добавлен!', 'success');
     } catch {
       showToast('Ошибка добавления блока', 'error');
@@ -129,6 +135,7 @@ export default function CourseDetailPage() {
       await updateBlock.mutateAsync({ id: editingBlockId, title: editBlockTitle.trim() });
       setEditingBlockId(null);
       setEditBlockTitle('');
+      setHasUnsavedChanges(true);
       showToast('Блок обновлён!', 'success');
     } catch {
       showToast('Ошибка обновления блока', 'error');
@@ -202,6 +209,7 @@ export default function CourseDetailPage() {
         });
         showToast('Урок добавлен!', 'success');
       }
+      setHasUnsavedChanges(true);
       setLessonModalOpen(false);
     } catch {
       showToast('Ошибка сохранения урока', 'error');
@@ -367,6 +375,13 @@ export default function CourseDetailPage() {
         title="Редактирование курса"
         subtitle={course.title}
         showBack
+        onBack={() => {
+          if (hasUnsavedChanges) {
+            setExitConfirmOpen(true);
+          } else {
+            navigate('/creator/courses');
+          }
+        }}
       />
 
       <div className="p-4 space-y-4">
@@ -545,13 +560,50 @@ export default function CourseDetailPage() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 z-40">
         <Button
           fullWidth
-          onClick={() => {
+          onClick={async () => {
+            await refetch();
+            setHasUnsavedChanges(false);
             showToast('Изменения сохранены!', 'success');
           }}
         >
           ✓ Сохранить изменения
         </Button>
       </div>
+
+      {/* Exit Confirmation Modal */}
+      <Modal
+        isOpen={exitConfirmOpen}
+        onClose={() => setExitConfirmOpen(false)}
+        title="⚠️ Несохранённые изменения"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-[var(--tg-theme-text-color)]">
+            У вас есть несохранённые изменения. Если вы покинете страницу, изменения будут потеряны.
+          </p>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              fullWidth
+              variant="secondary"
+              onClick={() => setExitConfirmOpen(false)}
+            >
+              Остаться
+            </Button>
+            <Button
+              type="button"
+              fullWidth
+              variant="danger"
+              onClick={() => {
+                setExitConfirmOpen(false);
+                navigate('/creator/courses');
+              }}
+            >
+              Выйти без сохранения
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Add Block Modal */}
       <Modal
