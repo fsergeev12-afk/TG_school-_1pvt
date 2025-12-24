@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { LessonsService } from './lessons.service';
+import { LessonMaterialsService, AddMaterialDto } from './lesson-materials.service';
 import { CreateLessonDto, UpdateLessonDto, ReorderDto } from './dto';
 import { TelegramAuthGuard } from '../auth/guards/telegram-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -65,7 +66,10 @@ export class LessonsController {
 @Controller('lessons')
 @UseGuards(TelegramAuthGuard, RolesGuard)
 export class LessonController {
-  constructor(private readonly lessonsService: LessonsService) {}
+  constructor(
+    private readonly lessonsService: LessonsService,
+    private readonly materialsService: LessonMaterialsService,
+  ) {}
 
   /**
    * Получить урок по ID
@@ -117,5 +121,46 @@ export class LessonController {
     await this.lessonsService.remove(id, user.id);
     return { message: 'Урок удалён' };
   }
+
+  // ========== MATERIALS ==========
+
+  /**
+   * Получить материалы урока
+   * GET /api/lessons/:id/materials
+   */
+  @Get(':id/materials')
+  async getMaterials(@Param('id', ParseUUIDPipe) id: string) {
+    return this.materialsService.getMaterials(id);
+  }
+
+  /**
+   * Добавить материал к уроку
+   * POST /api/lessons/:id/materials
+   */
+  @Post(':id/materials')
+  @Roles('creator')
+  async addMaterial(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+    @Body() dto: AddMaterialDto,
+  ) {
+    return this.materialsService.addMaterial(id, user.id, dto);
+  }
+
+  /**
+   * Удалить материал из урока
+   * DELETE /api/lessons/:id/materials/:materialId
+   */
+  @Delete(':id/materials/:materialId')
+  @Roles('creator')
+  async removeMaterial(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('materialId', ParseUUIDPipe) materialId: string,
+    @CurrentUser() user: User,
+  ) {
+    await this.materialsService.removeMaterial(id, materialId, user.id);
+    return { message: 'Материал удалён' };
+  }
 }
+
 

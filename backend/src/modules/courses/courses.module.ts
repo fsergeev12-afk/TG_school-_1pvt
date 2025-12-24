@@ -11,6 +11,7 @@ import { LessonMaterial } from './entities/lesson-material.entity';
 import { CoursesService } from './courses.service';
 import { BlocksService } from './blocks.service';
 import { LessonsService } from './lessons.service';
+import { LessonMaterialsService } from './lesson-materials.service';
 
 // Controllers
 import { CoursesController } from './courses.controller';
@@ -38,11 +39,13 @@ import { UsersModule } from '../users/users.module';
     CoursesService,
     BlocksService,
     LessonsService,
+    LessonMaterialsService,
   ],
   exports: [
     CoursesService,
     BlocksService,
     LessonsService,
+    LessonMaterialsService,
   ],
 })
 export class CoursesModule {}
