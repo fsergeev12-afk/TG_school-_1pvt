@@ -45,6 +45,7 @@ export const useCreateStream = () => {
       description?: string;
       price?: number;
       scheduleEnabled?: boolean;
+      lessonSchedules?: { lessonId: string; scheduledOpenAt: string }[];
     }) => {
       const { data } = await apiClient.post<Stream>('/streams', dto);
       return data;
