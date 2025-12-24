@@ -59,6 +59,10 @@ export class FilesService {
     
     this.logger.log(`Директория uploads: ${this.uploadsDir}`);
     
+    // Логируем наличие переменной хранилища
+    const storageChannelId = this.configService.get<string>('TELEGRAM_STORAGE_CHANNEL_ID');
+    this.logger.log(`TELEGRAM_STORAGE_CHANNEL_ID: ${storageChannelId ? 'настроен ✓' : 'НЕ НАСТРОЕН ✗'}`);
+    
     // Создаём директории если не существуют
     this.ensureDirectories();
   }
