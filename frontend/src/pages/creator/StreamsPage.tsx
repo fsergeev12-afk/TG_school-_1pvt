@@ -135,9 +135,11 @@ export default function StreamsPage() {
         title="Потоки"
         subtitle={streams ? `${streams.length} потоков` : undefined}
         action={
-          <Button size="sm" onClick={() => setIsCreating(true)}>
-            + Создать
-          </Button>
+          !isCreating ? (
+            <Button size="sm" onClick={() => setIsCreating(true)}>
+              + Создать
+            </Button>
+          ) : undefined
         }
       />
 
