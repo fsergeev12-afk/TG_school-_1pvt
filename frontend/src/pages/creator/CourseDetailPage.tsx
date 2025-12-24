@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   useCourse, 
   useCreateBlock,
@@ -33,6 +33,7 @@ interface LessonFormData {
 
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { data: course, isLoading } = useCourse(id!);
   const createBlock = useCreateBlock();
   const updateBlock = useUpdateBlock();
@@ -539,6 +540,19 @@ export default function CourseDetailPage() {
             <span className="font-medium">Добавить блок</span>
           </button>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 z-40">
+        <Button
+          fullWidth
+          onClick={() => {
+            showToast('Изменения сохранены!', 'success');
+            navigate('/creator/courses');
+          }}
+        >
+          ✓ Сохранить изменения
+        </Button>
       </div>
 
       {/* Add Block Modal */}
