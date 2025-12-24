@@ -228,4 +228,89 @@ export const useReorderLessons = () => {
   });
 };
 
+// ============ Materials ============
+export interface LessonMaterial {
+  id: string;
+  lessonId: string;
+  fileName: string;
+  fileType: string;
+  fileSizeBytes: number;
+  telegramFileId: string;
+  displayOrder: number;
+  createdAt: string;
+}
+
+export interface UploadResult {
+  fileId: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  storageType: 'telegram' | 'local';
+  url?: string;
+}
+
+export const useLessonMaterials = (lessonId: string) => {
+  return useQuery({
+    queryKey: ['lesson-materials', lessonId],
+    queryFn: async () => {
+      const { data } = await apiClient.get<LessonMaterial[]>(`/lessons/${lessonId}/materials`);
+      return data;
+    },
+    enabled: !!lessonId,
+  });
+};
+
+export const useUploadMaterial = () => {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await apiClient.post<UploadResult>('/files/material', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return data;
+    },
+  });
+};
+
+export const useAddMaterial = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ lessonId, fileId, fileName, fileType, fileSizeBytes }: {
+      lessonId: string;
+      fileId: string;
+      fileName: string;
+      fileType: string;
+      fileSizeBytes: number;
+    }) => {
+      const { data } = await apiClient.post<LessonMaterial>(`/lessons/${lessonId}/materials`, {
+        fileId,
+        fileName,
+        fileType,
+        fileSizeBytes,
+      });
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['lesson-materials', variables.lessonId] });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+};
+
+export const useDeleteMaterial = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ lessonId, materialId }: { lessonId: string; materialId: string }) => {
+      await apiClient.delete(`/lessons/${lessonId}/materials/${materialId}`);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['lesson-materials', variables.lessonId] });
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+    },
+  });
+};
+
 

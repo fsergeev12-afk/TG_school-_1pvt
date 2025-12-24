@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
   useCourse, 
@@ -9,7 +9,12 @@ import {
   useReorderBlocks,
   useReorderLessons,
   useDeleteBlock,
-  useDeleteLesson
+  useDeleteLesson,
+  useLessonMaterials,
+  useUploadMaterial,
+  useAddMaterial,
+  useDeleteMaterial,
+  LessonMaterial,
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
 import { Card, Button, Input, Modal, SortableList } from '../../components/ui';
@@ -36,7 +41,13 @@ export default function CourseDetailPage() {
   const reorderLessons = useReorderLessons();
   const deleteBlock = useDeleteBlock();
   const deleteLesson = useDeleteLesson();
+  const uploadMaterial = useUploadMaterial();
+  const addMaterial = useAddMaterial();
+  const deleteMaterial = useDeleteMaterial();
   const { showToast } = useUIStore();
+
+  // File input ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Block modal
   const [addBlockModalOpen, setAddBlockModalOpen] = useState(false);
@@ -199,6 +210,71 @@ export default function CourseDetailPage() {
     } catch {
       showToast('Ошибка сохранения урока', 'error');
     }
+  };
+
+  // Materials
+  const { data: materials, refetch: refetchMaterials } = useLessonMaterials(editingLesson?.id || '');
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingLesson) return;
+
+    // Проверка типа
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      showToast('Разрешены только PDF, DOC, DOCX', 'error');
+      return;
+    }
+
+    // Проверка размера (20MB)
+    if (file.size > 20 * 1024 * 1024) {
+      showToast('Файл слишком большой (макс 20MB)', 'error');
+      return;
+    }
+
+    try {
+      // 1. Загружаем файл
+      const uploadResult = await uploadMaterial.mutateAsync(file);
+      
+      // 2. Привязываем к уроку
+      await addMaterial.mutateAsync({
+        lessonId: editingLesson.id,
+        fileId: uploadResult.fileId,
+        fileName: uploadResult.fileName,
+        fileType: file.name.split('.').pop() || 'pdf',
+        fileSizeBytes: uploadResult.fileSize,
+      });
+
+      showToast('Документ загружен!', 'success');
+      refetchMaterials();
+    } catch {
+      showToast('Ошибка загрузки документа', 'error');
+    }
+
+    // Сбросить input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDeleteMaterial = async (material: LessonMaterial) => {
+    if (!editingLesson) return;
+    try {
+      await deleteMaterial.mutateAsync({
+        lessonId: editingLesson.id,
+        materialId: material.id,
+      });
+      showToast('Документ удалён', 'success');
+      refetchMaterials();
+    } catch {
+      showToast('Ошибка удаления', 'error');
+    }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
   };
 
   const handleBlocksReorder = async (reorderedBlocks: Block[]) => {
@@ -574,6 +650,71 @@ export default function CourseDetailPage() {
               </button>
             )}
           </div>
+
+          {/* Материалы (только при редактировании) */}
+          {editingLesson && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+                📄 Документы
+              </label>
+              
+              {/* Список загруженных материалов */}
+              {materials && materials.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {materials.map((material) => (
+                    <div
+                      key={material.id}
+                      className="flex items-center gap-2 p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg"
+                    >
+                      <span className="text-lg">
+                        {material.fileType === 'pdf' ? '📕' : '📄'}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-[var(--tg-theme-text-color)] truncate">
+                          {material.fileName}
+                        </p>
+                        <p className="text-xs text-[var(--tg-theme-hint-color)]">
+                          {formatFileSize(material.fileSizeBytes)}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteMaterial(material)}
+                        className="p-1 text-[var(--tg-theme-hint-color)] hover:text-red-500"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Кнопка загрузки */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadMaterial.isPending || addMaterial.isPending}
+                className="w-full p-3 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-hint-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:text-[var(--tg-theme-button-color)] transition-colors disabled:opacity-50"
+              >
+                {uploadMaterial.isPending || addMaterial.isPending ? (
+                  <>Загрузка...</>
+                ) : (
+                  <>
+                    <span className="text-lg">📤</span>
+                    <span className="text-sm">Добавить документ</span>
+                  </>
+                )}
+              </button>
+              <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1 text-center">
+                PDF, DOC, DOCX • до 20MB
+              </p>
+            </div>
+          )}
 
           <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
             <Button
