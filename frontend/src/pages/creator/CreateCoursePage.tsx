@@ -2,8 +2,16 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateCourse, useCreateBlock, useCreateLesson } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Button, Card, Input } from '../../components/ui';
+import { Button, Card, Input, Modal, SortableList } from '../../components/ui';
 import { useUIStore } from '../../store';
+
+interface LessonDraft {
+  id: string;
+  title: string;
+  description?: string;
+  videoType?: 'telegram' | 'external' | null;
+  videoUrl?: string;
+}
 
 interface BlockDraft {
   id: string;
@@ -11,13 +19,7 @@ interface BlockDraft {
   lessons: LessonDraft[];
 }
 
-interface LessonDraft {
-  id: string;
-  title: string;
-  description?: string;
-  videoType?: 'telegram' | 'external';
-  videoUrl?: string;
-}
+type VideoType = 'telegram' | 'external' | null;
 
 export default function CreateCoursePage() {
   const navigate = useNavigate();
@@ -36,13 +38,25 @@ export default function CreateCoursePage() {
 
   // Шаг 2: Структура
   const [blocks, setBlocks] = useState<BlockDraft[]>([]);
-  const [isAddingBlock, setIsAddingBlock] = useState(false);
   const [newBlockTitle, setNewBlockTitle] = useState('');
-  const [addingLessonToBlock, setAddingLessonToBlock] = useState<string | null>(null);
-  const [newLessonTitle, setNewLessonTitle] = useState('');
-  const [newLessonDescription, setNewLessonDescription] = useState('');
+  const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set());
 
-  const [isPublishing, setIsPublishing] = useState(false);
+  // Редактирование блока
+  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
+  const [editBlockTitle, setEditBlockTitle] = useState('');
+
+  // Модалка урока
+  const [lessonModalOpen, setLessonModalOpen] = useState(false);
+  const [lessonBlockId, setLessonBlockId] = useState<string | null>(null);
+  const [editingLesson, setEditingLesson] = useState<LessonDraft | null>(null);
+  const [lessonForm, setLessonForm] = useState({
+    title: '',
+    description: '',
+    videoType: null as VideoType,
+    videoUrl: '',
+  });
+
+  const [isCreating, setIsCreating] = useState(false);
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -61,73 +75,145 @@ export default function CreateCoursePage() {
     setCoverPreview(null);
   };
 
+  // Блоки
   const addBlock = () => {
     if (!newBlockTitle.trim()) return;
-    setBlocks([
-      ...blocks,
-      {
-        id: `temp-${Date.now()}`,
-        title: newBlockTitle.trim(),
-        lessons: [],
-      },
-    ]);
+    const newBlock: BlockDraft = {
+      id: `temp-${Date.now()}`,
+      title: newBlockTitle.trim(),
+      lessons: [],
+    };
+    setBlocks([...blocks, newBlock]);
+    setExpandedBlocks(new Set([...expandedBlocks, newBlock.id]));
     setNewBlockTitle('');
-    setIsAddingBlock(false);
+  };
+
+  const handleBlockKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addBlock();
+    }
   };
 
   const removeBlock = (blockId: string) => {
     setBlocks(blocks.filter((b) => b.id !== blockId));
   };
 
-  const addLesson = (blockId: string) => {
-    if (!newLessonTitle.trim()) return;
-    setBlocks(
-      blocks.map((block) =>
-        block.id === blockId
-          ? {
-              ...block,
-              lessons: [
-                ...block.lessons,
-                {
-                  id: `temp-${Date.now()}`,
-                  title: newLessonTitle.trim(),
-                  description: newLessonDescription.trim() || undefined,
-                },
-              ],
-            }
+  const startEditBlock = (block: BlockDraft) => {
+    setEditingBlockId(block.id);
+    setEditBlockTitle(block.title);
+  };
+
+  const saveBlockTitle = () => {
+    if (!editingBlockId || !editBlockTitle.trim()) return;
+    setBlocks(blocks.map(b => 
+      b.id === editingBlockId ? { ...b, title: editBlockTitle.trim() } : b
+    ));
+    setEditingBlockId(null);
+    setEditBlockTitle('');
+  };
+
+  const handleEditBlockKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveBlockTitle();
+    } else if (e.key === 'Escape') {
+      setEditingBlockId(null);
+    }
+  };
+
+  const toggleBlockExpanded = (blockId: string) => {
+    const newExpanded = new Set(expandedBlocks);
+    if (newExpanded.has(blockId)) {
+      newExpanded.delete(blockId);
+    } else {
+      newExpanded.add(blockId);
+    }
+    setExpandedBlocks(newExpanded);
+  };
+
+  const handleBlocksReorder = (reordered: BlockDraft[]) => {
+    setBlocks(reordered);
+  };
+
+  // Уроки
+  const openCreateLesson = (blockId: string) => {
+    setLessonBlockId(blockId);
+    setEditingLesson(null);
+    setLessonForm({ title: '', description: '', videoType: null, videoUrl: '' });
+    setLessonModalOpen(true);
+  };
+
+  const openEditLesson = (lesson: LessonDraft, blockId: string) => {
+    setLessonBlockId(blockId);
+    setEditingLesson(lesson);
+    setLessonForm({
+      title: lesson.title,
+      description: lesson.description || '',
+      videoType: lesson.videoType || null,
+      videoUrl: lesson.videoUrl || '',
+    });
+    setLessonModalOpen(true);
+  };
+
+  const saveLesson = () => {
+    if (!lessonForm.title.trim() || !lessonBlockId) return;
+
+    const lessonData: LessonDraft = {
+      id: editingLesson?.id || `temp-${Date.now()}`,
+      title: lessonForm.title.trim(),
+      description: lessonForm.description.trim() || undefined,
+      videoType: lessonForm.videoType,
+      videoUrl: lessonForm.videoUrl.trim() || undefined,
+    };
+
+    if (editingLesson) {
+      // Update existing
+      setBlocks(blocks.map(block =>
+        block.id === lessonBlockId
+          ? { ...block, lessons: block.lessons.map(l => l.id === editingLesson.id ? lessonData : l) }
           : block
-      )
-    );
-    setNewLessonTitle('');
-    setNewLessonDescription('');
-    setAddingLessonToBlock(null);
+      ));
+    } else {
+      // Add new
+      setBlocks(blocks.map(block =>
+        block.id === lessonBlockId
+          ? { ...block, lessons: [...block.lessons, lessonData] }
+          : block
+      ));
+    }
+
+    setLessonModalOpen(false);
   };
 
   const removeLesson = (blockId: string, lessonId: string) => {
-    setBlocks(
-      blocks.map((block) =>
-        block.id === blockId
-          ? { ...block, lessons: block.lessons.filter((l) => l.id !== lessonId) }
-          : block
-      )
-    );
+    setBlocks(blocks.map(block =>
+      block.id === blockId
+        ? { ...block, lessons: block.lessons.filter(l => l.id !== lessonId) }
+        : block
+    ));
   };
 
-  const handlePublish = async () => {
+  const handleLessonsReorder = (blockId: string, reordered: LessonDraft[]) => {
+    setBlocks(blocks.map(block =>
+      block.id === blockId ? { ...block, lessons: reordered } : block
+    ));
+  };
+
+  // Создание курса
+  const handleCreate = async () => {
     if (!title.trim()) {
       showToast('Введите название курса', 'error');
       return;
     }
 
-    setIsPublishing(true);
+    setIsCreating(true);
     try {
-      // 1. Создаём курс
       const course = await createCourse.mutateAsync({
         title: title.trim(),
         description: description.trim() || undefined,
       });
 
-      // 2. Создаём блоки и уроки
       for (const blockDraft of blocks) {
         const block = await createBlock.mutateAsync({
           courseId: course.id,
@@ -139,6 +225,8 @@ export default function CreateCoursePage() {
             blockId: block.id,
             title: lessonDraft.title,
             description: lessonDraft.description,
+            videoType: lessonDraft.videoType || undefined,
+            videoUrl: lessonDraft.videoUrl,
           });
         }
       }
@@ -148,7 +236,7 @@ export default function CreateCoursePage() {
     } catch {
       showToast('Ошибка создания курса', 'error');
     } finally {
-      setIsPublishing(false);
+      setIsCreating(false);
     }
   };
 
@@ -249,131 +337,138 @@ export default function CreateCoursePage() {
         {/* Шаг 2: Структура */}
         {step === 2 && (
           <div className="space-y-4">
-            <h2 className="font-semibold text-[var(--tg-theme-text-color)]">
-              Структура курса
-            </h2>
-            <p className="text-sm text-[var(--tg-theme-hint-color)]">
-              {blocks.length} блоков • {totalLessons} уроков
-            </p>
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-[var(--tg-theme-text-color)]">
+                Структура курса
+              </h2>
+              <span className="text-xs text-[var(--tg-theme-hint-color)]">
+                {blocks.length} блоков • {totalLessons} уроков
+              </span>
+            </div>
 
-            {/* Список блоков */}
-            {blocks.map((block, blockIndex) => (
-              <Card key={block.id} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">📂</span>
-                    <span className="font-medium text-[var(--tg-theme-text-color)]">
-                      Блок {blockIndex + 1}: {block.title}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => removeBlock(block.id)}
-                    className="text-red-500 text-sm"
-                  >
-                    🗑️
-                  </button>
-                </div>
-
-                {/* Уроки */}
-                {block.lessons.map((lesson, lessonIndex) => (
-                  <div
-                    key={lesson.id}
-                    className="flex items-center justify-between pl-6 py-2 border-l-2 border-[var(--tg-theme-hint-color)]/20"
-                  >
-                    <span className="text-sm text-[var(--tg-theme-text-color)]">
-                      {blockIndex + 1}.{lessonIndex + 1} {lesson.title}
-                    </span>
-                    <button
-                      onClick={() => removeLesson(block.id, lesson.id)}
-                      className="text-red-500 text-xs"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-
-                {/* Добавление урока */}
-                {addingLessonToBlock === block.id ? (
-                  <div className="pl-6 space-y-2">
-                    <Input
-                      placeholder="Название урока"
-                      value={newLessonTitle}
-                      onChange={(e) => setNewLessonTitle(e.target.value)}
-                      autoFocus
-                    />
-                    <Input
-                      placeholder="Описание (опционально)"
-                      value={newLessonDescription}
-                      onChange={(e) => setNewLessonDescription(e.target.value)}
-                    />
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={() => addLesson(block.id)}>
-                        Добавить
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => {
-                          setAddingLessonToBlock(null);
-                          setNewLessonTitle('');
-                          setNewLessonDescription('');
-                        }}
-                      >
-                        Отмена
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setAddingLessonToBlock(block.id)}
-                    className="text-sm text-[var(--tg-theme-button-color)] pl-6"
-                  >
-                    + Добавить урок
-                  </button>
-                )}
-              </Card>
-            ))}
-
-            {/* Добавление блока */}
-            {isAddingBlock ? (
-              <Card className="space-y-3">
-                <Input
-                  placeholder="Название блока"
-                  value={newBlockTitle}
-                  onChange={(e) => setNewBlockTitle(e.target.value)}
-                  autoFocus
-                />
-                <div className="flex gap-2">
-                  <Button fullWidth size="sm" onClick={addBlock}>
-                    Создать блок
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => {
-                      setIsAddingBlock(false);
-                      setNewBlockTitle('');
-                    }}
-                  >
-                    Отмена
-                  </Button>
-                </div>
-              </Card>
-            ) : (
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => setIsAddingBlock(true)}
-              >
-                + Создать блок
+            {/* Поле добавления блока */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Название блока (Enter для создания)"
+                value={newBlockTitle}
+                onChange={(e) => setNewBlockTitle(e.target.value)}
+                onKeyDown={handleBlockKeyDown}
+              />
+              <Button onClick={addBlock} disabled={!newBlockTitle.trim()}>
+                +
               </Button>
+            </div>
+
+            {/* Список блоков с drag-n-drop */}
+            {blocks.length > 0 && (
+              <SortableList
+                items={blocks}
+                onReorder={handleBlocksReorder}
+                renderItem={(block, blockIndex) => (
+                  <Card padding="sm" className="bg-[var(--tg-theme-secondary-bg-color)]">
+                    {/* Block Header */}
+                    <div className="flex items-center justify-between">
+                      <div 
+                        className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                        onClick={() => toggleBlockExpanded(block.id)}
+                      >
+                        <span className="text-lg">📂</span>
+                        {editingBlockId === block.id ? (
+                          <input
+                            className="flex-1 bg-transparent border-b border-[var(--tg-theme-button-color)] outline-none text-[var(--tg-theme-text-color)]"
+                            value={editBlockTitle}
+                            onChange={(e) => setEditBlockTitle(e.target.value)}
+                            onKeyDown={handleEditBlockKeyDown}
+                            onBlur={saveBlockTitle}
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
+                            {blockIndex + 1}. {block.title}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-[var(--tg-theme-hint-color)] mr-2">
+                          {block.lessons.length} уроков
+                        </span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}
+                          className="p-1 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); removeBlock(block.id); }}
+                          className="p-1 text-[var(--tg-theme-hint-color)] hover:text-red-500"
+                        >
+                          🗑️
+                        </button>
+                        <span className="text-[var(--tg-theme-hint-color)] ml-1">
+                          {expandedBlocks.has(block.id) ? '▼' : '▶'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Block Content (Lessons) */}
+                    {expandedBlocks.has(block.id) && (
+                      <div className="mt-3 pt-3 border-t border-[var(--tg-theme-hint-color)]/20">
+                        {block.lessons.length > 0 ? (
+                          <SortableList
+                            items={block.lessons}
+                            onReorder={(reordered) => handleLessonsReorder(block.id, reordered)}
+                            renderItem={(lesson, lessonIndex) => (
+                              <div
+                                className="flex items-center gap-2 py-2 px-2 bg-[var(--tg-theme-bg-color)] rounded-lg cursor-pointer hover:bg-[var(--tg-theme-hint-color)]/5"
+                                onClick={() => openEditLesson(lesson, block.id)}
+                              >
+                                <span className="text-xs text-[var(--tg-theme-hint-color)] w-8">
+                                  {blockIndex + 1}.{lessonIndex + 1}
+                                </span>
+                                <span className="text-sm text-[var(--tg-theme-text-color)] flex-1 truncate">
+                                  {lesson.title}
+                                </span>
+                                {lesson.videoType && (
+                                  <span className="text-xs">
+                                    {lesson.videoType === 'telegram' ? '🎬' : '🔗'}
+                                  </span>
+                                )}
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); removeLesson(block.id, lesson.id); }}
+                                  className="text-[var(--tg-theme-hint-color)] hover:text-red-500 text-xs"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            )}
+                          />
+                        ) : (
+                          <p className="text-xs text-[var(--tg-theme-hint-color)] text-center py-2">
+                            Пока нет уроков
+                          </p>
+                        )}
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={(e) => { e.stopPropagation(); openCreateLesson(block.id); }}
+                        >
+                          + Добавить урок
+                        </Button>
+                      </div>
+                    )}
+                  </Card>
+                )}
+              />
             )}
 
             {blocks.length === 0 && (
               <div className="text-center py-8">
                 <div className="text-4xl mb-2">📂</div>
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                  Добавьте первый блок курса
+                  Введите название блока выше и нажмите Enter
                 </p>
               </div>
             )}
@@ -398,15 +493,113 @@ export default function CreateCoursePage() {
             </Button>
             <Button
               fullWidth
-              onClick={handlePublish}
-              loading={isPublishing}
+              onClick={handleCreate}
+              loading={isCreating}
             >
-              🚀 Опубликовать курс
+              ✓ Создать курс
             </Button>
           </div>
         )}
       </div>
+
+      {/* Lesson Modal */}
+      <Modal
+        isOpen={lessonModalOpen}
+        onClose={() => setLessonModalOpen(false)}
+        title={editingLesson ? '✏️ Редактировать урок' : '📝 Новый урок'}
+      >
+        <div className="space-y-4">
+          <Input
+            label="Название урока *"
+            placeholder="Введение в тему"
+            value={lessonForm.title}
+            onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })}
+            autoFocus
+          />
+
+          <div>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+              Описание урока
+            </label>
+            <textarea
+              className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] min-h-[80px] resize-none"
+              placeholder="О чём этот урок..."
+              value={lessonForm.description}
+              onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })}
+              maxLength={500}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+              🎬 Видео
+            </label>
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <button
+                onClick={() => setLessonForm({ ...lessonForm, videoType: 'telegram', videoUrl: '' })}
+                className={`p-3 rounded-xl border-2 text-sm transition-colors ${
+                  lessonForm.videoType === 'telegram'
+                    ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/10'
+                    : 'border-[var(--tg-theme-hint-color)]/30'
+                }`}
+              >
+                📹 Загрузить
+                <div className="text-xs text-[var(--tg-theme-hint-color)] mt-1">до 50MB</div>
+              </button>
+              <button
+                onClick={() => setLessonForm({ ...lessonForm, videoType: 'external', videoUrl: '' })}
+                className={`p-3 rounded-xl border-2 text-sm transition-colors ${
+                  lessonForm.videoType === 'external'
+                    ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/10'
+                    : 'border-[var(--tg-theme-hint-color)]/30'
+                }`}
+              >
+                🔗 Ссылка
+                <div className="text-xs text-[var(--tg-theme-hint-color)] mt-1">YouTube, Vimeo</div>
+              </button>
+            </div>
+
+            {lessonForm.videoType === 'telegram' && (
+              <div className="border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl p-4 text-center">
+                <div className="text-2xl mb-2">📤</div>
+                <p className="text-sm text-[var(--tg-theme-hint-color)]">
+                  Загрузка видео через Telegram-бота
+                </p>
+                <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
+                  Функция в разработке
+                </p>
+              </div>
+            )}
+
+            {lessonForm.videoType === 'external' && (
+              <Input
+                placeholder="https://youtube.com/watch?v=..."
+                value={lessonForm.videoUrl}
+                onChange={(e) => setLessonForm({ ...lessonForm, videoUrl: e.target.value })}
+              />
+            )}
+
+            {lessonForm.videoType && (
+              <button
+                onClick={() => setLessonForm({ ...lessonForm, videoType: null, videoUrl: '' })}
+                className="text-sm text-[var(--tg-theme-hint-color)] mt-2"
+              >
+                ✕ Убрать видео
+              </button>
+            )}
+          </div>
+
+          <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
+            <Button
+              fullWidth
+              onClick={saveLesson}
+              disabled={!lessonForm.title.trim()}
+            >
+              {editingLesson ? 'Сохранить изменения' : 'Создать урок'}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
-

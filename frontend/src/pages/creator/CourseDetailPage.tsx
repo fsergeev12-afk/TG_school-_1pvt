@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
   useCourse, 
-  useCreateBlock, 
+  useCreateBlock,
+  useUpdateBlock,
   useCreateLesson, 
   useUpdateLesson, 
   useReorderBlocks,
@@ -28,6 +29,7 @@ export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: course, isLoading } = useCourse(id!);
   const createBlock = useCreateBlock();
+  const updateBlock = useUpdateBlock();
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
   const reorderBlocks = useReorderBlocks();
@@ -37,8 +39,11 @@ export default function CourseDetailPage() {
   const { showToast } = useUIStore();
 
   // Block creation
-  const [isAddingBlock, setIsAddingBlock] = useState(false);
   const [newBlockTitle, setNewBlockTitle] = useState('');
+
+  // Block editing
+  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
+  const [editBlockTitle, setEditBlockTitle] = useState('');
 
   // Expanded blocks
   const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set());
@@ -73,11 +78,43 @@ export default function CourseDetailPage() {
     try {
       const block = await createBlock.mutateAsync({ courseId: id, title: newBlockTitle.trim() });
       setNewBlockTitle('');
-      setIsAddingBlock(false);
       setExpandedBlocks(new Set([...expandedBlocks, block.id]));
       showToast('Блок добавлен!', 'success');
     } catch {
       showToast('Ошибка добавления блока', 'error');
+    }
+  };
+
+  const handleBlockKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddBlock();
+    }
+  };
+
+  const startEditBlock = (block: Block) => {
+    setEditingBlockId(block.id);
+    setEditBlockTitle(block.title);
+  };
+
+  const handleSaveBlockTitle = async () => {
+    if (!editingBlockId || !editBlockTitle.trim()) return;
+    try {
+      await updateBlock.mutateAsync({ id: editingBlockId, title: editBlockTitle.trim() });
+      setEditingBlockId(null);
+      setEditBlockTitle('');
+      showToast('Блок обновлён!', 'success');
+    } catch {
+      showToast('Ошибка обновления блока', 'error');
+    }
+  };
+
+  const handleEditBlockKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSaveBlockTitle();
+    } else if (e.key === 'Escape') {
+      setEditingBlockId(null);
     }
   };
 
@@ -247,46 +284,28 @@ export default function CourseDetailPage() {
             </span>
           </div>
 
-          {/* Форма добавления блока */}
-          {isAddingBlock && (
-            <Card className="mb-3 space-y-2">
-              <Input
-                placeholder="Название блока"
-                value={newBlockTitle}
-                onChange={(e) => setNewBlockTitle(e.target.value)}
-                autoFocus
-              />
-              <div className="flex gap-2">
-                <Button
-                  fullWidth
-                  size="sm"
-                  onClick={handleAddBlock}
-                  loading={createBlock.isPending}
-                >
-                  Добавить
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setIsAddingBlock(false);
-                    setNewBlockTitle('');
-                  }}
-                >
-                  Отмена
-                </Button>
-              </div>
-            </Card>
-          )}
+          {/* Поле добавления блока */}
+          <div className="flex gap-2 mb-3">
+            <Input
+              placeholder="Название блока (Enter для создания)"
+              value={newBlockTitle}
+              onChange={(e) => setNewBlockTitle(e.target.value)}
+              onKeyDown={handleBlockKeyDown}
+            />
+            <Button 
+              onClick={handleAddBlock} 
+              disabled={!newBlockTitle.trim()}
+              loading={createBlock.isPending}
+            >
+              +
+            </Button>
+          </div>
 
-          {blocks.length === 0 && !isAddingBlock ? (
+          {blocks.length === 0 ? (
             <Card className="text-center py-8">
               <p className="text-[var(--tg-theme-hint-color)]">
-                Добавьте первый блок курса
+                Введите название блока выше и нажмите Enter
               </p>
-              <Button className="mt-3" size="sm" onClick={() => setIsAddingBlock(true)}>
-                + Добавить блок
-              </Button>
             </Card>
           ) : (
             <div className="space-y-3">
@@ -302,14 +321,32 @@ export default function CourseDetailPage() {
                     >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className="text-lg">📂</span>
-                        <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
-                          {blockIndex + 1}. {block.title}
-                        </span>
+                        {editingBlockId === block.id ? (
+                          <input
+                            className="flex-1 bg-transparent border-b border-[var(--tg-theme-button-color)] outline-none text-[var(--tg-theme-text-color)]"
+                            value={editBlockTitle}
+                            onChange={(e) => setEditBlockTitle(e.target.value)}
+                            onKeyDown={handleEditBlockKeyDown}
+                            onBlur={handleSaveBlockTitle}
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        ) : (
+                          <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
+                            {blockIndex + 1}. {block.title}
+                          </span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-[var(--tg-theme-hint-color)]">
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-[var(--tg-theme-hint-color)] mr-2">
                           {block.lessons?.length || 0} уроков
                         </span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}
+                          className="p-1 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
+                        >
+                          ✏️
+                        </button>
                         {deletingBlockId === block.id ? (
                           <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                             <Button
@@ -340,7 +377,7 @@ export default function CourseDetailPage() {
                             🗑️
                           </button>
                         )}
-                        <span className="text-[var(--tg-theme-hint-color)]">
+                        <span className="text-[var(--tg-theme-hint-color)] ml-1">
                           {expandedBlocks.has(block.id) ? '▼' : '▶'}
                         </span>
                       </div>
@@ -421,11 +458,6 @@ export default function CourseDetailPage() {
                 )}
               />
 
-              {!isAddingBlock && (
-                <Button variant="secondary" fullWidth onClick={() => setIsAddingBlock(true)}>
-                  + Добавить блок
-                </Button>
-              )}
             </div>
           )}
         </div>

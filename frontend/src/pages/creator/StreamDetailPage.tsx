@@ -36,6 +36,10 @@ export default function StreamDetailPage() {
   const [startDate, setStartDate] = useState('');
   const [intervalDays, setIntervalDays] = useState(1);
 
+  // Add students modal
+  const [addStudentsModalOpen, setAddStudentsModalOpen] = useState(false);
+  const [inviteLink, setInviteLink] = useState('');
+
   const handleSendBroadcast = async () => {
     if (!broadcastMessage.trim() || !id) return;
     try {
@@ -149,7 +153,17 @@ export default function StreamDetailPage() {
         {/* Вкладка "Ученики" */}
         {activeTab === 'students' && (
           <div className="space-y-3">
-            <Button variant="secondary" fullWidth>
+            <Button 
+              variant="secondary" 
+              fullWidth
+              onClick={() => {
+                // Generate invite link
+                const baseUrl = window.location.origin;
+                const link = `${baseUrl}/invite/${id}`;
+                setInviteLink(link);
+                setAddStudentsModalOpen(true);
+              }}
+            >
               📤 Добавить учеников
             </Button>
 
@@ -500,6 +514,74 @@ export default function StreamDetailPage() {
           >
             Создать расписание
           </Button>
+        </div>
+      </Modal>
+
+      {/* Add Students Modal */}
+      <Modal
+        isOpen={addStudentsModalOpen}
+        onClose={() => setAddStudentsModalOpen(false)}
+        title="📤 Добавить учеников"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+            Поделитесь ссылкой-приглашением с учениками. После перехода по ссылке они смогут оплатить курс и получить доступ.
+          </p>
+
+          <div>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+              Ссылка-приглашение
+            </label>
+            <div className="flex gap-2">
+              <Input
+                value={inviteLink}
+                readOnly
+                className="flex-1"
+              />
+              <Button
+                onClick={() => {
+                  navigator.clipboard.writeText(inviteLink);
+                  showToast('Ссылка скопирована!', 'success');
+                }}
+              >
+                📋
+              </Button>
+            </div>
+          </div>
+
+          <div className="p-3 bg-blue-50 rounded-xl">
+            <p className="text-xs text-blue-800">
+              💡 Поделитесь ссылкой в Telegram, соцсетях или через email
+            </p>
+          </div>
+
+          <div className="border-t border-[var(--tg-theme-hint-color)]/20 pt-4">
+            <h4 className="font-medium text-sm text-[var(--tg-theme-text-color)] mb-3">
+              Поделиться через:
+            </h4>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => {
+                  const text = encodeURIComponent(`Приглашаю на курс "${stream?.course?.title}"\n${inviteLink}`);
+                  window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`, '_blank');
+                }}
+              >
+                📱 Telegram
+              </Button>
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => {
+                  const text = encodeURIComponent(`Приглашаю на курс "${stream?.course?.title}"\n${inviteLink}`);
+                  window.open(`https://wa.me/?text=${text}`, '_blank');
+                }}
+              >
+                💬 WhatsApp
+              </Button>
+            </div>
+          </div>
         </div>
       </Modal>
     </div>
