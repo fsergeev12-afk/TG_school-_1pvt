@@ -1,11 +1,27 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCourses } from '../../api/hooks';
+import { useCourses, useDeleteCourse } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Button, Card, Badge } from '../../components/ui';
+import { Button, Card } from '../../components/ui';
+import { useUIStore } from '../../store';
 
 export default function CoursesPage() {
   const navigate = useNavigate();
   const { data: courses, isLoading } = useCourses();
+  const deleteCourse = useDeleteCourse();
+  const { showToast } = useUIStore();
+
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (courseId: string) => {
+    try {
+      await deleteCourse.mutateAsync(courseId);
+      setDeletingId(null);
+      showToast('Курс удалён', 'success');
+    } catch {
+      showToast('Ошибка удаления курса', 'error');
+    }
+  };
 
   return (
     <div>
@@ -33,7 +49,7 @@ export default function CoursesPage() {
           <div className="text-center py-12">
             <div className="text-4xl mb-3">📚</div>
             <p className="text-[var(--tg-theme-hint-color)]">
-              У вас пока нет курсов
+              Пока нет курсов
             </p>
             <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
               Создайте первый курс для старта
@@ -46,11 +62,7 @@ export default function CoursesPage() {
 
         {/* Список курсов */}
         {courses?.map((course) => (
-          <Card
-            key={course.id}
-            onClick={() => navigate(`/creator/courses/${course.id}`)}
-            className="active:scale-[0.98] transition-transform"
-          >
+          <Card key={course.id}>
             <div className="flex items-start gap-3">
               {course.coverImageUrl ? (
                 <img
@@ -64,19 +76,52 @@ export default function CoursesPage() {
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-[var(--tg-theme-text-color)] truncate">
-                    {course.title}
-                  </h3>
-                  <Badge variant={course.isPublished ? 'success' : 'default'}>
-                    {course.isPublished ? 'Опубликован' : 'Черновик'}
-                  </Badge>
-                </div>
+                <h3 className="font-semibold text-[var(--tg-theme-text-color)] truncate">
+                  {course.title}
+                </h3>
                 <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
                   {course.blocks?.length || 0} блоков • {
                     course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0
                   } уроков
                 </p>
+                
+                {/* Кнопки по PRD */}
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => navigate(`/creator/courses/${course.id}`)}
+                  >
+                    ✏️ Редактировать
+                  </Button>
+                  {deletingId === course.id ? (
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                        onClick={() => handleDelete(course.id)}
+                        loading={deleteCourse.isPending}
+                      >
+                        Да
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setDeletingId(null)}
+                      >
+                        Нет
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setDeletingId(course.id)}
+                    >
+                      🗑️ Удалить
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </Card>
@@ -85,5 +130,3 @@ export default function CoursesPage() {
     </div>
   );
 }
-
-
