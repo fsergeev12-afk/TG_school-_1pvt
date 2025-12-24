@@ -65,3 +65,4 @@ export class LessonSchedule {
   updatedAt: Date;
 }
 
+

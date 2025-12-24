@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { typeOrmConfig } from './config/typeorm.config';
 
 // Модули приложения
@@ -25,6 +27,15 @@ import { FilesModule } from './modules/files/files.module';
 
     // База данных (SQLite)
     TypeOrmModule.forRoot(typeOrmConfig),
+
+    // Статические файлы (uploads)
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), process.env.UPLOADS_DIR || './uploads'),
+      serveRoot: '/uploads',
+      serveStaticOptions: {
+        index: false,
+      },
+    }),
 
     // Модули приложения
     AuthModule,
