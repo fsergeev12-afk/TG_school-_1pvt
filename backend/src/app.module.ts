@@ -30,11 +30,9 @@ import { FilesModule } from './modules/files/files.module';
 
     // Статические файлы (uploads)
     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), process.env.UPLOADS_DIR || './uploads'),
+      rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
-      serveStaticOptions: {
-        index: false,
-      },
+      exclude: ['/api/*'],
     }),
 
     // Модули приложения

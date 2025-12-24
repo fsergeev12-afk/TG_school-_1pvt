@@ -53,8 +53,11 @@ export class FilesService {
     private readonly configService: ConfigService,
     private readonly telegramBotService: TelegramBotService,
   ) {
-    // Директория для локальных файлов (обложки)
-    this.uploadsDir = this.configService.get<string>('UPLOADS_DIR') || './uploads';
+    // Директория для локальных файлов (абсолютный путь)
+    const uploadsDir = this.configService.get<string>('UPLOADS_DIR') || './uploads';
+    this.uploadsDir = path.resolve(process.cwd(), uploadsDir);
+    
+    this.logger.log(`Директория uploads: ${this.uploadsDir}`);
     
     // Создаём директории если не существуют
     this.ensureDirectories();
