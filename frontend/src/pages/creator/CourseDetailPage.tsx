@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { 
   useCourse, 
   useCreateBlock, 
@@ -8,8 +8,7 @@ import {
   useReorderBlocks,
   useReorderLessons,
   useDeleteBlock,
-  useDeleteLesson,
-  useDeleteCourse
+  useDeleteLesson
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
 import { Card, Button, Input, Modal, SortableList } from '../../components/ui';
@@ -27,7 +26,6 @@ interface LessonFormData {
 
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { data: course, isLoading } = useCourse(id!);
   const createBlock = useCreateBlock();
   const createLesson = useCreateLesson();
@@ -36,11 +34,7 @@ export default function CourseDetailPage() {
   const reorderLessons = useReorderLessons();
   const deleteBlock = useDeleteBlock();
   const deleteLesson = useDeleteLesson();
-  const deleteCourse = useDeleteCourse();
   const { showToast } = useUIStore();
-
-  // Delete course confirmation
-  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
 
   // Block creation
   const [isAddingBlock, setIsAddingBlock] = useState(false);
@@ -163,17 +157,6 @@ export default function CourseDetailPage() {
     }
   };
 
-  const handleDeleteCourse = async () => {
-    if (!id) return;
-    try {
-      await deleteCourse.mutateAsync(id);
-      showToast('Курс удалён', 'success');
-      navigate('/creator/courses');
-    } catch {
-      showToast('Ошибка удаления курса', 'error');
-    }
-  };
-
   const handleBlocksReorder = async (reorderedBlocks: Block[]) => {
     if (!id) return;
     try {
@@ -252,40 +235,6 @@ export default function CourseDetailPage() {
           </div>
         </Card>
 
-        {/* Действия */}
-        <div className="flex gap-3">
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={() => navigate('/creator/streams')}
-          >
-            👥 Создать поток
-          </Button>
-          {isDeletingCourse ? (
-            <div className="flex gap-2">
-              <Button
-                className="bg-red-500 hover:bg-red-600"
-                onClick={handleDeleteCourse}
-                loading={deleteCourse.isPending}
-              >
-                Да
-              </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setIsDeletingCourse(false)}
-              >
-                Нет
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="secondary"
-              onClick={() => setIsDeletingCourse(true)}
-            >
-              🗑️
-            </Button>
-          )}
-        </div>
 
         {/* Структура курса */}
         <div>
