@@ -381,8 +381,8 @@ export default function CreateCoursePage() {
         )}
       </div>
 
-      {/* Footer - above BottomNav */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20">
+      {/* Footer */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 z-50 safe-area-pb">
         {step === 1 ? (
           <Button
             fullWidth

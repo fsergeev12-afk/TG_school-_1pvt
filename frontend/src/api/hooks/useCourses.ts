@@ -157,14 +157,18 @@ export const useCreateLesson = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ blockId, ...dto }: { 
+    mutationFn: async ({ blockId, videoUrl, ...dto }: { 
       blockId: string; 
       title: string; 
       description?: string;
       videoType?: string;
       videoUrl?: string;
     }) => {
-      const { data } = await apiClient.post<Lesson>(`/blocks/${blockId}/lessons`, dto);
+      const payload = {
+        ...dto,
+        videoExternalUrl: videoUrl, // Map videoUrl to videoExternalUrl for backend
+      };
+      const { data } = await apiClient.post<Lesson>(`/blocks/${blockId}/lessons`, payload);
       return data;
     },
     onSuccess: () => {
@@ -177,14 +181,18 @@ export const useUpdateLesson = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, ...dto }: { 
+    mutationFn: async ({ id, videoUrl, ...dto }: { 
       id: string; 
       title?: string; 
       description?: string; 
       videoType?: string; 
       videoUrl?: string;
     }) => {
-      const { data } = await apiClient.patch<Lesson>(`/lessons/${id}`, dto);
+      const payload = {
+        ...dto,
+        videoExternalUrl: videoUrl, // Map videoUrl to videoExternalUrl for backend
+      };
+      const { data } = await apiClient.patch<Lesson>(`/lessons/${id}`, payload);
       return data;
     },
     onSuccess: () => {

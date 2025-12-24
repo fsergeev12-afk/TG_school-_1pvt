@@ -5,15 +5,14 @@ import {
   useCreateBlock, 
   useCreateLesson, 
   useUpdateLesson, 
-  usePublishCourse, 
-  useUnpublishCourse,
   useReorderBlocks,
   useReorderLessons,
   useDeleteBlock,
-  useDeleteLesson
+  useDeleteLesson,
+  useDeleteCourse
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Card, Badge, Button, Input, Modal, SortableList } from '../../components/ui';
+import { Card, Button, Input, Modal, SortableList } from '../../components/ui';
 import { useUIStore } from '../../store';
 import { Block, Lesson } from '../../types';
 
@@ -33,13 +32,15 @@ export default function CourseDetailPage() {
   const createBlock = useCreateBlock();
   const createLesson = useCreateLesson();
   const updateLesson = useUpdateLesson();
-  const publishCourse = usePublishCourse();
-  const unpublishCourse = useUnpublishCourse();
   const reorderBlocks = useReorderBlocks();
   const reorderLessons = useReorderLessons();
   const deleteBlock = useDeleteBlock();
   const deleteLesson = useDeleteLesson();
+  const deleteCourse = useDeleteCourse();
   const { showToast } = useUIStore();
+
+  // Delete course confirmation
+  const [isDeletingCourse, setIsDeletingCourse] = useState(false);
 
   // Block creation
   const [isAddingBlock, setIsAddingBlock] = useState(false);
@@ -162,18 +163,14 @@ export default function CourseDetailPage() {
     }
   };
 
-  const handleTogglePublish = async () => {
+  const handleDeleteCourse = async () => {
     if (!id) return;
     try {
-      if (course?.isPublished) {
-        await unpublishCourse.mutateAsync(id);
-        showToast('Курс снят с публикации', 'success');
-      } else {
-        await publishCourse.mutateAsync(id);
-        showToast('Курс опубликован!', 'success');
-      }
+      await deleteCourse.mutateAsync(id);
+      showToast('Курс удалён', 'success');
+      navigate('/creator/courses');
     } catch {
-      showToast('Ошибка', 'error');
+      showToast('Ошибка удаления курса', 'error');
     }
   };
 
@@ -222,13 +219,9 @@ export default function CourseDetailPage() {
   return (
     <div>
       <PageHeader
-        title={course.title}
+        title="Редактирование курса"
+        subtitle={course.title}
         showBack
-        action={
-          <Badge variant={course.isPublished ? 'success' : 'default'}>
-            {course.isPublished ? 'Опубликован' : 'Черновик'}
-          </Badge>
-        }
       />
 
       <div className="p-4 space-y-4">
@@ -260,22 +253,38 @@ export default function CourseDetailPage() {
         </Card>
 
         {/* Действия */}
-        <div className="grid grid-cols-2 gap-3">
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={handleTogglePublish}
-            loading={publishCourse.isPending || unpublishCourse.isPending}
-          >
-            {course.isPublished ? '📤 Снять' : '🚀 Опубликовать'}
-          </Button>
+        <div className="flex gap-3">
           <Button
             variant="secondary"
             fullWidth
             onClick={() => navigate('/creator/streams')}
           >
-            👥 Потоки
+            👥 Создать поток
           </Button>
+          {isDeletingCourse ? (
+            <div className="flex gap-2">
+              <Button
+                className="bg-red-500 hover:bg-red-600"
+                onClick={handleDeleteCourse}
+                loading={deleteCourse.isPending}
+              >
+                Да
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => setIsDeletingCourse(false)}
+              >
+                Нет
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="secondary"
+              onClick={() => setIsDeletingCourse(true)}
+            >
+              🗑️
+            </Button>
+          )}
         </div>
 
         {/* Структура курса */}

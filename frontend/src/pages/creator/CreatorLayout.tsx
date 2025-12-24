@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { CreatorBottomNav } from '../../components/layout';
 
 // Pages
@@ -12,9 +12,15 @@ import ChatsPage from './ChatsPage';
 import ChatDetailPage from './ChatDetailPage';
 import SettingsPage from './SettingsPage';
 
+// Страницы где скрывать BottomNav
+const HIDE_NAV_PATHS = ['/creator/courses/new', '/creator/chats/'];
+
 export default function CreatorLayout() {
+  const location = useLocation();
+  const hideNav = HIDE_NAV_PATHS.some(path => location.pathname.startsWith(path));
+
   return (
-    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] pb-20">
+    <div className={`min-h-screen bg-[var(--tg-theme-bg-color)] ${hideNav ? '' : 'pb-20'}`}>
       <Routes>
         <Route path="/" element={<Navigate to="courses" replace />} />
         <Route path="courses" element={<CoursesPage />} />
@@ -27,7 +33,7 @@ export default function CreatorLayout() {
         <Route path="chats/:id" element={<ChatDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Routes>
-      <CreatorBottomNav />
+      {!hideNav && <CreatorBottomNav />}
     </div>
   );
 }
