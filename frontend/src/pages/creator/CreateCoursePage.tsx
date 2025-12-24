@@ -130,12 +130,6 @@ export default function CreateCoursePage() {
     setDeleteBlockConfirm({ id: block.id, title: block.title });
   };
 
-  const removeBlock = () => {
-    if (!deleteBlockConfirm) return;
-    setBlocks(blocks.filter((b) => b.id !== deleteBlockConfirm.id));
-    setDeleteBlockConfirm(null);
-  };
-
   const startEditBlock = (block: BlockDraft) => {
     setEditingBlockId(block.id);
     setEditBlockTitle(block.title);
@@ -306,16 +300,6 @@ export default function CreateCoursePage() {
     e.preventDefault();
     e.stopPropagation();
     setDeleteLessonConfirm({ blockId, lessonId: lesson.id, title: lesson.title });
-  };
-
-  const removeLesson = () => {
-    if (!deleteLessonConfirm) return;
-    setBlocks(blocks.map(block =>
-      block.id === deleteLessonConfirm.blockId
-        ? { ...block, lessons: block.lessons.filter(l => l.id !== deleteLessonConfirm.lessonId) }
-        : block
-    ));
-    setDeleteLessonConfirm(null);
   };
 
   const handleLessonsReorder = (blockId: string, reordered: LessonDraft[]) => {

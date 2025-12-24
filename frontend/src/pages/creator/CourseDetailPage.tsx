@@ -148,30 +148,8 @@ export default function CourseDetailPage() {
     setDeleteBlockConfirm({ id: block.id, title: block.title });
   };
 
-  const handleDeleteBlock = async () => {
-    if (!deleteBlockConfirm) return;
-    try {
-      await deleteBlock.mutateAsync(deleteBlockConfirm.id);
-      setDeleteBlockConfirm(null);
-      showToast('Блок удалён', 'success');
-    } catch {
-      showToast('Ошибка удаления блока', 'error');
-    }
-  };
-
   const confirmDeleteLesson = (lesson: Lesson) => {
     setDeleteLessonConfirm({ id: lesson.id, title: lesson.title });
-  };
-
-  const handleDeleteLesson = async () => {
-    if (!deleteLessonConfirm) return;
-    try {
-      await deleteLesson.mutateAsync(deleteLessonConfirm.id);
-      setDeleteLessonConfirm(null);
-      showToast('Урок удалён', 'success');
-    } catch {
-      showToast('Ошибка удаления урока', 'error');
-    }
   };
 
   const openCreateLesson = (blockId: string) => {
