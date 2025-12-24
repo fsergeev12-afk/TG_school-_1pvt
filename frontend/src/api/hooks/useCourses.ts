@@ -121,6 +121,7 @@ export const useUpdateBlock = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course'] });
     },
   });
 };
@@ -134,6 +135,7 @@ export const useDeleteBlock = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course'] });
     },
   });
 };
@@ -148,6 +150,7 @@ export const useReorderBlocks = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course'] });
     },
   });
 };
@@ -173,6 +176,7 @@ export const useCreateLesson = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course'] });
     },
   });
 };
@@ -197,6 +201,7 @@ export const useUpdateLesson = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course'] });
     },
   });
 };
@@ -210,6 +215,7 @@ export const useDeleteLesson = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course'] });
     },
   });
 };
@@ -224,6 +230,7 @@ export const useReorderLessons = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course'] });
     },
   });
 };
