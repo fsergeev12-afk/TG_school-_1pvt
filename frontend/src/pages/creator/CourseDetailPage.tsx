@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   useCourse, 
@@ -20,9 +20,29 @@ import {
 import { PageHeader } from '../../components/layout';
 import { Card, Button, Input, Modal, SortableList } from '../../components/ui';
 import { useUIStore } from '../../store';
-import { Block, Lesson } from '../../types';
 
 type VideoType = 'telegram' | 'external' | null;
+
+// Local draft types
+interface LessonDraft {
+  id: string;
+  title: string;
+  description?: string;
+  videoType?: VideoType;
+  videoUrl?: string;
+  isNew?: boolean; // true if created locally, not yet on server
+  isDeleted?: boolean; // true if marked for deletion
+  isModified?: boolean; // true if modified
+}
+
+interface BlockDraft {
+  id: string;
+  title: string;
+  lessons: LessonDraft[];
+  isNew?: boolean;
+  isDeleted?: boolean;
+  isModified?: boolean;
+}
 
 interface LessonFormData {
   title: string;
@@ -35,14 +55,16 @@ export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: course, isLoading, refetch } = useCourse(id!);
-  const createBlock = useCreateBlock();
-  const updateBlock = useUpdateBlock();
-  const createLesson = useCreateLesson();
-  const updateLesson = useUpdateLesson();
-  const reorderBlocks = useReorderBlocks();
-  const reorderLessons = useReorderLessons();
-  const deleteBlock = useDeleteBlock();
-  const deleteLesson = useDeleteLesson();
+  
+  // API mutations
+  const createBlockMutation = useCreateBlock();
+  const updateBlockMutation = useUpdateBlock();
+  const createLessonMutation = useCreateLesson();
+  const updateLessonMutation = useUpdateLesson();
+  const reorderBlocksMutation = useReorderBlocks();
+  const reorderLessonsMutation = useReorderLessons();
+  const deleteBlockMutation = useDeleteBlock();
+  const deleteLessonMutation = useDeleteLesson();
   const uploadMaterial = useUploadMaterial();
   const addMaterial = useAddMaterial();
   const deleteMaterial = useDeleteMaterial();
@@ -51,6 +73,32 @@ export default function CourseDetailPage() {
 
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // LOCAL STATE - all changes happen here first
+  const [localBlocks, setLocalBlocks] = useState<BlockDraft[]>([]);
+  const [originalBlocks, setOriginalBlocks] = useState<BlockDraft[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Initialize local state from server data
+  useEffect(() => {
+    if (course?.blocks) {
+      const blocks: BlockDraft[] = course.blocks.map(block => ({
+        id: block.id,
+        title: block.title,
+        lessons: (block.lessons || []).map(lesson => ({
+          id: lesson.id,
+          title: lesson.title,
+          description: lesson.description,
+          videoType: lesson.videoType as VideoType,
+          videoUrl: lesson.videoExternalUrl || lesson.videoUrl,
+        })),
+      }));
+      setLocalBlocks(blocks);
+      setOriginalBlocks(JSON.parse(JSON.stringify(blocks))); // Deep copy for comparison
+      setHasChanges(false);
+    }
+  }, [course]);
 
   // File preview modal
   const [filePreviewOpen, setFilePreviewOpen] = useState(false);
@@ -71,7 +119,7 @@ export default function CourseDetailPage() {
 
   // Lesson modal
   const [lessonModalOpen, setLessonModalOpen] = useState(false);
-  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [lessonBlockId, setLessonBlockId] = useState<string | null>(null);
   const [lessonForm, setLessonForm] = useState<LessonFormData>({
     title: '',
@@ -82,12 +130,18 @@ export default function CourseDetailPage() {
 
   // Delete confirmation modals
   const [deleteBlockConfirm, setDeleteBlockConfirm] = useState<{ id: string; title: string } | null>(null);
-  const [deleteLessonConfirm, setDeleteLessonConfirm] = useState<{ id: string; title: string } | null>(null);
+  const [deleteLessonConfirm, setDeleteLessonConfirm] = useState<{ blockId: string; lessonId: string; title: string } | null>(null);
 
-  // Track unsaved changes
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // Exit confirmation
   const [exitConfirmOpen, setExitConfirmOpen] = useState(false);
 
+  // Mark as changed
+  const markChanged = () => {
+    setHasChanges(true);
+  };
+
+  // ============ BLOCK OPERATIONS (LOCAL) ============
+  
   const toggleBlockExpanded = (blockId: string) => {
     const newExpanded = new Set(expandedBlocks);
     if (newExpanded.has(blockId)) {
@@ -103,18 +157,22 @@ export default function CourseDetailPage() {
     setAddBlockModalOpen(true);
   };
 
-  const handleAddBlock = async () => {
-    if (!newBlockTitle.trim() || !id) return;
-    try {
-      const block = await createBlock.mutateAsync({ courseId: id, title: newBlockTitle.trim() });
-      setNewBlockTitle('');
-      setAddBlockModalOpen(false);
-      setExpandedBlocks(new Set([...expandedBlocks, block.id]));
-      setHasUnsavedChanges(true);
-      showToast('Блок добавлен!', 'success');
-    } catch {
-      showToast('Ошибка добавления блока', 'error');
-    }
+  const handleAddBlock = () => {
+    if (!newBlockTitle.trim()) return;
+    
+    const newBlock: BlockDraft = {
+      id: `new-${Date.now()}`,
+      title: newBlockTitle.trim(),
+      lessons: [],
+      isNew: true,
+    };
+    
+    setLocalBlocks([...localBlocks, newBlock]);
+    setExpandedBlocks(new Set([...expandedBlocks, newBlock.id]));
+    setNewBlockTitle('');
+    setAddBlockModalOpen(false);
+    markChanged();
+    showToast('Блок добавлен', 'success');
   };
 
   const handleBlockKeyDown = (e: React.KeyboardEvent) => {
@@ -124,22 +182,22 @@ export default function CourseDetailPage() {
     }
   };
 
-  const startEditBlock = (block: Block) => {
+  const startEditBlock = (block: BlockDraft) => {
     setEditingBlockId(block.id);
     setEditBlockTitle(block.title);
   };
 
-  const handleSaveBlockTitle = async () => {
+  const handleSaveBlockTitle = () => {
     if (!editingBlockId || !editBlockTitle.trim()) return;
-    try {
-      await updateBlock.mutateAsync({ id: editingBlockId, title: editBlockTitle.trim() });
-      setEditingBlockId(null);
-      setEditBlockTitle('');
-      setHasUnsavedChanges(true);
-      showToast('Блок обновлён!', 'success');
-    } catch {
-      showToast('Ошибка обновления блока', 'error');
-    }
+    
+    setLocalBlocks(localBlocks.map(b => 
+      b.id === editingBlockId 
+        ? { ...b, title: editBlockTitle.trim(), isModified: !b.isNew }
+        : b
+    ));
+    setEditingBlockId(null);
+    setEditBlockTitle('');
+    markChanged();
   };
 
   const handleEditBlockKeyDown = (e: React.KeyboardEvent) => {
@@ -151,123 +209,271 @@ export default function CourseDetailPage() {
     }
   };
 
-  const confirmDeleteBlock = (block: Block) => {
+  const confirmDeleteBlock = (block: BlockDraft) => {
     setDeleteBlockConfirm({ id: block.id, title: block.title });
   };
 
-  const confirmDeleteLesson = (lesson: Lesson) => {
-    setDeleteLessonConfirm({ id: lesson.id, title: lesson.title });
+  const handleDeleteBlock = () => {
+    if (!deleteBlockConfirm) return;
+    
+    const block = localBlocks.find(b => b.id === deleteBlockConfirm.id);
+    if (block?.isNew) {
+      // New block - just remove from local state
+      setLocalBlocks(localBlocks.filter(b => b.id !== deleteBlockConfirm.id));
+    } else {
+      // Existing block - mark for deletion
+      setLocalBlocks(localBlocks.map(b => 
+        b.id === deleteBlockConfirm.id ? { ...b, isDeleted: true } : b
+      ));
+    }
+    
+    setDeleteBlockConfirm(null);
+    markChanged();
+    showToast('Блок удалён', 'success');
   };
+
+  const handleBlocksReorder = (reorderedBlocks: BlockDraft[]) => {
+    setLocalBlocks(reorderedBlocks);
+    markChanged();
+  };
+
+  // ============ LESSON OPERATIONS (LOCAL) ============
 
   const openCreateLesson = (blockId: string) => {
     setLessonBlockId(blockId);
-    setEditingLesson(null);
-    setLessonForm({
-      title: '',
-      description: '',
-      videoType: null,
-      videoUrl: '',
-    });
+    setEditingLessonId(null);
+    setLessonForm({ title: '', description: '', videoType: null, videoUrl: '' });
     setLessonModalOpen(true);
   };
 
-  const openEditLesson = (lesson: Lesson, blockId: string) => {
+  const openEditLesson = (lesson: LessonDraft, blockId: string) => {
     setLessonBlockId(blockId);
-    setEditingLesson(lesson);
+    setEditingLessonId(lesson.id);
     setLessonForm({
       title: lesson.title,
       description: lesson.description || '',
       videoType: lesson.videoType || null,
-      videoUrl: lesson.videoExternalUrl || lesson.videoUrl || '',
+      videoUrl: lesson.videoUrl || '',
     });
     setLessonModalOpen(true);
   };
 
-  const handleSaveLesson = async () => {
-    if (!lessonForm.title.trim()) {
+  const handleSaveLesson = () => {
+    if (!lessonForm.title.trim() || !lessonBlockId) {
       showToast('Введите название урока', 'error');
       return;
     }
 
-    try {
-      if (editingLesson) {
-        await updateLesson.mutateAsync({
-          id: editingLesson.id,
-          title: lessonForm.title.trim(),
-          description: lessonForm.description.trim() || undefined,
-          videoType: lessonForm.videoType || undefined,
-          videoUrl: lessonForm.videoUrl.trim() || undefined,
-        });
-        showToast('Урок обновлён!', 'success');
-      } else if (lessonBlockId) {
-        await createLesson.mutateAsync({
-          blockId: lessonBlockId,
-          title: lessonForm.title.trim(),
-          description: lessonForm.description.trim() || undefined,
-          videoType: lessonForm.videoType || undefined,
-          videoUrl: lessonForm.videoUrl.trim() || undefined,
-        });
-        showToast('Урок добавлен!', 'success');
+    if (editingLessonId) {
+      // Update existing lesson
+      setLocalBlocks(localBlocks.map(block => 
+        block.id === lessonBlockId
+          ? {
+              ...block,
+              lessons: block.lessons.map(l => 
+                l.id === editingLessonId
+                  ? {
+                      ...l,
+                      title: lessonForm.title.trim(),
+                      description: lessonForm.description.trim() || undefined,
+                      videoType: lessonForm.videoType,
+                      videoUrl: lessonForm.videoUrl.trim() || undefined,
+                      isModified: !l.isNew,
+                    }
+                  : l
+              ),
+            }
+          : block
+      ));
+      showToast('Урок обновлён', 'success');
+    } else {
+      // Create new lesson
+      const newLesson: LessonDraft = {
+        id: `new-${Date.now()}`,
+        title: lessonForm.title.trim(),
+        description: lessonForm.description.trim() || undefined,
+        videoType: lessonForm.videoType,
+        videoUrl: lessonForm.videoUrl.trim() || undefined,
+        isNew: true,
+      };
+      
+      setLocalBlocks(localBlocks.map(block => 
+        block.id === lessonBlockId
+          ? { ...block, lessons: [...block.lessons, newLesson] }
+          : block
+      ));
+      showToast('Урок добавлен', 'success');
+    }
+
+    setLessonModalOpen(false);
+    markChanged();
+  };
+
+  const confirmDeleteLesson = (blockId: string, lesson: LessonDraft) => {
+    setDeleteLessonConfirm({ blockId, lessonId: lesson.id, title: lesson.title });
+  };
+
+  const handleDeleteLesson = () => {
+    if (!deleteLessonConfirm) return;
+    
+    setLocalBlocks(localBlocks.map(block => {
+      if (block.id !== deleteLessonConfirm.blockId) return block;
+      
+      const lesson = block.lessons.find(l => l.id === deleteLessonConfirm.lessonId);
+      if (lesson?.isNew) {
+        // New lesson - just remove
+        return { ...block, lessons: block.lessons.filter(l => l.id !== deleteLessonConfirm.lessonId) };
+      } else {
+        // Existing lesson - mark for deletion
+        return {
+          ...block,
+          lessons: block.lessons.map(l => 
+            l.id === deleteLessonConfirm.lessonId ? { ...l, isDeleted: true } : l
+          ),
+        };
       }
-      setHasUnsavedChanges(true);
-      setLessonModalOpen(false);
-    } catch {
-      showToast('Ошибка сохранения урока', 'error');
+    }));
+    
+    setDeleteLessonConfirm(null);
+    markChanged();
+    showToast('Урок удалён', 'success');
+  };
+
+  const handleLessonsReorder = (blockId: string, reorderedLessons: LessonDraft[]) => {
+    setLocalBlocks(localBlocks.map(block => 
+      block.id === blockId ? { ...block, lessons: reorderedLessons } : block
+    ));
+    markChanged();
+  };
+
+  // ============ SAVE ALL CHANGES TO SERVER ============
+
+  const handleSaveAll = async () => {
+    if (!id) return;
+    
+    setIsSaving(true);
+    
+    try {
+      // 1. Delete blocks marked for deletion
+      for (const block of localBlocks.filter(b => b.isDeleted && !b.isNew)) {
+        await deleteBlockMutation.mutateAsync(block.id);
+      }
+      
+      // 2. Delete lessons marked for deletion
+      for (const block of localBlocks.filter(b => !b.isDeleted)) {
+        for (const lesson of block.lessons.filter(l => l.isDeleted && !l.isNew)) {
+          await deleteLessonMutation.mutateAsync(lesson.id);
+        }
+      }
+      
+      // 3. Create new blocks
+      const blockIdMap: Record<string, string> = {};
+      for (const block of localBlocks.filter(b => b.isNew && !b.isDeleted)) {
+        const created = await createBlockMutation.mutateAsync({ courseId: id, title: block.title });
+        blockIdMap[block.id] = created.id;
+      }
+      
+      // 4. Update modified blocks
+      for (const block of localBlocks.filter(b => b.isModified && !b.isNew && !b.isDeleted)) {
+        await updateBlockMutation.mutateAsync({ id: block.id, title: block.title });
+      }
+      
+      // 5. Create new lessons
+      for (const block of localBlocks.filter(b => !b.isDeleted)) {
+        const actualBlockId = block.isNew ? blockIdMap[block.id] : block.id;
+        for (const lesson of block.lessons.filter(l => l.isNew && !l.isDeleted)) {
+          await createLessonMutation.mutateAsync({
+            blockId: actualBlockId,
+            title: lesson.title,
+            description: lesson.description,
+            videoType: lesson.videoType || undefined,
+            videoUrl: lesson.videoUrl,
+          });
+        }
+      }
+      
+      // 6. Update modified lessons
+      for (const block of localBlocks.filter(b => !b.isDeleted && !b.isNew)) {
+        for (const lesson of block.lessons.filter(l => l.isModified && !l.isNew && !l.isDeleted)) {
+          await updateLessonMutation.mutateAsync({
+            id: lesson.id,
+            title: lesson.title,
+            description: lesson.description,
+            videoType: lesson.videoType || undefined,
+            videoUrl: lesson.videoUrl,
+          });
+        }
+      }
+      
+      // 7. Reorder blocks (only existing ones)
+      const existingBlockIds = localBlocks
+        .filter(b => !b.isDeleted && !b.isNew)
+        .map(b => b.id);
+      if (existingBlockIds.length > 0) {
+        await reorderBlocksMutation.mutateAsync({ courseId: id, orderedIds: existingBlockIds });
+      }
+      
+      // Refresh data from server
+      await refetch();
+      setHasChanges(false);
+      showToast('Изменения сохранены!', 'success');
+      
+    } catch (error) {
+      console.error('Save error:', error);
+      showToast('Ошибка сохранения', 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Materials
-  const { data: materials, refetch: refetchMaterials } = useLessonMaterials(editingLesson?.id || '');
+  // ============ MATERIALS ============
+  
+  const editingLesson = lessonBlockId 
+    ? localBlocks.find(b => b.id === lessonBlockId)?.lessons.find(l => l.id === editingLessonId)
+    : null;
+  
+  const serverLessonId = editingLesson && !editingLesson.isNew ? editingLesson.id : '';
+  const { data: materials, refetch: refetchMaterials } = useLessonMaterials(serverLessonId);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !editingLesson) return;
+    if (!file || !serverLessonId) return;
 
-    // Проверка типа
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!allowedTypes.includes(file.type)) {
       showToast('Разрешены только PDF, DOC, DOCX', 'error');
       return;
     }
 
-    // Проверка размера (20MB)
     if (file.size > 20 * 1024 * 1024) {
       showToast('Файл слишком большой (макс 20MB)', 'error');
       return;
     }
 
     try {
-      // 1. Загружаем файл
       const uploadResult = await uploadMaterial.mutateAsync(file);
-      
-      // 2. Привязываем к уроку
       await addMaterial.mutateAsync({
-        lessonId: editingLesson.id,
+        lessonId: serverLessonId,
         fileId: uploadResult.fileId,
         fileName: uploadResult.fileName,
         fileType: file.name.split('.').pop() || 'pdf',
         fileSizeBytes: uploadResult.fileSize,
       });
-
       showToast('Документ загружен!', 'success');
       refetchMaterials();
     } catch {
       showToast('Ошибка загрузки документа', 'error');
     }
 
-    // Сбросить input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
   const handleDeleteMaterial = async (material: LessonMaterial) => {
-    if (!editingLesson) return;
+    if (!serverLessonId) return;
     try {
-      await deleteMaterial.mutateAsync({
-        lessonId: editingLesson.id,
-        materialId: material.id,
-      });
+      await deleteMaterial.mutateAsync({ lessonId: serverLessonId, materialId: material.id });
       showToast('Документ удалён', 'success');
       refetchMaterials();
     } catch {
@@ -281,7 +487,6 @@ export default function CourseDetailPage() {
     return (bytes / 1024 / 1024).toFixed(1) + ' MB';
   };
 
-  // File preview
   const openFilePreview = async (material: LessonMaterial) => {
     setSelectedMaterial(material);
     setFileUrl(null);
@@ -300,22 +505,12 @@ export default function CourseDetailPage() {
 
   const handleViewFile = () => {
     if (!fileUrl || !selectedMaterial) return;
-    
-    // Для PDF используем Google Docs Viewer для корректного просмотра
-    if (selectedMaterial.fileType === 'pdf') {
-      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-      window.open(viewerUrl, '_blank');
-    } else {
-      // Для DOC/DOCX тоже используем Google Docs Viewer
-      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
-      window.open(viewerUrl, '_blank');
-    }
+    const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+    window.open(viewerUrl, '_blank');
   };
 
   const handleDownloadFile = () => {
     if (!fileUrl || !selectedMaterial) return;
-    
-    // Создаём ссылку для скачивания
     const a = document.createElement('a');
     a.href = fileUrl;
     a.download = selectedMaterial.fileName;
@@ -327,28 +522,7 @@ export default function CourseDetailPage() {
     showToast('Скачивание началось', 'success');
   };
 
-  const handleBlocksReorder = async (reorderedBlocks: Block[]) => {
-    if (!id) return;
-    try {
-      await reorderBlocks.mutateAsync({
-        courseId: id,
-        orderedIds: reorderedBlocks.map(b => b.id),
-      });
-    } catch {
-      showToast('Ошибка сортировки', 'error');
-    }
-  };
-
-  const handleLessonsReorder = async (blockId: string, reorderedLessons: Lesson[]) => {
-    try {
-      await reorderLessons.mutateAsync({
-        blockId,
-        orderedIds: reorderedLessons.map(l => l.id),
-      });
-    } catch {
-      showToast('Ошибка сортировки', 'error');
-    }
-  };
+  // ============ RENDER ============
 
   if (isLoading) {
     return (
@@ -366,8 +540,9 @@ export default function CourseDetailPage() {
     );
   }
 
-  const totalLessons = course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0;
-  const blocks = course.blocks || [];
+  // Filter out deleted items for display
+  const visibleBlocks = localBlocks.filter(b => !b.isDeleted);
+  const totalLessons = visibleBlocks.reduce((sum, b) => sum + b.lessons.filter(l => !l.isDeleted).length, 0);
 
   return (
     <div className="pb-24">
@@ -376,7 +551,7 @@ export default function CourseDetailPage() {
         subtitle={course.title}
         showBack
         onBack={() => {
-          if (hasUnsavedChanges) {
+          if (hasChanges) {
             setExitConfirmOpen(true);
           } else {
             navigate('/creator/courses');
@@ -389,11 +564,7 @@ export default function CourseDetailPage() {
         <Card>
           <div className="flex items-center gap-4">
             {course.coverImageUrl ? (
-              <img
-                src={course.coverImageUrl}
-                alt=""
-                className="w-20 h-20 rounded-xl object-cover"
-              />
+              <img src={course.coverImageUrl} alt="" className="w-20 h-20 rounded-xl object-cover" />
             ) : (
               <div className="w-20 h-20 rounded-xl bg-[var(--tg-theme-button-color)]/10 flex items-center justify-center text-3xl">
                 📚
@@ -401,43 +572,38 @@ export default function CourseDetailPage() {
             )}
             <div className="flex-1">
               <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                {blocks.length} блоков • {totalLessons} уроков
+                {visibleBlocks.length} блоков • {totalLessons} уроков
               </p>
               {course.description && (
                 <p className="text-sm text-[var(--tg-theme-text-color)] mt-1 line-clamp-2">
                   {course.description}
                 </p>
               )}
+              {hasChanges && (
+                <p className="text-xs text-orange-500 mt-1">● Есть несохранённые изменения</p>
+              )}
             </div>
           </div>
         </Card>
 
-
         {/* Структура курса */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-[var(--tg-theme-text-color)]">
-              Структура курса
-            </h2>
-            <span className="text-xs text-[var(--tg-theme-hint-color)]">
-              ⋮⋮ перетащите для сортировки
-            </span>
+            <h2 className="font-semibold text-[var(--tg-theme-text-color)]">Структура курса</h2>
+            <span className="text-xs text-[var(--tg-theme-hint-color)]">⋮⋮ перетащите для сортировки</span>
           </div>
 
-          {blocks.length === 0 ? (
+          {visibleBlocks.length === 0 ? (
             <Card className="text-center py-8">
-              <p className="text-[var(--tg-theme-hint-color)]">
-                Нажмите кнопку ниже, чтобы добавить блок
-              </p>
+              <p className="text-[var(--tg-theme-hint-color)]">Нажмите кнопку ниже, чтобы добавить блок</p>
             </Card>
           ) : (
             <div className="space-y-3">
               <SortableList
-                items={blocks}
+                items={visibleBlocks}
                 onReorder={handleBlocksReorder}
                 renderItem={(block, blockIndex) => (
                   <Card padding="sm" className="bg-[var(--tg-theme-secondary-bg-color)]">
-                    {/* Block Header */}
                     <div 
                       className="flex items-center justify-between cursor-pointer"
                       onClick={() => toggleBlockExpanded(block.id)}
@@ -457,12 +623,13 @@ export default function CourseDetailPage() {
                         ) : (
                           <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
                             {blockIndex + 1}. {block.title}
+                            {block.isNew && <span className="text-xs text-green-500 ml-2">новый</span>}
                           </span>
                         )}
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="text-xs text-[var(--tg-theme-hint-color)] mr-2">
-                          {block.lessons?.length || 0} уроков
+                          {block.lessons.filter(l => !l.isDeleted).length} уроков
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}
@@ -471,10 +638,7 @@ export default function CourseDetailPage() {
                           ✏️
                         </button>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            confirmDeleteBlock(block);
-                          }}
+                          onClick={(e) => { e.stopPropagation(); confirmDeleteBlock(block); }}
                           className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                         >
                           🗑️
@@ -485,12 +649,11 @@ export default function CourseDetailPage() {
                       </div>
                     </div>
 
-                    {/* Block Content (Lessons) */}
                     {expandedBlocks.has(block.id) && (
                       <div className="mt-3 pt-3 border-t border-[var(--tg-theme-hint-color)]/20">
-                        {block.lessons && block.lessons.length > 0 ? (
+                        {block.lessons.filter(l => !l.isDeleted).length > 0 ? (
                           <SortableList
-                            items={block.lessons}
+                            items={block.lessons.filter(l => !l.isDeleted)}
                             onReorder={(reordered) => handleLessonsReorder(block.id, reordered)}
                             renderItem={(lesson, lessonIndex) => (
                               <div
@@ -502,17 +665,13 @@ export default function CourseDetailPage() {
                                 </span>
                                 <span className="text-sm text-[var(--tg-theme-text-color)] flex-1 truncate">
                                   {lesson.title}
+                                  {lesson.isNew && <span className="text-xs text-green-500 ml-2">новый</span>}
                                 </span>
                                 {lesson.videoType && (
-                                  <span className="text-xs">
-                                    {lesson.videoType === 'telegram' ? '🎬' : '🔗'}
-                                  </span>
+                                  <span className="text-xs">{lesson.videoType === 'telegram' ? '🎬' : '🔗'}</span>
                                 )}
                                 <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    confirmDeleteLesson(lesson);
-                                  }}
+                                  onClick={(e) => { e.stopPropagation(); confirmDeleteLesson(block.id, lesson); }}
                                   className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                                 >
                                   🗑️
@@ -521,19 +680,13 @@ export default function CourseDetailPage() {
                             )}
                           />
                         ) : (
-                          <p className="text-xs text-[var(--tg-theme-hint-color)] text-center py-2">
-                            Пока нет уроков
-                          </p>
+                          <p className="text-xs text-[var(--tg-theme-hint-color)] text-center py-2">Пока нет уроков</p>
                         )}
-
                         <Button
                           variant="ghost"
                           size="sm"
                           className="w-full mt-2"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openCreateLesson(block.id);
-                          }}
+                          onClick={(e) => { e.stopPropagation(); openCreateLesson(block.id); }}
                         >
                           + Добавить урок
                         </Button>
@@ -545,7 +698,6 @@ export default function CourseDetailPage() {
             </div>
           )}
 
-          {/* Кнопка добавления блока */}
           <button
             onClick={openAddBlockModal}
             className="w-full mt-4 p-4 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-button-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:bg-[var(--tg-theme-button-color)]/5 transition-colors"
@@ -560,58 +712,16 @@ export default function CourseDetailPage() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 z-40">
         <Button
           fullWidth
-          onClick={async () => {
-            await refetch();
-            setHasUnsavedChanges(false);
-            showToast('Изменения сохранены!', 'success');
-          }}
+          onClick={handleSaveAll}
+          loading={isSaving}
+          disabled={!hasChanges}
         >
-          ✓ Сохранить изменения
+          {hasChanges ? '✓ Сохранить изменения' : '✓ Все изменения сохранены'}
         </Button>
       </div>
 
-      {/* Exit Confirmation Modal */}
-      <Modal
-        isOpen={exitConfirmOpen}
-        onClose={() => setExitConfirmOpen(false)}
-        title="⚠️ Несохранённые изменения"
-        size="sm"
-      >
-        <div className="space-y-4">
-          <p className="text-[var(--tg-theme-text-color)]">
-            У вас есть несохранённые изменения. Если вы покинете страницу, изменения будут потеряны.
-          </p>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              fullWidth
-              variant="secondary"
-              onClick={() => setExitConfirmOpen(false)}
-            >
-              Остаться
-            </Button>
-            <Button
-              type="button"
-              fullWidth
-              variant="danger"
-              onClick={() => {
-                setExitConfirmOpen(false);
-                navigate('/creator/courses');
-              }}
-            >
-              Выйти без сохранения
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
       {/* Add Block Modal */}
-      <Modal
-        isOpen={addBlockModalOpen}
-        onClose={() => setAddBlockModalOpen(false)}
-        title="📂 Новый блок"
-        size="sm"
-      >
+      <Modal isOpen={addBlockModalOpen} onClose={() => setAddBlockModalOpen(false)} title="📂 Новый блок" size="sm">
         <div className="space-y-4">
           <Input
             label="Название блока *"
@@ -621,12 +731,7 @@ export default function CourseDetailPage() {
             onKeyDown={handleBlockKeyDown}
             autoFocus
           />
-          <Button
-            fullWidth
-            onClick={handleAddBlock}
-            disabled={!newBlockTitle.trim()}
-            loading={createBlock.isPending}
-          >
+          <Button fullWidth onClick={handleAddBlock} disabled={!newBlockTitle.trim()}>
             Создать блок
           </Button>
         </div>
@@ -636,7 +741,7 @@ export default function CourseDetailPage() {
       <Modal
         isOpen={lessonModalOpen}
         onClose={() => setLessonModalOpen(false)}
-        title={editingLesson ? '✏️ Редактировать урок' : '📝 Новый урок'}
+        title={editingLessonId ? '✏️ Редактировать урок' : '📝 Новый урок'}
       >
         <div className="space-y-4">
           <Input
@@ -648,9 +753,7 @@ export default function CourseDetailPage() {
           />
 
           <div>
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
-              Описание урока
-            </label>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">Описание урока</label>
             <textarea
               className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] min-h-[80px] resize-none"
               placeholder="О чём этот урок..."
@@ -661,9 +764,7 @@ export default function CourseDetailPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
-              🎬 Видео
-            </label>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">🎬 Видео</label>
             <div className="grid grid-cols-2 gap-2 mb-3">
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: 'telegram', videoUrl: '' })}
@@ -692,12 +793,8 @@ export default function CourseDetailPage() {
             {lessonForm.videoType === 'telegram' && (
               <div className="border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl p-4 text-center">
                 <div className="text-2xl mb-2">📤</div>
-                <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                  Загрузка видео через Telegram-бота
-                </p>
-                <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
-                  Функция в разработке
-                </p>
+                <p className="text-sm text-[var(--tg-theme-hint-color)]">Загрузка видео через Telegram-бота</p>
+                <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">Функция в разработке</p>
               </div>
             )}
 
@@ -719,14 +816,11 @@ export default function CourseDetailPage() {
             )}
           </div>
 
-          {/* Материалы (только при редактировании) */}
-          {editingLesson && (
+          {/* Материалы (только для существующих уроков) */}
+          {editingLessonId && !editingLesson?.isNew && (
             <div>
-              <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
-                📄 Документы
-              </label>
+              <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">📄 Документы</label>
               
-              {/* Список загруженных материалов */}
               {materials && materials.length > 0 && (
                 <div className="space-y-2 mb-3">
                   {materials.map((material) => (
@@ -735,22 +829,13 @@ export default function CourseDetailPage() {
                       className="flex items-center gap-2 p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg cursor-pointer hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors"
                       onClick={() => openFilePreview(material)}
                     >
-                      <span className="text-lg">
-                        {material.fileType === 'pdf' ? '📕' : '📄'}
-                      </span>
+                      <span className="text-lg">{material.fileType === 'pdf' ? '📕' : '📄'}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-[var(--tg-theme-text-color)] truncate">
-                          {material.fileName}
-                        </p>
-                        <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                          {formatFileSize(material.fileSizeBytes)}
-                        </p>
+                        <p className="text-sm text-[var(--tg-theme-text-color)] truncate">{material.fileName}</p>
+                        <p className="text-xs text-[var(--tg-theme-hint-color)]">{formatFileSize(material.fileSizeBytes)}</p>
                       </div>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteMaterial(material);
-                        }}
+                        onClick={(e) => { e.stopPropagation(); handleDeleteMaterial(material); }}
                         className="p-1 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                       >
                         ✕
@@ -760,14 +845,7 @@ export default function CourseDetailPage() {
                 </div>
               )}
 
-              {/* Кнопка загрузки */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
+              <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" onChange={handleFileSelect} className="hidden" />
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadMaterial.isPending || addMaterial.isPending}
@@ -782,19 +860,19 @@ export default function CourseDetailPage() {
                   </>
                 )}
               </button>
-              <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1 text-center">
-                PDF, DOC, DOCX • до 20MB
-              </p>
+              <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1 text-center">PDF, DOC, DOCX • до 20MB</p>
             </div>
           )}
 
+          {editingLesson?.isNew && (
+            <p className="text-xs text-[var(--tg-theme-hint-color)] text-center">
+              💡 Документы можно добавить после сохранения изменений
+            </p>
+          )}
+
           <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
-            <Button
-              fullWidth
-              onClick={handleSaveLesson}
-              loading={createLesson.isPending || updateLesson.isPending}
-            >
-              {editingLesson ? 'Сохранить изменения' : 'Создать урок'}
+            <Button fullWidth onClick={handleSaveLesson} disabled={!lessonForm.title.trim()}>
+              {editingLessonId ? 'Сохранить урок' : 'Создать урок'}
             </Button>
           </div>
         </div>
@@ -803,32 +881,22 @@ export default function CourseDetailPage() {
       {/* File Preview Modal */}
       <Modal
         isOpen={filePreviewOpen}
-        onClose={() => {
-          setFilePreviewOpen(false);
-          setSelectedMaterial(null);
-          setFileUrl(null);
-        }}
+        onClose={() => { setFilePreviewOpen(false); setSelectedMaterial(null); setFileUrl(null); }}
         title="📄 Документ"
         size="sm"
       >
         {selectedMaterial && (
           <div className="space-y-4">
-            {/* File info */}
             <div className="flex items-center gap-3 p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
-              <span className="text-3xl">
-                {selectedMaterial.fileType === 'pdf' ? '📕' : '📄'}
-              </span>
+              <span className="text-3xl">{selectedMaterial.fileType === 'pdf' ? '📕' : '📄'}</span>
               <div className="flex-1 min-w-0">
-                <p className="text-[var(--tg-theme-text-color)] font-medium truncate">
-                  {selectedMaterial.fileName}
-                </p>
+                <p className="text-[var(--tg-theme-text-color)] font-medium truncate">{selectedMaterial.fileName}</p>
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">
                   {formatFileSize(selectedMaterial.fileSizeBytes)} • {selectedMaterial.fileType.toUpperCase()}
                 </p>
               </div>
             </div>
 
-            {/* Loading state */}
             {loadingFileUrl && (
               <div className="text-center py-4">
                 <div className="animate-spin w-8 h-8 border-2 border-[var(--tg-theme-button-color)] border-t-transparent rounded-full mx-auto"></div>
@@ -836,120 +904,57 @@ export default function CourseDetailPage() {
               </div>
             )}
 
-            {/* Actions */}
             {fileUrl && !loadingFileUrl && (
               <div className="space-y-2">
-                <Button
-                  fullWidth
-                  onClick={handleViewFile}
-                >
-                  👁️ Посмотреть
-                </Button>
-                <Button
-                  fullWidth
-                  variant="secondary"
-                  onClick={handleDownloadFile}
-                >
-                  ⬇️ Скачать
-                </Button>
+                <Button fullWidth onClick={handleViewFile}>👁️ Посмотреть</Button>
+                <Button fullWidth variant="secondary" onClick={handleDownloadFile}>⬇️ Скачать</Button>
               </div>
             )}
 
-            {/* Error state */}
             {!fileUrl && !loadingFileUrl && (
-              <p className="text-center text-[var(--tg-theme-hint-color)]">
-                Не удалось загрузить файл
-              </p>
+              <p className="text-center text-[var(--tg-theme-hint-color)]">Не удалось загрузить файл</p>
             )}
           </div>
         )}
       </Modal>
 
-      {/* Delete Block Confirmation Modal */}
-      <Modal
-        isOpen={!!deleteBlockConfirm}
-        onClose={() => setDeleteBlockConfirm(null)}
-        title="🗑️ Удалить блок?"
-        size="sm"
-      >
+      {/* Delete Block Confirmation */}
+      <Modal isOpen={!!deleteBlockConfirm} onClose={() => setDeleteBlockConfirm(null)} title="🗑️ Удалить блок?" size="sm">
         <div className="space-y-4">
           <p className="text-[var(--tg-theme-text-color)]">
             Вы уверены, что хотите удалить блок <strong>"{deleteBlockConfirm?.title}"</strong>?
           </p>
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">
-            Все уроки в этом блоке также будут удалены. Это действие нельзя отменить.
-          </p>
+          <p className="text-sm text-[var(--tg-theme-hint-color)]">Все уроки в этом блоке также будут удалены.</p>
           <div className="flex gap-2">
-            <Button
-              type="button"
-              fullWidth
-              variant="secondary"
-              onClick={() => setDeleteBlockConfirm(null)}
-            >
-              Отмена
-            </Button>
-            <Button
-              type="button"
-              fullWidth
-              variant="danger"
-              onClick={async () => {
-                if (!deleteBlockConfirm) return;
-                try {
-                  await deleteBlock.mutateAsync(deleteBlockConfirm.id);
-                  setDeleteBlockConfirm(null);
-                  showToast('Блок удалён', 'success');
-                } catch {
-                  showToast('Ошибка удаления блока', 'error');
-                }
-              }}
-              loading={deleteBlock.isPending}
-            >
-              Удалить
-            </Button>
+            <Button type="button" fullWidth variant="secondary" onClick={() => setDeleteBlockConfirm(null)}>Отмена</Button>
+            <Button type="button" fullWidth variant="danger" onClick={handleDeleteBlock}>Удалить</Button>
           </div>
         </div>
       </Modal>
 
-      {/* Delete Lesson Confirmation Modal */}
-      <Modal
-        isOpen={!!deleteLessonConfirm}
-        onClose={() => setDeleteLessonConfirm(null)}
-        title="🗑️ Удалить урок?"
-        size="sm"
-      >
+      {/* Delete Lesson Confirmation */}
+      <Modal isOpen={!!deleteLessonConfirm} onClose={() => setDeleteLessonConfirm(null)} title="🗑️ Удалить урок?" size="sm">
         <div className="space-y-4">
           <p className="text-[var(--tg-theme-text-color)]">
             Вы уверены, что хотите удалить урок <strong>"{deleteLessonConfirm?.title}"</strong>?
           </p>
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">
-            Это действие нельзя отменить.
+          <div className="flex gap-2">
+            <Button type="button" fullWidth variant="secondary" onClick={() => setDeleteLessonConfirm(null)}>Отмена</Button>
+            <Button type="button" fullWidth variant="danger" onClick={handleDeleteLesson}>Удалить</Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Exit Confirmation */}
+      <Modal isOpen={exitConfirmOpen} onClose={() => setExitConfirmOpen(false)} title="⚠️ Несохранённые изменения" size="sm">
+        <div className="space-y-4">
+          <p className="text-[var(--tg-theme-text-color)]">
+            У вас есть несохранённые изменения. Если вы покинете страницу, они будут потеряны.
           </p>
           <div className="flex gap-2">
-            <Button
-              type="button"
-              fullWidth
-              variant="secondary"
-              onClick={() => setDeleteLessonConfirm(null)}
-            >
-              Отмена
-            </Button>
-            <Button
-              type="button"
-              fullWidth
-              variant="danger"
-              onClick={async () => {
-                if (!deleteLessonConfirm) return;
-                try {
-                  await deleteLesson.mutateAsync(deleteLessonConfirm.id);
-                  setDeleteLessonConfirm(null);
-                  showToast('Урок удалён', 'success');
-                } catch {
-                  showToast('Ошибка удаления урока', 'error');
-                }
-              }}
-              loading={deleteLesson.isPending}
-            >
-              Удалить
+            <Button type="button" fullWidth variant="secondary" onClick={() => setExitConfirmOpen(false)}>Остаться</Button>
+            <Button type="button" fullWidth variant="danger" onClick={() => { setExitConfirmOpen(false); navigate('/creator/courses'); }}>
+              Выйти без сохранения
             </Button>
           </div>
         </div>
