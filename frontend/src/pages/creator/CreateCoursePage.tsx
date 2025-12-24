@@ -38,8 +38,11 @@ export default function CreateCoursePage() {
 
   // Шаг 2: Структура
   const [blocks, setBlocks] = useState<BlockDraft[]>([]);
-  const [newBlockTitle, setNewBlockTitle] = useState('');
   const [expandedBlocks, setExpandedBlocks] = useState<Set<string>>(new Set());
+
+  // Модалка добавления блока
+  const [addBlockModalOpen, setAddBlockModalOpen] = useState(false);
+  const [newBlockTitle, setNewBlockTitle] = useState('');
 
   // Редактирование блока
   const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
@@ -76,6 +79,11 @@ export default function CreateCoursePage() {
   };
 
   // Блоки
+  const openAddBlockModal = () => {
+    setNewBlockTitle('');
+    setAddBlockModalOpen(true);
+  };
+
   const addBlock = () => {
     if (!newBlockTitle.trim()) return;
     const newBlock: BlockDraft = {
@@ -86,6 +94,7 @@ export default function CreateCoursePage() {
     setBlocks([...blocks, newBlock]);
     setExpandedBlocks(new Set([...expandedBlocks, newBlock.id]));
     setNewBlockTitle('');
+    setAddBlockModalOpen(false);
   };
 
   const handleBlockKeyDown = (e: React.KeyboardEvent) => {
@@ -186,7 +195,9 @@ export default function CreateCoursePage() {
     setLessonModalOpen(false);
   };
 
-  const removeLesson = (blockId: string, lessonId: string) => {
+  const removeLesson = (e: React.MouseEvent, blockId: string, lessonId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
     setBlocks(blocks.map(block =>
       block.id === blockId
         ? { ...block, lessons: block.lessons.filter(l => l.id !== lessonId) }
@@ -232,7 +243,8 @@ export default function CreateCoursePage() {
       }
 
       showToast('Курс создан!', 'success');
-      navigate(`/creator/courses/${course.id}`);
+      // Редирект на страницу курсов, а не на редактирование
+      navigate('/creator/courses');
     } catch {
       showToast('Ошибка создания курса', 'error');
     } finally {
@@ -243,7 +255,7 @@ export default function CreateCoursePage() {
   const totalLessons = blocks.reduce((sum, b) => sum + b.lessons.length, 0);
 
   return (
-    <div className="min-h-screen bg-[var(--tg-theme-bg-color)]">
+    <div className="min-h-screen bg-[var(--tg-theme-bg-color)] pb-24">
       <PageHeader
         title="Создание курса"
         subtitle={`Шаг ${step} из 2`}
@@ -265,7 +277,7 @@ export default function CreateCoursePage() {
         </div>
       </div>
 
-      <div className="p-4 pb-40">
+      <div className="p-4">
         {/* Шаг 1: Информация */}
         {step === 1 && (
           <div className="space-y-4">
@@ -346,19 +358,6 @@ export default function CreateCoursePage() {
               </span>
             </div>
 
-            {/* Поле добавления блока */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Название блока (Enter для создания)"
-                value={newBlockTitle}
-                onChange={(e) => setNewBlockTitle(e.target.value)}
-                onKeyDown={handleBlockKeyDown}
-              />
-              <Button onClick={addBlock} disabled={!newBlockTitle.trim()}>
-                +
-              </Button>
-            </div>
-
             {/* Список блоков с drag-n-drop */}
             {blocks.length > 0 && (
               <SortableList
@@ -395,13 +394,13 @@ export default function CreateCoursePage() {
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}
-                          className="p-1 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
+                          className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
                         >
                           ✏️
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); removeBlock(block.id); }}
-                          className="p-1 text-[var(--tg-theme-hint-color)] hover:text-red-500"
+                          className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                         >
                           🗑️
                         </button>
@@ -435,8 +434,8 @@ export default function CreateCoursePage() {
                                   </span>
                                 )}
                                 <button
-                                  onClick={(e) => { e.stopPropagation(); removeLesson(block.id, lesson.id); }}
-                                  className="text-[var(--tg-theme-hint-color)] hover:text-red-500 text-xs"
+                                  onClick={(e) => removeLesson(e, block.id, lesson.id)}
+                                  className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500 text-sm"
                                 >
                                   ✕
                                 </button>
@@ -464,11 +463,19 @@ export default function CreateCoursePage() {
               />
             )}
 
+            {/* Кнопка добавления блока */}
+            <button
+              onClick={openAddBlockModal}
+              className="w-full p-4 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-button-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:bg-[var(--tg-theme-button-color)]/5 transition-colors"
+            >
+              <span className="text-xl">+</span>
+              <span className="font-medium">Добавить блок</span>
+            </button>
+
             {blocks.length === 0 && (
-              <div className="text-center py-8">
-                <div className="text-4xl mb-2">📂</div>
+              <div className="text-center py-4">
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                  Введите название блока выше и нажмите Enter
+                  Нажмите кнопку выше, чтобы добавить первый блок
                 </p>
               </div>
             )}
@@ -476,8 +483,8 @@ export default function CreateCoursePage() {
         )}
       </div>
 
-      {/* Footer */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 z-50 safe-area-pb">
+      {/* Footer - адаптивный */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20 z-40">
         {step === 1 ? (
           <Button
             fullWidth
@@ -489,7 +496,7 @@ export default function CreateCoursePage() {
         ) : (
           <div className="flex gap-2">
             <Button variant="secondary" onClick={() => setStep(1)}>
-              ← Назад
+              ←
             </Button>
             <Button
               fullWidth
@@ -501,6 +508,32 @@ export default function CreateCoursePage() {
           </div>
         )}
       </div>
+
+      {/* Add Block Modal */}
+      <Modal
+        isOpen={addBlockModalOpen}
+        onClose={() => setAddBlockModalOpen(false)}
+        title="📂 Новый блок"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Название блока *"
+            placeholder="Введение"
+            value={newBlockTitle}
+            onChange={(e) => setNewBlockTitle(e.target.value)}
+            onKeyDown={handleBlockKeyDown}
+            autoFocus
+          />
+          <Button
+            fullWidth
+            onClick={addBlock}
+            disabled={!newBlockTitle.trim()}
+          >
+            Создать блок
+          </Button>
+        </div>
+      </Modal>
 
       {/* Lesson Modal */}
       <Modal

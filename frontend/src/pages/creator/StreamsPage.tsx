@@ -43,6 +43,22 @@ export default function StreamsPage() {
     setStreamName('');
   };
 
+  const selectedCourse = courses?.find(c => c.id === selectedCourseId);
+
+  // Get all lessons from selected course
+  const allLessons = selectedCourse?.blocks?.flatMap((block, blockIdx) => 
+    block.lessons?.map((lesson, lessonIdx) => ({
+      ...lesson,
+      blockTitle: block.title,
+      blockIndex: blockIdx + 1,
+      lessonIndex: lessonIdx + 1,
+    })) || []
+  ) || [];
+
+  // Проверяем, все ли уроки запланированы
+  const allLessonsScheduled = scheduleEnabled && lessonSchedules.length === allLessons.length;
+  const canProceedFromStep2 = !scheduleEnabled || allLessonsScheduled;
+
   const handleCreate = async () => {
     if (!selectedCourseId || !streamName.trim()) return;
 
@@ -60,18 +76,6 @@ export default function StreamsPage() {
       showToast('Ошибка создания потока', 'error');
     }
   };
-
-  const selectedCourse = courses?.find(c => c.id === selectedCourseId);
-
-  // Get all lessons from selected course
-  const allLessons = selectedCourse?.blocks?.flatMap((block, blockIdx) => 
-    block.lessons?.map((lesson, lessonIdx) => ({
-      ...lesson,
-      blockTitle: block.title,
-      blockIndex: blockIdx + 1,
-      lessonIndex: lessonIdx + 1,
-    })) || []
-  ) || [];
 
   const getLessonSchedule = (lessonId: string) => {
     return lessonSchedules.find(s => s.lessonId === lessonId);
@@ -150,7 +154,7 @@ export default function StreamsPage() {
   };
 
   return (
-    <div>
+    <div className="pb-24">
       <PageHeader
         title="Потоки"
         subtitle={streams ? `${streams.length} потоков` : undefined}
@@ -197,19 +201,33 @@ export default function StreamsPage() {
                     <div
                       key={course.id}
                       onClick={() => setSelectedCourseId(course.id)}
-                      className={`p-3 rounded-xl border-2 cursor-pointer transition-colors ${
+                      className={`p-3 rounded-xl border-2 cursor-pointer transition-colors flex items-center gap-3 ${
                         selectedCourseId === course.id
                           ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/5'
                           : 'border-transparent bg-[var(--tg-theme-secondary-bg-color)]'
                       }`}
                     >
-                      <div className="font-medium text-[var(--tg-theme-text-color)]">
-                        {course.title}
+                      {/* Круглый чекбокс */}
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                        selectedCourseId === course.id
+                          ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]'
+                          : 'border-[var(--tg-theme-hint-color)]/50'
+                      }`}>
+                        {selectedCourseId === course.id && (
+                          <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
                       </div>
-                      <div className="text-sm text-[var(--tg-theme-hint-color)]">
-                        {course.blocks?.length || 0} блоков • {
-                          course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0
-                        } уроков
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-[var(--tg-theme-text-color)]">
+                          {course.title}
+                        </div>
+                        <div className="text-sm text-[var(--tg-theme-hint-color)]">
+                          {course.blocks?.length || 0} блоков • {
+                            course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0
+                          } уроков
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -265,21 +283,24 @@ export default function StreamsPage() {
                 {scheduleEnabled && selectedCourse && (
                   <>
                     {/* Auto-schedule button */}
-                    <div className="flex justify-end">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-[var(--tg-theme-hint-color)]">
+                        Настройте дату открытия для каждого урока
+                      </span>
                       <Button 
                         variant="secondary" 
                         size="sm"
                         onClick={() => setAutoScheduleOpen(true)}
                       >
-                        ⚡ Авто-расписание
+                        ⚡ Авто
                       </Button>
                     </div>
 
                     {/* Lesson list with dates */}
-                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    <div className="space-y-2 max-h-[250px] overflow-y-auto">
                       {selectedCourse.blocks?.map((block, blockIdx) => (
                         <div key={block.id}>
-                          <div className="flex items-center gap-2 py-2">
+                          <div className="flex items-center gap-2 py-1">
                             <span className="text-sm">📂</span>
                             <span className="text-sm font-medium text-[var(--tg-theme-text-color)]">
                               {blockIdx + 1}. {block.title}
@@ -291,7 +312,11 @@ export default function StreamsPage() {
                             return (
                               <div 
                                 key={lesson.id}
-                                className="ml-6 flex items-center justify-between py-2 px-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg mb-1"
+                                className={`ml-4 flex items-center justify-between py-2 px-3 rounded-lg mb-1 ${
+                                  schedule 
+                                    ? 'bg-green-50 border border-green-200' 
+                                    : 'bg-[var(--tg-theme-secondary-bg-color)]'
+                                }`}
                               >
                                 <div className="flex-1 min-w-0">
                                   <span className="text-xs text-[var(--tg-theme-hint-color)]">
@@ -301,15 +326,21 @@ export default function StreamsPage() {
                                     {lesson.title}
                                   </span>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
                                   {schedule ? (
                                     <>
-                                      <span className="text-xs text-green-600">
-                                        📅 {formatDateTime(schedule.scheduledOpenAt)}
+                                      <span className="text-xs text-green-700 font-medium">
+                                        {formatDateTime(schedule.scheduledOpenAt)}
                                       </span>
                                       <button
+                                        onClick={() => openDatePicker({ ...lesson, blockIndex: blockIdx + 1, lessonIndex: lessonIdx + 1 })}
+                                        className="p-1 text-[var(--tg-theme-hint-color)]"
+                                      >
+                                        ✏️
+                                      </button>
+                                      <button
                                         onClick={() => removeLessonDate(lesson.id)}
-                                        className="text-xs text-red-500"
+                                        className="p-1 text-red-500"
                                       >
                                         ✕
                                       </button>
@@ -317,9 +348,9 @@ export default function StreamsPage() {
                                   ) : (
                                     <button
                                       onClick={() => openDatePicker({ ...lesson, blockIndex: blockIdx + 1, lessonIndex: lessonIdx + 1 })}
-                                      className="text-xs text-[var(--tg-theme-button-color)]"
+                                      className="text-xs text-[var(--tg-theme-button-color)] font-medium px-2 py-1 rounded bg-[var(--tg-theme-button-color)]/10"
                                     >
-                                      + Дата
+                                      📅 Выбрать дату
                                     </button>
                                   )}
                                 </div>
@@ -330,25 +361,43 @@ export default function StreamsPage() {
                       ))}
                     </div>
 
-                    {lessonSchedules.length > 0 && (
-                      <p className="text-xs text-green-600">
-                        ✓ Настроено дат: {lessonSchedules.length} из {allLessons.length}
+                    {/* Статус заполнения */}
+                    <div className={`p-3 rounded-xl ${allLessonsScheduled ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
+                      <p className={`text-sm font-medium ${allLessonsScheduled ? 'text-green-700' : 'text-orange-700'}`}>
+                        {allLessonsScheduled 
+                          ? `✓ Все ${allLessons.length} уроков запланированы`
+                          : `⚠️ Запланировано ${lessonSchedules.length} из ${allLessons.length} уроков`
+                        }
                       </p>
-                    )}
+                      {!allLessonsScheduled && (
+                        <p className="text-xs text-orange-600 mt-1">
+                          Укажите дату для всех уроков или отключите расписание
+                        </p>
+                      )}
+                    </div>
                   </>
                 )}
 
                 {!scheduleEnabled && (
-                  <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                    Все уроки будут доступны сразу после оплаты
-                  </p>
+                  <div className="p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
+                    <p className="text-sm text-[var(--tg-theme-text-color)]">
+                      📖 Все уроки будут доступны сразу
+                    </p>
+                    <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
+                      Ученики получат доступ ко всем урокам после оплаты
+                    </p>
+                  </div>
                 )}
 
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => setStep(1)}>
-                    ← Назад
+                    ←
                   </Button>
-                  <Button fullWidth onClick={() => setStep(3)}>
+                  <Button 
+                    fullWidth 
+                    onClick={() => setStep(3)}
+                    disabled={!canProceedFromStep2}
+                  >
                     Далее →
                   </Button>
                 </div>
@@ -359,7 +408,7 @@ export default function StreamsPage() {
             {step === 3 && (
               <>
                 <p className="font-medium text-[var(--tg-theme-text-color)]">
-                  Уведомления ученикам
+                  🔔 Уведомления ученикам
                 </p>
 
                 <div className="space-y-3">
@@ -403,7 +452,7 @@ export default function StreamsPage() {
 
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => setStep(2)}>
-                    ← Назад
+                    ←
                   </Button>
                   <Button fullWidth onClick={() => setStep(4)}>
                     Далее →
@@ -416,7 +465,7 @@ export default function StreamsPage() {
             {step === 4 && (
               <>
                 <p className="font-medium text-[var(--tg-theme-text-color)]">
-                  Название потока
+                  ✍️ Название потока
                 </p>
                 <Input
                   placeholder="Группа декабрь 2024"
@@ -428,17 +477,25 @@ export default function StreamsPage() {
                   💡 Это название только для вас, ученики его не видят
                 </p>
 
-                {scheduleEnabled && lessonSchedules.length > 0 && (
-                  <div className="p-3 bg-blue-50 rounded-xl">
-                    <p className="text-xs text-blue-800">
-                      📅 Расписание: {lessonSchedules.length} уроков запланировано
-                    </p>
-                  </div>
-                )}
+                {/* Summary */}
+                <div className="p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl space-y-2">
+                  <p className="text-sm font-medium text-[var(--tg-theme-text-color)]">
+                    📋 Итого:
+                  </p>
+                  <p className="text-xs text-[var(--tg-theme-hint-color)]">
+                    📚 Курс: {selectedCourse?.title}
+                  </p>
+                  <p className="text-xs text-[var(--tg-theme-hint-color)]">
+                    📅 Расписание: {scheduleEnabled ? `${lessonSchedules.length} уроков` : 'Все сразу'}
+                  </p>
+                  <p className="text-xs text-[var(--tg-theme-hint-color)]">
+                    🔔 Уведомления: {notifyOnLessonOpen ? 'Включены' : 'Только приветствие'}
+                  </p>
+                </div>
 
                 <div className="flex gap-2">
                   <Button variant="secondary" onClick={() => setStep(3)}>
-                    ← Назад
+                    ←
                   </Button>
                   <Button
                     fullWidth
@@ -520,10 +577,11 @@ export default function StreamsPage() {
         isOpen={dateModalOpen}
         onClose={() => setDateModalOpen(false)}
         title="📅 Выбор даты открытия"
+        size="sm"
       >
         <div className="space-y-4">
           <Input
-            label="Дата и время открытия *"
+            label="Дата и время *"
             type="datetime-local"
             value={tempDateTime}
             onChange={(e) => setTempDateTime(e.target.value)}
@@ -543,10 +601,11 @@ export default function StreamsPage() {
         isOpen={autoScheduleOpen}
         onClose={() => setAutoScheduleOpen(false)}
         title="⚡ Авто-расписание"
+        size="sm"
       >
         <div className="space-y-4">
           <p className="text-sm text-[var(--tg-theme-hint-color)]">
-            Автоматически создать расписание для всех {allLessons.length} уроков
+            Создать расписание для всех {allLessons.length} уроков
           </p>
 
           <Input
