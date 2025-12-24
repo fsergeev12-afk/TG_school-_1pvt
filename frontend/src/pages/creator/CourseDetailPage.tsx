@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { 
   useCourse, 
   useCreateBlock,
@@ -33,7 +33,6 @@ interface LessonFormData {
 
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { data: course, isLoading } = useCourse(id!);
   const createBlock = useCreateBlock();
   const updateBlock = useUpdateBlock();
@@ -548,7 +547,6 @@ export default function CourseDetailPage() {
           fullWidth
           onClick={() => {
             showToast('Изменения сохранены!', 'success');
-            navigate('/creator/courses');
           }}
         >
           ✓ Сохранить изменения
