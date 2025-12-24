@@ -839,6 +839,7 @@ export default function CourseDetailPage() {
           </p>
           <div className="flex gap-2">
             <Button
+              type="button"
               fullWidth
               variant="secondary"
               onClick={() => setDeleteBlockConfirm(null)}
@@ -846,9 +847,19 @@ export default function CourseDetailPage() {
               Отмена
             </Button>
             <Button
+              type="button"
               fullWidth
-              className="bg-red-500 hover:bg-red-600"
-              onClick={handleDeleteBlock}
+              variant="danger"
+              onClick={async () => {
+                if (!deleteBlockConfirm) return;
+                try {
+                  await deleteBlock.mutateAsync(deleteBlockConfirm.id);
+                  setDeleteBlockConfirm(null);
+                  showToast('Блок удалён', 'success');
+                } catch {
+                  showToast('Ошибка удаления блока', 'error');
+                }
+              }}
               loading={deleteBlock.isPending}
             >
               Удалить
@@ -873,6 +884,7 @@ export default function CourseDetailPage() {
           </p>
           <div className="flex gap-2">
             <Button
+              type="button"
               fullWidth
               variant="secondary"
               onClick={() => setDeleteLessonConfirm(null)}
@@ -880,9 +892,19 @@ export default function CourseDetailPage() {
               Отмена
             </Button>
             <Button
+              type="button"
               fullWidth
-              className="bg-red-500 hover:bg-red-600"
-              onClick={handleDeleteLesson}
+              variant="danger"
+              onClick={async () => {
+                if (!deleteLessonConfirm) return;
+                try {
+                  await deleteLesson.mutateAsync(deleteLessonConfirm.id);
+                  setDeleteLessonConfirm(null);
+                  showToast('Урок удалён', 'success');
+                } catch {
+                  showToast('Ошибка удаления урока', 'error');
+                }
+              }}
               loading={deleteLesson.isPending}
             >
               Удалить

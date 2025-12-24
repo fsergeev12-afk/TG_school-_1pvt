@@ -888,6 +888,7 @@ export default function CreateCoursePage() {
           </p>
           <div className="flex gap-2">
             <Button
+              type="button"
               fullWidth
               variant="secondary"
               onClick={() => setDeleteBlockConfirm(null)}
@@ -895,9 +896,14 @@ export default function CreateCoursePage() {
               Отмена
             </Button>
             <Button
+              type="button"
               fullWidth
-              className="bg-red-500 hover:bg-red-600"
-              onClick={removeBlock}
+              variant="danger"
+              onClick={() => {
+                if (!deleteBlockConfirm) return;
+                setBlocks(prev => prev.filter((b) => b.id !== deleteBlockConfirm.id));
+                setDeleteBlockConfirm(null);
+              }}
             >
               Удалить
             </Button>
@@ -918,6 +924,7 @@ export default function CreateCoursePage() {
           </p>
           <div className="flex gap-2">
             <Button
+              type="button"
               fullWidth
               variant="secondary"
               onClick={() => setDeleteLessonConfirm(null)}
@@ -925,9 +932,18 @@ export default function CreateCoursePage() {
               Отмена
             </Button>
             <Button
+              type="button"
               fullWidth
-              className="bg-red-500 hover:bg-red-600"
-              onClick={removeLesson}
+              variant="danger"
+              onClick={() => {
+                if (!deleteLessonConfirm) return;
+                setBlocks(prev => prev.map(block =>
+                  block.id === deleteLessonConfirm.blockId
+                    ? { ...block, lessons: block.lessons.filter(l => l.id !== deleteLessonConfirm.lessonId) }
+                    : block
+                ));
+                setDeleteLessonConfirm(null);
+              }}
             >
               Удалить
             </Button>
