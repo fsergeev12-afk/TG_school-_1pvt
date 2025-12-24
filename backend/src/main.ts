@@ -1,9 +1,11 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Включаем CORS для frontend
   app.enableCors({
@@ -20,6 +22,12 @@ async function bootstrap() {
     }),
   );
 
+  // Статические файлы (uploads)
+  const uploadsDir = process.env.UPLOADS_DIR || './uploads';
+  app.useStaticAssets(join(process.cwd(), uploadsDir), {
+    prefix: '/uploads/',
+  });
+
   // API prefix
   app.setGlobalPrefix('api');
 
@@ -29,6 +37,7 @@ async function bootstrap() {
   console.log(`
   🚀 Backend запущен на http://localhost:${port}
   📚 API доступен на http://localhost:${port}/api
+  📁 Файлы доступны на http://localhost:${port}/uploads/
   🗄️  База данных: ${process.env.DATABASE_TYPE || 'sqlite'}
   `);
 }

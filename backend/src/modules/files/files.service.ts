@@ -64,7 +64,7 @@ export class FilesService {
    * Создать необходимые директории
    */
   private ensureDirectories() {
-    const dirs = ['covers', 'temp'];
+    const dirs = ['covers', 'temp', 'materials'];
     for (const dir of dirs) {
       const fullPath = path.join(this.uploadsDir, dir);
       if (!fs.existsSync(fullPath)) {
@@ -183,58 +183,59 @@ export class FilesService {
   }
 
   /**
-   * Загрузить материал урока в Telegram
+   * Загрузить материал урока (локально)
    */
   async uploadMaterial(
     file: Express.Multer.File,
-    chatId: number,
+    _chatId?: number, // Больше не используется, сохраняем для совместимости
   ): Promise<UploadResult> {
     this.validateFile(file, 'material');
 
     try {
-      // Сохраняем во временный файл
-      const tempPath = path.join(this.uploadsDir, 'temp', `${Date.now()}_${file.originalname}`);
-      fs.writeFileSync(tempPath, file.buffer);
+      // Генерируем уникальное имя файла
+      const ext = path.extname(file.originalname).toLowerCase();
+      const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      const fileName = `${uniqueId}${ext}`;
+      const filePath = path.join(this.uploadsDir, 'materials', fileName);
 
-      // Отправляем в Telegram и получаем file_id
-      const bot = this.telegramBotService.getBot();
-      const message = await bot.sendDocument(chatId, tempPath, {
-        caption: 'Загрузка материала...',
-      });
+      // Сохраняем файл
+      fs.writeFileSync(filePath, file.buffer);
 
-      // Удаляем временный файл
-      fs.unlinkSync(tempPath);
+      const baseUrl = this.configService.get<string>('BASE_URL') || 'http://localhost:3000';
 
-      // Удаляем сообщение из чата
-      try {
-        await bot.deleteMessage(chatId, message.message_id);
-      } catch {
-        // Игнорируем
-      }
-
-      const document = message.document;
-      if (!document) {
-        throw new Error('Не удалось получить document из ответа Telegram');
-      }
+      this.logger.log(`Материал сохранён: ${filePath}`);
 
       return {
-        fileId: document.file_id,
+        fileId: fileName, // Используем имя файла как ID
         fileName: file.originalname,
-        fileSize: document.file_size || file.size,
+        fileSize: file.size,
         mimeType: file.mimetype,
-        storageType: 'telegram',
+        storageType: 'local',
+        url: `${baseUrl}/uploads/materials/${fileName}`,
       };
 
     } catch (error) {
       this.logger.error(`Ошибка загрузки материала: ${error.message}`);
-      throw new BadRequestException('Ошибка загрузки материала в Telegram');
+      throw new BadRequestException('Ошибка сохранения материала');
     }
   }
 
   /**
-   * Получить URL файла из Telegram по file_id
+   * Получить URL файла по ID
+   * Поддерживает как локальные файлы, так и Telegram file_id
    */
-  async getTelegramFileUrl(fileId: string): Promise<string> {
+  async getFileUrl(fileId: string): Promise<string> {
+    // Проверяем, является ли это локальным файлом (имеет расширение)
+    const localExtensions = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.webp', '.mp4', '.mov', '.webm'];
+    const isLocalFile = localExtensions.some(ext => fileId.toLowerCase().endsWith(ext));
+
+    if (isLocalFile) {
+      // Локальный файл
+      const baseUrl = this.configService.get<string>('BASE_URL') || 'http://localhost:3000';
+      return `${baseUrl}/uploads/materials/${fileId}`;
+    }
+
+    // Telegram file_id
     try {
       const bot = this.telegramBotService.getBot();
       const file = await bot.getFile(fileId);
@@ -248,10 +249,18 @@ export class FilesService {
   }
 
   /**
+   * @deprecated Use getFileUrl instead
+   */
+  async getTelegramFileUrl(fileId: string): Promise<string> {
+    return this.getFileUrl(fileId);
+  }
+
+  /**
    * Удалить локальный файл
    */
-  deleteLocalFile(fileName: string, type: 'cover'): void {
-    const filePath = path.join(this.uploadsDir, type + 's', fileName);
+  deleteLocalFile(fileName: string, type: 'cover' | 'material'): void {
+    const folder = type === 'cover' ? 'covers' : 'materials';
+    const filePath = path.join(this.uploadsDir, folder, fileName);
     
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
@@ -279,4 +288,5 @@ export class FilesService {
     };
   }
 }
+
 
