@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateCourse, useCreateBlock, useCreateLesson } from '../../api/hooks';
+import { useCreateCourse, useCreateBlock, useCreateLesson, useUploadMaterial, useAddMaterial } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal, SortableList } from '../../components/ui';
 import { useUIStore } from '../../store';
+
+interface FileDraft {
+  id: string;
+  file: File;
+  name: string;
+  size: number;
+  type: string;
+}
 
 interface LessonDraft {
   id: string;
@@ -11,6 +19,7 @@ interface LessonDraft {
   description?: string;
   videoType?: 'telegram' | 'external' | null;
   videoUrl?: string;
+  files?: FileDraft[];
 }
 
 interface BlockDraft {
@@ -26,7 +35,11 @@ export default function CreateCoursePage() {
   const createCourse = useCreateCourse();
   const createBlock = useCreateBlock();
   const createLesson = useCreateLesson();
+  const uploadMaterial = useUploadMaterial();
+  const addMaterial = useAddMaterial();
   const { showToast } = useUIStore();
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Шаги
   const [step, setStep] = useState(1);
@@ -58,6 +71,7 @@ export default function CreateCoursePage() {
     videoType: null as VideoType,
     videoUrl: '',
   });
+  const [lessonFiles, setLessonFiles] = useState<FileDraft[]>([]);
 
   const [isCreating, setIsCreating] = useState(false);
 
@@ -150,6 +164,7 @@ export default function CreateCoursePage() {
     setLessonBlockId(blockId);
     setEditingLesson(null);
     setLessonForm({ title: '', description: '', videoType: null, videoUrl: '' });
+    setLessonFiles([]);
     setLessonModalOpen(true);
   };
 
@@ -162,7 +177,51 @@ export default function CreateCoursePage() {
       videoType: lesson.videoType || null,
       videoUrl: lesson.videoUrl || '',
     });
+    setLessonFiles(lesson.files || []);
     setLessonModalOpen(true);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Проверка типа
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowedTypes.includes(file.type)) {
+      showToast('Разрешены только PDF, DOC, DOCX', 'error');
+      return;
+    }
+
+    // Проверка размера (20MB)
+    if (file.size > 20 * 1024 * 1024) {
+      showToast('Файл слишком большой (макс 20MB)', 'error');
+      return;
+    }
+
+    const newFile: FileDraft = {
+      id: `file-${Date.now()}`,
+      file,
+      name: file.name,
+      size: file.size,
+      type: file.name.split('.').pop() || 'pdf',
+    };
+
+    setLessonFiles([...lessonFiles, newFile]);
+
+    // Сбросить input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const removeFile = (fileId: string) => {
+    setLessonFiles(lessonFiles.filter(f => f.id !== fileId));
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1024 / 1024).toFixed(1) + ' MB';
   };
 
   const saveLesson = () => {
@@ -174,6 +233,7 @@ export default function CreateCoursePage() {
       description: lessonForm.description.trim() || undefined,
       videoType: lessonForm.videoType,
       videoUrl: lessonForm.videoUrl.trim() || undefined,
+      files: lessonFiles,
     };
 
     if (editingLesson) {
@@ -232,13 +292,31 @@ export default function CreateCoursePage() {
         });
 
         for (const lessonDraft of blockDraft.lessons) {
-          await createLesson.mutateAsync({
+          const lesson = await createLesson.mutateAsync({
             blockId: block.id,
             title: lessonDraft.title,
             description: lessonDraft.description,
             videoType: lessonDraft.videoType || undefined,
             videoUrl: lessonDraft.videoUrl,
           });
+
+          // Загружаем файлы для урока
+          if (lessonDraft.files && lessonDraft.files.length > 0) {
+            for (const fileDraft of lessonDraft.files) {
+              try {
+                const uploadResult = await uploadMaterial.mutateAsync(fileDraft.file);
+                await addMaterial.mutateAsync({
+                  lessonId: lesson.id,
+                  fileId: uploadResult.fileId,
+                  fileName: uploadResult.fileName,
+                  fileType: fileDraft.type,
+                  fileSizeBytes: uploadResult.fileSize,
+                });
+              } catch {
+                console.error('Error uploading file:', fileDraft.name);
+              }
+            }
+          }
         }
       }
 
@@ -620,6 +698,62 @@ export default function CreateCoursePage() {
                 ✕ Убрать видео
               </button>
             )}
+          </div>
+
+          {/* Документы */}
+          <div>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+              📄 Документы
+            </label>
+            
+            {/* Список файлов */}
+            {lessonFiles.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {lessonFiles.map((fileDraft) => (
+                  <div
+                    key={fileDraft.id}
+                    className="flex items-center gap-2 p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg"
+                  >
+                    <span className="text-lg">
+                      {fileDraft.type === 'pdf' ? '📕' : '📄'}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-[var(--tg-theme-text-color)] truncate">
+                        {fileDraft.name}
+                      </p>
+                      <p className="text-xs text-[var(--tg-theme-hint-color)]">
+                        {formatFileSize(fileDraft.size)}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => removeFile(fileDraft.id)}
+                      className="p-1 text-[var(--tg-theme-hint-color)] hover:text-red-500"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Кнопка загрузки */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full p-3 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-hint-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:text-[var(--tg-theme-button-color)] transition-colors"
+            >
+              <span className="text-lg">📤</span>
+              <span className="text-sm">Добавить документ</span>
+            </button>
+            <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1 text-center">
+              PDF, DOC, DOCX • до 20MB
+            </p>
           </div>
 
           <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
