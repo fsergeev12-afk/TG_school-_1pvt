@@ -299,6 +299,15 @@ export const useAddMaterial = () => {
   });
 };
 
+export const useGetFileUrl = () => {
+  return useMutation({
+    mutationFn: async (fileId: string) => {
+      const { data } = await apiClient.get<{ url: string }>(`/files/telegram/${fileId}`);
+      return data.url;
+    },
+  });
+};
+
 export const useDeleteMaterial = () => {
   const queryClient = useQueryClient();
   

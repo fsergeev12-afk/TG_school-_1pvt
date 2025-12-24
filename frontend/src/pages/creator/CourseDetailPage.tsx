@@ -14,6 +14,7 @@ import {
   useUploadMaterial,
   useAddMaterial,
   useDeleteMaterial,
+  useGetFileUrl,
   LessonMaterial,
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
@@ -44,10 +45,17 @@ export default function CourseDetailPage() {
   const uploadMaterial = useUploadMaterial();
   const addMaterial = useAddMaterial();
   const deleteMaterial = useDeleteMaterial();
+  const getFileUrl = useGetFileUrl();
   const { showToast } = useUIStore();
 
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // File preview modal
+  const [filePreviewOpen, setFilePreviewOpen] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState<LessonMaterial | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [loadingFileUrl, setLoadingFileUrl] = useState(false);
 
   // Block modal
   const [addBlockModalOpen, setAddBlockModalOpen] = useState(false);
@@ -275,6 +283,49 @@ export default function CourseDetailPage() {
     if (bytes < 1024) return bytes + ' B';
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  };
+
+  // File preview
+  const openFilePreview = async (material: LessonMaterial) => {
+    setSelectedMaterial(material);
+    setFileUrl(null);
+    setFilePreviewOpen(true);
+    setLoadingFileUrl(true);
+    
+    try {
+      const url = await getFileUrl.mutateAsync(material.telegramFileId);
+      setFileUrl(url);
+    } catch {
+      showToast('Не удалось получить файл', 'error');
+    } finally {
+      setLoadingFileUrl(false);
+    }
+  };
+
+  const handleViewFile = () => {
+    if (fileUrl) {
+      window.open(fileUrl, '_blank');
+    }
+  };
+
+  const handleDownloadFile = async () => {
+    if (!fileUrl || !selectedMaterial) return;
+    
+    try {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = selectedMaterial.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(downloadUrl);
+      showToast('Файл скачан!', 'success');
+    } catch {
+      showToast('Ошибка скачивания', 'error');
+    }
   };
 
   const handleBlocksReorder = async (reorderedBlocks: Block[]) => {
@@ -664,7 +715,8 @@ export default function CourseDetailPage() {
                   {materials.map((material) => (
                     <div
                       key={material.id}
-                      className="flex items-center gap-2 p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg"
+                      className="flex items-center gap-2 p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg cursor-pointer hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors"
+                      onClick={() => openFilePreview(material)}
                     >
                       <span className="text-lg">
                         {material.fileType === 'pdf' ? '📕' : '📄'}
@@ -678,7 +730,10 @@ export default function CourseDetailPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => handleDeleteMaterial(material)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteMaterial(material);
+                        }}
                         className="p-1 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                       >
                         ✕
@@ -726,6 +781,71 @@ export default function CourseDetailPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* File Preview Modal */}
+      <Modal
+        isOpen={filePreviewOpen}
+        onClose={() => {
+          setFilePreviewOpen(false);
+          setSelectedMaterial(null);
+          setFileUrl(null);
+        }}
+        title="📄 Документ"
+        size="sm"
+      >
+        {selectedMaterial && (
+          <div className="space-y-4">
+            {/* File info */}
+            <div className="flex items-center gap-3 p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
+              <span className="text-3xl">
+                {selectedMaterial.fileType === 'pdf' ? '📕' : '📄'}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[var(--tg-theme-text-color)] font-medium truncate">
+                  {selectedMaterial.fileName}
+                </p>
+                <p className="text-sm text-[var(--tg-theme-hint-color)]">
+                  {formatFileSize(selectedMaterial.fileSizeBytes)} • {selectedMaterial.fileType.toUpperCase()}
+                </p>
+              </div>
+            </div>
+
+            {/* Loading state */}
+            {loadingFileUrl && (
+              <div className="text-center py-4">
+                <div className="animate-spin w-8 h-8 border-2 border-[var(--tg-theme-button-color)] border-t-transparent rounded-full mx-auto"></div>
+                <p className="text-sm text-[var(--tg-theme-hint-color)] mt-2">Загрузка файла...</p>
+              </div>
+            )}
+
+            {/* Actions */}
+            {fileUrl && !loadingFileUrl && (
+              <div className="space-y-2">
+                <Button
+                  fullWidth
+                  onClick={handleViewFile}
+                >
+                  👁️ Посмотреть
+                </Button>
+                <Button
+                  fullWidth
+                  variant="secondary"
+                  onClick={handleDownloadFile}
+                >
+                  ⬇️ Скачать
+                </Button>
+              </div>
+            )}
+
+            {/* Error state */}
+            {!fileUrl && !loadingFileUrl && (
+              <p className="text-center text-[var(--tg-theme-hint-color)]">
+                Не удалось загрузить файл
+              </p>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );
