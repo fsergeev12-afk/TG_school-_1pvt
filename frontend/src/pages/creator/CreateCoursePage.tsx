@@ -73,6 +73,10 @@ export default function CreateCoursePage() {
   });
   const [lessonFiles, setLessonFiles] = useState<FileDraft[]>([]);
 
+  // Модалка просмотра файла
+  const [filePreviewOpen, setFilePreviewOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<FileDraft | null>(null);
+
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -216,6 +220,39 @@ export default function CreateCoursePage() {
 
   const removeFile = (fileId: string) => {
     setLessonFiles(lessonFiles.filter(f => f.id !== fileId));
+  };
+
+  const openFilePreview = (fileDraft: FileDraft) => {
+    setSelectedFile(fileDraft);
+    setFilePreviewOpen(true);
+  };
+
+  const handleViewLocalFile = () => {
+    if (!selectedFile) return;
+    
+    // Создаём URL для локального файла
+    const fileUrl = URL.createObjectURL(selectedFile.file);
+    
+    // Для PDF и документов открываем в новом окне
+    window.open(fileUrl, '_blank');
+    
+    // Очищаем URL после небольшой задержки
+    setTimeout(() => URL.revokeObjectURL(fileUrl), 1000);
+  };
+
+  const handleDownloadLocalFile = () => {
+    if (!selectedFile) return;
+    
+    // Создаём URL и скачиваем
+    const fileUrl = URL.createObjectURL(selectedFile.file);
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = selectedFile.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(fileUrl);
+    showToast('Файл скачан!', 'success');
   };
 
   const formatFileSize = (bytes: number) => {
@@ -712,7 +749,8 @@ export default function CreateCoursePage() {
                 {lessonFiles.map((fileDraft) => (
                   <div
                     key={fileDraft.id}
-                    className="flex items-center gap-2 p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg"
+                    className="flex items-center gap-2 p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg cursor-pointer hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors"
+                    onClick={() => openFilePreview(fileDraft)}
                   >
                     <span className="text-lg">
                       {fileDraft.type === 'pdf' ? '📕' : '📄'}
@@ -726,7 +764,10 @@ export default function CreateCoursePage() {
                       </p>
                     </div>
                     <button
-                      onClick={() => removeFile(fileDraft.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFile(fileDraft.id);
+                      }}
                       className="p-1 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                     >
                       ✕
@@ -766,6 +807,53 @@ export default function CreateCoursePage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* File Preview Modal */}
+      <Modal
+        isOpen={filePreviewOpen}
+        onClose={() => {
+          setFilePreviewOpen(false);
+          setSelectedFile(null);
+        }}
+        title="📄 Документ"
+        size="sm"
+      >
+        {selectedFile && (
+          <div className="space-y-4">
+            {/* File info */}
+            <div className="flex items-center gap-3 p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
+              <span className="text-3xl">
+                {selectedFile.type === 'pdf' ? '📕' : '📄'}
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[var(--tg-theme-text-color)] font-medium truncate">
+                  {selectedFile.name}
+                </p>
+                <p className="text-sm text-[var(--tg-theme-hint-color)]">
+                  {formatFileSize(selectedFile.size)} • {selectedFile.type.toUpperCase()}
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2">
+              <Button
+                fullWidth
+                onClick={handleViewLocalFile}
+              >
+                👁️ Посмотреть
+              </Button>
+              <Button
+                fullWidth
+                variant="secondary"
+                onClick={handleDownloadLocalFile}
+              >
+                ⬇️ Скачать
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

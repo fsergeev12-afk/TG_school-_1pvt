@@ -303,29 +303,32 @@ export default function CourseDetailPage() {
   };
 
   const handleViewFile = () => {
-    if (fileUrl) {
-      window.open(fileUrl, '_blank');
+    if (!fileUrl || !selectedMaterial) return;
+    
+    // Для PDF используем Google Docs Viewer для корректного просмотра
+    if (selectedMaterial.fileType === 'pdf') {
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+      window.open(viewerUrl, '_blank');
+    } else {
+      // Для DOC/DOCX тоже используем Google Docs Viewer
+      const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+      window.open(viewerUrl, '_blank');
     }
   };
 
-  const handleDownloadFile = async () => {
+  const handleDownloadFile = () => {
     if (!fileUrl || !selectedMaterial) return;
     
-    try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = selectedMaterial.fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(downloadUrl);
-      showToast('Файл скачан!', 'success');
-    } catch {
-      showToast('Ошибка скачивания', 'error');
-    }
+    // Создаём ссылку для скачивания
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = selectedMaterial.fileName;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('Скачивание началось', 'success');
   };
 
   const handleBlocksReorder = async (reorderedBlocks: Block[]) => {
