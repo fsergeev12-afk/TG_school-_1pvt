@@ -30,6 +30,7 @@ export default function StreamsPage() {
   // Modal for date picker
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
+  const [editingLessonTitle, setEditingLessonTitle] = useState('');
   const [tempDateTime, setTempDateTime] = useState('');
 
   const resetForm = () => {
@@ -83,6 +84,7 @@ export default function StreamsPage() {
 
   const openDatePicker = (lesson: Lesson & { blockIndex: number; lessonIndex: number }) => {
     setEditingLessonId(lesson.id);
+    setEditingLessonTitle(`${lesson.blockIndex}.${lesson.lessonIndex} ${lesson.title}`);
     const existing = getLessonSchedule(lesson.id);
     setTempDateTime(existing?.scheduledOpenAt || '');
     setDateModalOpen(true);
@@ -125,32 +127,6 @@ export default function StreamsPage() {
       month: '2-digit',
       year: 'numeric',
     });
-  };
-
-  // Auto-schedule functionality
-  const [autoScheduleOpen, setAutoScheduleOpen] = useState(false);
-  const [autoStartDate, setAutoStartDate] = useState('');
-  const [autoIntervalDays, setAutoIntervalDays] = useState(1);
-
-  const applyAutoSchedule = () => {
-    if (!autoStartDate) return;
-    
-    const startDate = new Date(autoStartDate);
-    const newSchedules: LessonSchedule[] = [];
-    
-    allLessons.forEach((lesson, index) => {
-      const lessonDate = new Date(startDate);
-      lessonDate.setDate(lessonDate.getDate() + (index * autoIntervalDays));
-      
-      newSchedules.push({
-        lessonId: lesson.id,
-        scheduledOpenAt: lessonDate.toISOString().slice(0, 16),
-      });
-    });
-    
-    setLessonSchedules(newSchedules);
-    setAutoScheduleOpen(false);
-    showToast(`Расписание создано: ${allLessons.length} уроков`, 'success');
   };
 
   return (
@@ -256,10 +232,26 @@ export default function StreamsPage() {
             {step === 2 && (
               <>
                 <p className="font-medium text-[var(--tg-theme-text-color)]">
-                  📅 Расписание уроков
+                  📅 Доступ к урокам
                 </p>
-                
-                <label className="flex items-start gap-3 p-3 rounded-xl bg-[var(--tg-theme-secondary-bg-color)] cursor-pointer">
+
+                {/* Сначала информация о режиме по умолчанию */}
+                <div className="p-4 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">📖</span>
+                    <div>
+                      <p className="font-medium text-[var(--tg-theme-text-color)]">
+                        По умолчанию: все уроки сразу
+                      </p>
+                      <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
+                        Ученики получат доступ ко всем урокам сразу после старта потока
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Потом галочка включения расписания */}
+                <label className="flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors hover:border-[var(--tg-theme-button-color)]/30 ${scheduleEnabled ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/5' : 'border-[var(--tg-theme-hint-color)]/30'}">
                   <input
                     type="checkbox"
                     checked={scheduleEnabled}
@@ -272,30 +264,16 @@ export default function StreamsPage() {
                   />
                   <div>
                     <div className="font-medium text-[var(--tg-theme-text-color)]">
-                      Открывать уроки по расписанию
+                      🗓️ Открывать уроки по расписанию
                     </div>
-                    <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
-                      Уроки будут открываться автоматически в указанное время
+                    <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
+                      Укажите дату открытия для каждого урока вручную
                     </p>
                   </div>
                 </label>
 
                 {scheduleEnabled && selectedCourse && (
                   <>
-                    {/* Auto-schedule button */}
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-[var(--tg-theme-hint-color)]">
-                        Настройте дату открытия для каждого урока
-                      </span>
-                      <Button 
-                        variant="secondary" 
-                        size="sm"
-                        onClick={() => setAutoScheduleOpen(true)}
-                      >
-                        ⚡ Авто
-                      </Button>
-                    </div>
-
                     {/* Lesson list with dates */}
                     <div className="space-y-2 max-h-[250px] overflow-y-auto">
                       {selectedCourse.blocks?.map((block, blockIdx) => (
@@ -312,35 +290,39 @@ export default function StreamsPage() {
                             return (
                               <div 
                                 key={lesson.id}
-                                className={`ml-4 flex items-center justify-between py-2 px-3 rounded-lg mb-1 ${
+                                className={`ml-4 flex items-center justify-between py-3 px-3 rounded-xl mb-2 ${
                                   schedule 
                                     ? 'bg-green-50 border border-green-200' 
                                     : 'bg-[var(--tg-theme-secondary-bg-color)]'
                                 }`}
                               >
                                 <div className="flex-1 min-w-0">
-                                  <span className="text-xs text-[var(--tg-theme-hint-color)]">
-                                    {blockIdx + 1}.{lessonIdx + 1}
-                                  </span>
-                                  <span className="text-sm text-[var(--tg-theme-text-color)] ml-2 truncate">
-                                    {lesson.title}
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-[var(--tg-theme-hint-color)] font-medium">
+                                      {blockIdx + 1}.{lessonIdx + 1}
+                                    </span>
+                                    <span className="text-sm text-[var(--tg-theme-text-color)] truncate">
+                                      {lesson.title}
+                                    </span>
+                                  </div>
+                                  {schedule && (
+                                    <p className="text-xs text-green-700 mt-1">
+                                      📅 {formatDateTime(schedule.scheduledOpenAt)}
+                                    </p>
+                                  )}
                                 </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-2 ml-2">
                                   {schedule ? (
                                     <>
-                                      <span className="text-xs text-green-700 font-medium">
-                                        {formatDateTime(schedule.scheduledOpenAt)}
-                                      </span>
                                       <button
                                         onClick={() => openDatePicker({ ...lesson, blockIndex: blockIdx + 1, lessonIndex: lessonIdx + 1 })}
-                                        className="p-1 text-[var(--tg-theme-hint-color)]"
+                                        className="p-2 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
                                       >
                                         ✏️
                                       </button>
                                       <button
                                         onClick={() => removeLessonDate(lesson.id)}
-                                        className="p-1 text-red-500"
+                                        className="p-2 text-red-400 hover:text-red-500"
                                       >
                                         ✕
                                       </button>
@@ -348,7 +330,7 @@ export default function StreamsPage() {
                                   ) : (
                                     <button
                                       onClick={() => openDatePicker({ ...lesson, blockIndex: blockIdx + 1, lessonIndex: lessonIdx + 1 })}
-                                      className="text-xs text-[var(--tg-theme-button-color)] font-medium px-2 py-1 rounded bg-[var(--tg-theme-button-color)]/10"
+                                      className="px-4 py-2 bg-[var(--tg-theme-button-color)] text-white rounded-xl text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all"
                                     >
                                       📅 Выбрать дату
                                     </button>
@@ -376,17 +358,6 @@ export default function StreamsPage() {
                       )}
                     </div>
                   </>
-                )}
-
-                {!scheduleEnabled && (
-                  <div className="p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
-                    <p className="text-sm text-[var(--tg-theme-text-color)]">
-                      📖 Все уроки будут доступны сразу
-                    </p>
-                    <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
-                      Ученики получат доступ ко всем урокам после оплаты
-                    </p>
-                  </div>
                 )}
 
                 <div className="flex gap-2">
@@ -486,7 +457,7 @@ export default function StreamsPage() {
                     📚 Курс: {selectedCourse?.title}
                   </p>
                   <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                    📅 Расписание: {scheduleEnabled ? `${lessonSchedules.length} уроков` : 'Все сразу'}
+                    📅 Доступ: {scheduleEnabled ? `По расписанию (${lessonSchedules.length} уроков)` : 'Все уроки сразу'}
                   </p>
                   <p className="text-xs text-[var(--tg-theme-hint-color)]">
                     🔔 Уведомления: {notifyOnLessonOpen ? 'Включены' : 'Только приветствие'}
@@ -580,68 +551,25 @@ export default function StreamsPage() {
         size="sm"
       >
         <div className="space-y-4">
+          <div className="p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
+            <p className="text-sm text-[var(--tg-theme-text-color)] font-medium">
+              {editingLessonTitle}
+            </p>
+          </div>
+          
           <Input
-            label="Дата и время *"
+            label="Дата и время открытия урока"
             type="datetime-local"
             value={tempDateTime}
             onChange={(e) => setTempDateTime(e.target.value)}
           />
+          
           <Button
             fullWidth
             onClick={saveLessonDate}
             disabled={!tempDateTime}
           >
             Сохранить
-          </Button>
-        </div>
-      </Modal>
-
-      {/* Auto Schedule Modal */}
-      <Modal
-        isOpen={autoScheduleOpen}
-        onClose={() => setAutoScheduleOpen(false)}
-        title="⚡ Авто-расписание"
-        size="sm"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">
-            Создать расписание для всех {allLessons.length} уроков
-          </p>
-
-          <Input
-            label="Дата начала *"
-            type="datetime-local"
-            value={autoStartDate}
-            onChange={(e) => setAutoStartDate(e.target.value)}
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
-              Интервал между уроками
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {[1, 2, 3, 7].map((days) => (
-                <button
-                  key={days}
-                  onClick={() => setAutoIntervalDays(days)}
-                  className={`p-2 rounded-lg border-2 text-xs transition-colors ${
-                    autoIntervalDays === days
-                      ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/10'
-                      : 'border-[var(--tg-theme-hint-color)]/30'
-                  }`}
-                >
-                  {days === 1 ? '1 день' : days === 7 ? 'Неделя' : `${days} дня`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <Button
-            fullWidth
-            onClick={applyAutoSchedule}
-            disabled={!autoStartDate}
-          >
-            Применить
           </Button>
         </div>
       </Modal>

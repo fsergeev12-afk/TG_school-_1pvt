@@ -38,7 +38,8 @@ export default function CourseDetailPage() {
   const deleteLesson = useDeleteLesson();
   const { showToast } = useUIStore();
 
-  // Block creation
+  // Block modal
+  const [addBlockModalOpen, setAddBlockModalOpen] = useState(false);
   const [newBlockTitle, setNewBlockTitle] = useState('');
 
   // Block editing
@@ -73,11 +74,17 @@ export default function CourseDetailPage() {
     setExpandedBlocks(newExpanded);
   };
 
+  const openAddBlockModal = () => {
+    setNewBlockTitle('');
+    setAddBlockModalOpen(true);
+  };
+
   const handleAddBlock = async () => {
     if (!newBlockTitle.trim() || !id) return;
     try {
       const block = await createBlock.mutateAsync({ courseId: id, title: newBlockTitle.trim() });
       setNewBlockTitle('');
+      setAddBlockModalOpen(false);
       setExpandedBlocks(new Set([...expandedBlocks, block.id]));
       showToast('Блок добавлен!', 'success');
     } catch {
@@ -237,7 +244,7 @@ export default function CourseDetailPage() {
   const blocks = course.blocks || [];
 
   return (
-    <div>
+    <div className="pb-24">
       <PageHeader
         title="Редактирование курса"
         subtitle={course.title}
@@ -284,27 +291,10 @@ export default function CourseDetailPage() {
             </span>
           </div>
 
-          {/* Поле добавления блока */}
-          <div className="flex gap-2 mb-3">
-            <Input
-              placeholder="Название блока (Enter для создания)"
-              value={newBlockTitle}
-              onChange={(e) => setNewBlockTitle(e.target.value)}
-              onKeyDown={handleBlockKeyDown}
-            />
-            <Button 
-              onClick={handleAddBlock} 
-              disabled={!newBlockTitle.trim()}
-              loading={createBlock.isPending}
-            >
-              +
-            </Button>
-          </div>
-
           {blocks.length === 0 ? (
             <Card className="text-center py-8">
               <p className="text-[var(--tg-theme-hint-color)]">
-                Введите название блока выше и нажмите Enter
+                Нажмите кнопку ниже, чтобы добавить блок
               </p>
             </Card>
           ) : (
@@ -343,7 +333,7 @@ export default function CourseDetailPage() {
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}
-                          className="p-1 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
+                          className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
                         >
                           ✏️
                         </button>
@@ -372,7 +362,7 @@ export default function CourseDetailPage() {
                               e.stopPropagation();
                               setDeletingBlockId(block.id);
                             }}
-                            className="text-[var(--tg-theme-hint-color)] hover:text-red-500 p-1"
+                            className="text-[var(--tg-theme-hint-color)] hover:text-red-500 p-1.5"
                           >
                             🗑️
                           </button>
@@ -427,9 +417,9 @@ export default function CourseDetailPage() {
                                       e.stopPropagation();
                                       setDeletingLessonId(lesson.id);
                                     }}
-                                    className="text-[var(--tg-theme-hint-color)] hover:text-red-500 text-xs"
+                                    className="text-[var(--tg-theme-hint-color)] hover:text-red-500 p-1.5 text-sm"
                                   >
-                                    🗑️
+                                    ✕
                                   </button>
                                 )}
                               </div>
@@ -457,11 +447,46 @@ export default function CourseDetailPage() {
                   </Card>
                 )}
               />
-
             </div>
           )}
+
+          {/* Кнопка добавления блока */}
+          <button
+            onClick={openAddBlockModal}
+            className="w-full mt-4 p-4 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-button-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:bg-[var(--tg-theme-button-color)]/5 transition-colors"
+          >
+            <span className="text-xl">+</span>
+            <span className="font-medium">Добавить блок</span>
+          </button>
         </div>
       </div>
+
+      {/* Add Block Modal */}
+      <Modal
+        isOpen={addBlockModalOpen}
+        onClose={() => setAddBlockModalOpen(false)}
+        title="📂 Новый блок"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <Input
+            label="Название блока *"
+            placeholder="Введение"
+            value={newBlockTitle}
+            onChange={(e) => setNewBlockTitle(e.target.value)}
+            onKeyDown={handleBlockKeyDown}
+            autoFocus
+          />
+          <Button
+            fullWidth
+            onClick={handleAddBlock}
+            disabled={!newBlockTitle.trim()}
+            loading={createBlock.isPending}
+          >
+            Создать блок
+          </Button>
+        </div>
+      </Modal>
 
       {/* Lesson Modal */}
       <Modal

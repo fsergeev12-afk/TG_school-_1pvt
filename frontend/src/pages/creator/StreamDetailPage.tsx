@@ -6,7 +6,6 @@ import {
   useSendBroadcast, 
   useDeleteStream,
   useStreamSchedule,
-  useAutoSchedule,
   useCourse
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
@@ -24,21 +23,16 @@ export default function StreamDetailPage() {
   const { data: course } = useCourse(stream?.courseId || '');
   const sendBroadcast = useSendBroadcast();
   const deleteStream = useDeleteStream();
-  const autoSchedule = useAutoSchedule();
   const { showToast } = useUIStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('students');
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Schedule modal
-  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
-  const [startDate, setStartDate] = useState('');
-  const [intervalDays, setIntervalDays] = useState(1);
-
   // Add students modal
   const [addStudentsModalOpen, setAddStudentsModalOpen] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
+  const [isCopied, setIsCopied] = useState(false);
 
   const handleSendBroadcast = async () => {
     if (!broadcastMessage.trim() || !id) return;
@@ -62,18 +56,14 @@ export default function StreamDetailPage() {
     }
   };
 
-  const handleAutoSchedule = async () => {
-    if (!id || !startDate) return;
+  const handleCopyLink = async () => {
     try {
-      await autoSchedule.mutateAsync({
-        streamId: id,
-        startDate,
-        intervalDays,
-      });
-      setScheduleModalOpen(false);
-      showToast('Расписание создано!', 'success');
+      await navigator.clipboard.writeText(inviteLink);
+      setIsCopied(true);
+      showToast('Ссылка скопирована!', 'success');
+      setTimeout(() => setIsCopied(false), 2000);
     } catch {
-      showToast('Ошибка создания расписания', 'error');
+      showToast('Ошибка копирования', 'error');
     }
   };
 
@@ -161,6 +151,7 @@ export default function StreamDetailPage() {
                 const baseUrl = window.location.origin;
                 const link = `${baseUrl}/invite/${id}`;
                 setInviteLink(link);
+                setIsCopied(false);
                 setAddStudentsModalOpen(true);
               }}
             >
@@ -221,16 +212,9 @@ export default function StreamDetailPage() {
         {/* Вкладка "Расписание" */}
         {activeTab === 'schedule' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
-                📅 Расписание уроков
-              </h3>
-              {stream.scheduleEnabled && (
-                <Button size="sm" onClick={() => setScheduleModalOpen(true)}>
-                  ⚡ Авто
-                </Button>
-              )}
-            </div>
+            <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
+              📅 Расписание уроков
+            </h3>
 
             {!stream.scheduleEnabled ? (
               <Card className="text-center py-8">
@@ -461,62 +445,6 @@ export default function StreamDetailPage() {
         )}
       </div>
 
-      {/* Auto Schedule Modal */}
-      <Modal
-        isOpen={scheduleModalOpen}
-        onClose={() => setScheduleModalOpen(false)}
-        title="⚡ Автоматическое расписание"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">
-            Уроки будут открываться автоматически с заданным интервалом
-          </p>
-
-          <Input
-            label="Дата начала *"
-            type="datetime-local"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
-              Интервал между уроками
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {[1, 2, 3, 7].map((days) => (
-                <button
-                  key={days}
-                  onClick={() => setIntervalDays(days)}
-                  className={`p-3 rounded-xl border-2 text-sm transition-colors ${
-                    intervalDays === days
-                      ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/10'
-                      : 'border-[var(--tg-theme-hint-color)]/30'
-                  }`}
-                >
-                  {days === 1 ? 'Каждый день' : days === 7 ? 'Раз в неделю' : `${days} дня`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-3 bg-blue-50 rounded-xl">
-            <p className="text-xs text-blue-800">
-              ℹ️ Всего {allLessons.length} уроков будут открыты с интервалом {intervalDays} {intervalDays === 1 ? 'день' : 'дня'}
-            </p>
-          </div>
-
-          <Button
-            fullWidth
-            onClick={handleAutoSchedule}
-            loading={autoSchedule.isPending}
-            disabled={!startDate}
-          >
-            Создать расписание
-          </Button>
-        </div>
-      </Modal>
-
       {/* Add Students Modal */}
       <Modal
         isOpen={addStudentsModalOpen}
@@ -532,55 +460,51 @@ export default function StreamDetailPage() {
             <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
               Ссылка-приглашение
             </label>
-            <div className="flex gap-2">
-              <Input
-                value={inviteLink}
-                readOnly
-                className="flex-1"
-              />
-              <Button
-                onClick={() => {
-                  navigator.clipboard.writeText(inviteLink);
-                  showToast('Ссылка скопирована!', 'success');
-                }}
-              >
-                📋
-              </Button>
+            <div className="p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl break-all text-sm text-[var(--tg-theme-text-color)]">
+              {inviteLink}
             </div>
           </div>
 
-          <div className="p-3 bg-blue-50 rounded-xl">
-            <p className="text-xs text-blue-800">
-              💡 Поделитесь ссылкой в Telegram, соцсетях или через email
-            </p>
-          </div>
+          {/* Кнопка копирования - динамичная */}
+          <button
+            onClick={handleCopyLink}
+            className={`w-full py-4 rounded-xl font-medium text-white transition-all duration-300 flex items-center justify-center gap-2 ${
+              isCopied 
+                ? 'bg-green-500 scale-[1.02]' 
+                : 'bg-[var(--tg-theme-button-color)] hover:opacity-90 active:scale-[0.98]'
+            }`}
+          >
+            {isCopied ? (
+              <>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Скопировано!
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                Скопировать ссылку
+              </>
+            )}
+          </button>
 
           <div className="border-t border-[var(--tg-theme-hint-color)]/20 pt-4">
             <h4 className="font-medium text-sm text-[var(--tg-theme-text-color)] mb-3">
-              Поделиться через:
+              Или поделиться через:
             </h4>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => {
-                  const text = encodeURIComponent(`Приглашаю на курс "${stream?.course?.title}"\n${inviteLink}`);
-                  window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`, '_blank');
-                }}
-              >
-                📱 Telegram
-              </Button>
-              <Button
-                variant="secondary"
-                fullWidth
-                onClick={() => {
-                  const text = encodeURIComponent(`Приглашаю на курс "${stream?.course?.title}"\n${inviteLink}`);
-                  window.open(`https://wa.me/?text=${text}`, '_blank');
-                }}
-              >
-                💬 WhatsApp
-              </Button>
-            </div>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => {
+                const text = encodeURIComponent(`Приглашаю на курс "${stream?.course?.title}"\n${inviteLink}`);
+                window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`, '_blank');
+              }}
+            >
+              📱 Telegram
+            </Button>
           </div>
         </div>
       </Modal>
