@@ -186,59 +186,60 @@ export class FilesService {
   }
 
   /**
-   * Загрузить материал урока (локально)
+   * Загрузить материал урока в Telegram
    */
   async uploadMaterial(
     file: Express.Multer.File,
-    _chatId?: number, // Больше не используется, сохраняем для совместимости
+    chatId: number,
   ): Promise<UploadResult> {
     this.validateFile(file, 'material');
 
     try {
-      // Генерируем уникальное имя файла
-      const ext = path.extname(file.originalname).toLowerCase();
-      const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
-      const fileName = `${uniqueId}${ext}`;
-      const filePath = path.join(this.uploadsDir, 'materials', fileName);
+      // Сохраняем во временный файл
+      const tempPath = path.join(this.uploadsDir, 'temp', `${Date.now()}_${file.originalname}`);
+      fs.writeFileSync(tempPath, file.buffer);
 
-      // Сохраняем файл
-      fs.writeFileSync(filePath, file.buffer);
+      // Отправляем в Telegram и получаем file_id
+      const bot = this.telegramBotService.getBot();
+      const message = await bot.sendDocument(chatId, tempPath, {
+        caption: '📄 Загрузка документа...',
+      });
 
-      const baseUrl = this.configService.get<string>('BASE_URL') || 'http://localhost:3000';
+      // Удаляем временный файл
+      fs.unlinkSync(tempPath);
 
-      this.logger.log(`Материал сохранён: ${filePath}`);
+      // Удаляем сообщение из чата (чтобы не засорять)
+      try {
+        await bot.deleteMessage(chatId, message.message_id);
+      } catch {
+        // Игнорируем ошибку удаления
+      }
+
+      const document = message.document;
+      if (!document) {
+        throw new Error('Не удалось получить document из ответа Telegram');
+      }
+
+      this.logger.log(`Материал загружен в Telegram: ${document.file_id}`);
 
       return {
-        fileId: fileName, // Используем имя файла как ID
+        fileId: document.file_id,
         fileName: file.originalname,
-        fileSize: file.size,
+        fileSize: document.file_size || file.size,
         mimeType: file.mimetype,
-        storageType: 'local',
-        url: `${baseUrl}/uploads/materials/${fileName}`,
+        storageType: 'telegram',
       };
 
     } catch (error) {
       this.logger.error(`Ошибка загрузки материала: ${error.message}`);
-      throw new BadRequestException('Ошибка сохранения материала');
+      throw new BadRequestException(`Ошибка загрузки: ${error.message}. Убедитесь, что вы отправили /start боту @Bllocklyyy_bot`);
     }
   }
 
   /**
-   * Получить URL файла по ID
-   * Поддерживает как локальные файлы, так и Telegram file_id
+   * Получить URL файла из Telegram по file_id
    */
-  async getFileUrl(fileId: string): Promise<string> {
-    // Проверяем, является ли это локальным файлом (имеет расширение)
-    const localExtensions = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.webp', '.mp4', '.mov', '.webm'];
-    const isLocalFile = localExtensions.some(ext => fileId.toLowerCase().endsWith(ext));
-
-    if (isLocalFile) {
-      // Локальный файл
-      const baseUrl = this.configService.get<string>('BASE_URL') || 'http://localhost:3000';
-      return `${baseUrl}/uploads/materials/${fileId}`;
-    }
-
-    // Telegram file_id
+  async getTelegramFileUrl(fileId: string): Promise<string> {
     try {
       const bot = this.telegramBotService.getBot();
       const file = await bot.getFile(fileId);
@@ -247,15 +248,8 @@ export class FilesService {
       return `https://api.telegram.org/file/bot${token}/${file.file_path}`;
     } catch (error) {
       this.logger.error(`Ошибка получения URL файла: ${error.message}`);
-      throw new BadRequestException('Ошибка получения файла');
+      throw new BadRequestException('Ошибка получения файла из Telegram');
     }
-  }
-
-  /**
-   * @deprecated Use getFileUrl instead
-   */
-  async getTelegramFileUrl(fileId: string): Promise<string> {
-    return this.getFileUrl(fileId);
   }
 
   /**
