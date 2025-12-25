@@ -1,9 +1,16 @@
-import { Controller, Post, Body, Headers, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { TelegramAuthGuard } from './guards/telegram-auth.guard';
+import { CurrentUser } from './decorators/current-user.decorator';
+import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly usersService: UsersService,
+  ) {}
 
   /**
    * Аутентификация через Telegram WebApp
@@ -27,6 +34,49 @@ export class AuthController {
         username: user.telegramUsername,
         role: user.role,
       },
+    };
+  }
+
+  /**
+   * Получить текущего пользователя
+   * GET /api/auth/me
+   */
+  @Get('me')
+  @UseGuards(TelegramAuthGuard)
+  async me(@CurrentUser() user: User) {
+    return {
+      id: user.id,
+      telegramId: user.telegramId,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      telegramUsername: user.telegramUsername,
+      role: user.role,
+      createdAt: user.createdAt,
+    };
+  }
+
+  /**
+   * Стать создателем курсов
+   * POST /api/auth/become-creator
+   * Вызывается когда пользователь открывает бота напрямую (не по invite ссылке)
+   */
+  @Post('become-creator')
+  @UseGuards(TelegramAuthGuard)
+  async becomeCreator(@CurrentUser() user: User) {
+    // Обновляем роль на creator если она ещё не creator/admin
+    if (user.role === 'student') {
+      await this.usersService.updateRole(user.id, 'creator');
+      user.role = 'creator';
+    }
+
+    return {
+      id: user.id,
+      telegramId: user.telegramId,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      telegramUsername: user.telegramUsername,
+      role: user.role,
+      createdAt: user.createdAt,
     };
   }
 
