@@ -51,8 +51,12 @@ function AppContent() {
   // Аутентификация
   useEffect(() => {
     const authenticate = async () => {
+      // Проверка URL параметра для форсирования роли (для тестирования)
+      const urlParams = new URLSearchParams(window.location.search);
+      const forceRole = urlParams.get('role'); // ?role=student или ?role=creator
+
       // Если есть реальные данные Telegram - пробуем авторизоваться
-      if (webApp?.initData) {
+      if (webApp?.initData && !forceRole) {
         try {
           const { data } = await apiClient.get('/auth/me');
           setUser(data);
@@ -63,14 +67,14 @@ function AppContent() {
       }
 
       // Мок пользователь для разработки/тестирования
-      // Роль: student для тестирования интерфейса ученика
+      const role = forceRole || 'student';
       setUser({
-        id: 'dev-student-id',
+        id: role === 'creator' ? 'dev-creator-id' : 'dev-student-id',
         telegramId: tgUser?.id || 123456789,
         firstName: tgUser?.first_name || 'Тестовый',
-        lastName: tgUser?.last_name || 'Ученик',
-        telegramUsername: tgUser?.username || 'test_student',
-        role: 'student',
+        lastName: tgUser?.last_name || (role === 'creator' ? 'Создатель' : 'Ученик'),
+        telegramUsername: tgUser?.username || (role === 'creator' ? 'test_creator' : 'test_student'),
+        role: role as 'creator' | 'student' | 'admin',
         createdAt: new Date().toISOString(),
       });
     };
