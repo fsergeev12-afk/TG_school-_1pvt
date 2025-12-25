@@ -7,7 +7,6 @@ import {
   useCreateLesson, 
   useUpdateLesson, 
   useReorderBlocks,
-  useReorderLessons,
   useDeleteBlock,
   useDeleteLesson,
   useLessonMaterials,
@@ -62,7 +61,6 @@ export default function CourseDetailPage() {
   const createLessonMutation = useCreateLesson();
   const updateLessonMutation = useUpdateLesson();
   const reorderBlocksMutation = useReorderBlocks();
-  const reorderLessonsMutation = useReorderLessons();
   const deleteBlockMutation = useDeleteBlock();
   const deleteLessonMutation = useDeleteLesson();
   const uploadMaterial = useUploadMaterial();
@@ -76,7 +74,6 @@ export default function CourseDetailPage() {
 
   // LOCAL STATE - all changes happen here first
   const [localBlocks, setLocalBlocks] = useState<BlockDraft[]>([]);
-  const [originalBlocks, setOriginalBlocks] = useState<BlockDraft[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -95,7 +92,6 @@ export default function CourseDetailPage() {
         })),
       }));
       setLocalBlocks(blocks);
-      setOriginalBlocks(JSON.parse(JSON.stringify(blocks))); // Deep copy for comparison
       setHasChanges(false);
     }
   }, [course]);
