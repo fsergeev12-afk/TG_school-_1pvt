@@ -2,42 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/layout';
 import { Card, Button } from '../../components/ui';
-
-// Моковые данные для демонстрации - заменить на API
-const mockCourse = {
-  title: 'Основы тайм-менеджмента',
-  lessonsCount: 9,
-  blocksCount: 3,
-  blocks: [
-    {
-      id: '1',
-      title: 'Введение',
-      lessons: [
-        { id: '1', title: 'Почему время — ваш главный ресурс', available: true, scheduledAt: null },
-        { id: '2', title: 'Матрица Эйзенхауэра', available: true, scheduledAt: null },
-        { id: '3', title: 'Ключевые ошибки в планировании', available: true, scheduledAt: null },
-      ],
-    },
-    {
-      id: '2',
-      title: 'Техники',
-      lessons: [
-        { id: '4', title: 'Техника Pomodoro', available: true, scheduledAt: null },
-        { id: '5', title: 'Планирование по методу 1-3-5', available: true, scheduledAt: null },
-        { id: '6', title: 'Метод временных блоков', available: false, scheduledAt: '25.12.2025 в 10:00' },
-      ],
-    },
-    {
-      id: '3',
-      title: 'Практика',
-      lessons: [
-        { id: '7', title: 'Практическое задание 1', available: false, scheduledAt: '30.12.2025 в 10:00' },
-        { id: '8', title: 'Практическое задание 2', available: false, scheduledAt: '02.01.2026 в 10:00' },
-        { id: '9', title: 'Финальный тест', available: false, scheduledAt: '05.01.2026 в 10:00' },
-      ],
-    },
-  ],
-};
+import { useStudentCourse } from '../../api/hooks';
 
 // Модалка "Урок откроется..."
 interface ScheduleModalProps {
@@ -75,10 +40,18 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, onClose, schedule
 
 export default function LessonsPage() {
   const navigate = useNavigate();
-  const [expandedBlocks, setExpandedBlocks] = useState<Record<string, boolean>>({ '1': true });
+  const { data: course, isLoading } = useStudentCourse();
+  const [expandedBlocks, setExpandedBlocks] = useState<Record<string, boolean>>({});
   const [scheduleModal, setScheduleModal] = useState<{ isOpen: boolean; scheduledAt: string | null }>({
     isOpen: false,
     scheduledAt: null,
+  });
+
+  // Раскрыть первый блок по умолчанию при загрузке
+  useState(() => {
+    if (course?.blocks?.[0]) {
+      setExpandedBlocks({ [course.blocks[0].id]: true });
+    }
   });
 
   const toggleBlock = (blockId: string) => {
@@ -97,10 +70,30 @@ export default function LessonsPage() {
   };
 
   const handleAskQuestion = () => {
-    // Редирект в Telegram бота
-    // TODO: Получить username бота из API
+    // TODO: Получить username бота из API или конфига
     window.open('https://t.me/TG_school_1pvt_bot', '_blank');
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-[var(--tg-theme-hint-color)]">Загрузка...</div>
+      </div>
+    );
+  }
+
+  if (!course) {
+    return (
+      <div className="min-h-screen">
+        <PageHeader title="Курс" showBack />
+        <div className="p-4">
+          <Card className="text-center py-8">
+            <p className="text-[var(--tg-theme-hint-color)]">Курс не найден</p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen">
@@ -110,10 +103,10 @@ export default function LessonsPage() {
         {/* Заголовок курса */}
         <div>
           <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)]">
-            {mockCourse.title}
+            {course.title}
           </h1>
           <p className="text-[var(--tg-theme-hint-color)]">
-            {mockCourse.lessonsCount} уроков в {mockCourse.blocksCount} блоках
+            {course.totalLessons} уроков в {course.blocks.length} блоках
           </p>
         </div>
 
@@ -138,7 +131,7 @@ export default function LessonsPage() {
 
         {/* Блоки с уроками (Accordion) */}
         <div className="space-y-2">
-          {mockCourse.blocks.map((block) => (
+          {course.blocks.map((block, blockIndex) => (
             <div key={block.id} className="bg-[var(--tg-theme-secondary-bg-color)] rounded-xl overflow-hidden">
               {/* Заголовок блока */}
               <button
@@ -148,7 +141,7 @@ export default function LessonsPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-lg">📂</span>
                   <span className="font-semibold text-[var(--tg-theme-text-color)]">
-                    Блок {block.id}: {block.title}
+                    Блок {blockIndex + 1}: {block.title}
                   </span>
                 </div>
                 <svg 
@@ -187,7 +180,7 @@ export default function LessonsPage() {
                         </p>
                         {!lesson.available && lesson.scheduledAt && (
                           <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                            Откроется: {lesson.scheduledAt.split(' в ')[0]}
+                            Откроется: {lesson.scheduledAt}
                           </p>
                         )}
                       </div>
