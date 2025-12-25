@@ -66,6 +66,7 @@ export interface Stream {
   sendWelcome: boolean;
   notifyOnLessonOpen: boolean;
   isActive: boolean;
+  inviteToken: string; // Общий токен приглашения для потока
   course?: Course;
   students?: StreamStudent[];
   schedules?: LessonSchedule[];

@@ -11,6 +11,7 @@ import {
 import { PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal } from '../../components/ui';
 import { useUIStore } from '../../store';
+import { generateInviteLink } from '../../config';
 
 type TabType = 'students' | 'schedule' | 'broadcast' | 'payments' | 'settings';
 
@@ -147,11 +148,9 @@ export default function StreamDetailPage() {
               variant="secondary" 
               fullWidth
               onClick={() => {
-                // Telegram deep link формат
-                // inviteToken генерируется на бэкенде вместе с потоком
-                const botUsername = 'Bllocklyyy_bot';
-                const token = stream?.inviteToken || id;
-                const link = `https://t.me/${botUsername}?start=${token}`;
+                // Используем inviteToken потока для генерации Telegram deep link
+                const token = stream.inviteToken;
+                const link = generateInviteLink(token);
                 setInviteLink(link);
                 setIsCopied(false);
                 setAddStudentsModalOpen(true);
