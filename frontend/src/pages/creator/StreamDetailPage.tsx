@@ -8,6 +8,7 @@ import {
   useStreamSchedule,
   useCourse
 } from '../../api/hooks';
+import { apiClient } from '../../api/client';
 import { PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal } from '../../components/ui';
 import { useUIStore } from '../../store';
@@ -146,13 +147,17 @@ export default function StreamDetailPage() {
             <Button 
               variant="secondary" 
               fullWidth
-              onClick={() => {
-                // Generate invite link
-                const baseUrl = window.location.origin;
-                const link = `${baseUrl}/invite/${id}`;
-                setInviteLink(link);
-                setIsCopied(false);
-                setAddStudentsModalOpen(true);
+              onClick={async () => {
+                try {
+                  // Получаем invite link с бэкенда
+                  const { data } = await apiClient.get(`/streams/${id}/invite-link`);
+                  setInviteLink(data.inviteLink || 'Ссылка недоступна');
+                  setIsCopied(false);
+                  setAddStudentsModalOpen(true);
+                } catch (error) {
+                  console.error('Error getting invite link:', error);
+                  showToast('Ошибка получения ссылки', 'error');
+                }
               }}
             >
               📤 Добавить учеников
