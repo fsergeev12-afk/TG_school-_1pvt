@@ -103,16 +103,16 @@ export class StudentCourseController {
     const now = new Date();
 
     // Сортировка блоков и уроков
-    const sortedBlocks = [...fullCourse.blocks].sort((a, b) => a.order - b.order);
+    const sortedBlocks = [...fullCourse.blocks].sort((a, b) => a.displayOrder - b.displayOrder);
 
     // Формируем ответ с информацией о доступности уроков
     const blocksWithAvailability = sortedBlocks.map(block => {
-      const sortedLessons = [...(block.lessons || [])].sort((a, b) => a.order - b.order);
+      const sortedLessons = [...(block.lessons || [])].sort((a, b) => a.displayOrder - b.displayOrder);
       
       return {
         id: block.id,
         title: block.title,
-        order: block.order,
+        order: block.displayOrder,
         lessons: sortedLessons.map(lesson => {
           const schedule = schedulesMap.get(lesson.id);
           let available = true;
@@ -233,7 +233,7 @@ export class StudentCourseController {
     const allLessons = await this.lessonRepository.find({
       where: { block: { course: { id: course.id } } },
       relations: ['block'],
-      order: { block: { order: 'ASC' }, order: 'ASC' },
+      order: { block: { displayOrder: 'ASC' }, displayOrder: 'ASC' },
     });
 
     const currentIndex = allLessons.findIndex(l => l.id === lesson.id);
