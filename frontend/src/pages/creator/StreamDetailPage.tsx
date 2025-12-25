@@ -8,7 +8,6 @@ import {
   useStreamSchedule,
   useCourse
 } from '../../api/hooks';
-import { apiClient } from '../../api/client';
 import { PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal } from '../../components/ui';
 import { useUIStore } from '../../store';
@@ -148,17 +147,14 @@ export default function StreamDetailPage() {
               variant="secondary" 
               fullWidth
               onClick={() => {
-                // Получаем invite link с бэкенда
-                apiClient.get(`/streams/${id}/invite-link`)
-                  .then(({ data }) => {
-                    setInviteLink(data.inviteLink || 'Ссылка недоступна');
-                    setIsCopied(false);
-                    setAddStudentsModalOpen(true);
-                  })
-                  .catch((error) => {
-                    console.error('Error getting invite link:', error);
-                    showToast('Ошибка получения ссылки', 'error');
-                  });
+                // Telegram deep link формат
+                // inviteToken генерируется на бэкенде вместе с потоком
+                const botUsername = 'Bllocklyyy_bot';
+                const token = stream?.inviteToken || id;
+                const link = `https://t.me/${botUsername}?start=${token}`;
+                setInviteLink(link);
+                setIsCopied(false);
+                setAddStudentsModalOpen(true);
               }}
             >
               📤 Добавить учеников
