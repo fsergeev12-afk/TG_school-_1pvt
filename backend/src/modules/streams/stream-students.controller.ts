@@ -137,6 +137,10 @@ export class StudentActivationController {
   /**
    * Активация ученика по токену
    * POST /api/students/activate
+   * 
+   * Поддерживает два типа токенов:
+   * 1. accessToken студента - индивидуальная ссылка
+   * 2. inviteToken потока - общая ссылка для всех
    */
   @Post('activate')
   @UseGuards(TelegramAuthGuard)
@@ -144,18 +148,34 @@ export class StudentActivationController {
     @CurrentUser() user: User,
     @Body('accessToken') accessToken: string,
   ) {
-    const student = await this.studentsService.activate(
-      accessToken,
-      user.telegramId,
-      user.id,
-    );
+    // Пробуем сначала как индивидуальный токен студента
+    let student = await this.studentsService.findByAccessToken(accessToken);
+    
+    if (student) {
+      // Индивидуальный токен - активируем существующего студента
+      student = await this.studentsService.activate(
+        accessToken,
+        user.telegramId,
+        user.id,
+      );
+    } else {
+      // Пробуем как общий токен потока
+      student = await this.studentsService.activateByStreamToken(
+        accessToken,
+        user.telegramId,
+        user.id,
+        user.firstName,
+        user.lastName,
+        user.telegramUsername,
+      );
+    }
 
     return {
       success: true,
       student,
       stream: student.stream,
       course: student.stream?.course,
-      requiresPayment: student.stream?.price > 0 && student.paymentStatus === 'unpaid',
+      requiresPayment: student.stream?.price > 0 && student.paymentStatus === 'pending',
     };
   }
 

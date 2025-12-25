@@ -8,6 +8,7 @@ import {
   OneToMany,
   JoinColumn,
   Index,
+  Generated,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Course } from '../../courses/entities/course.entity';
@@ -88,6 +89,15 @@ export class Stream {
    */
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
+
+  /**
+   * Общий токен приглашения для потока
+   * Используется в ссылках: t.me/bot?start=TOKEN
+   */
+  @Column({ type: 'uuid' })
+  @Generated('uuid')
+  @Index()
+  inviteToken: string;
 
   @OneToMany(() => StreamStudent, (student) => student.stream, { cascade: true })
   students: StreamStudent[];

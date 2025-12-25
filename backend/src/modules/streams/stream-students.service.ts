@@ -125,6 +125,66 @@ export class StreamStudentsService {
   }
 
   /**
+   * Найти поток по invite token
+   */
+  async findStreamByInviteToken(inviteToken: string): Promise<Stream | null> {
+    return this.streamRepository.findOne({
+      where: { inviteToken, isActive: true },
+      relations: ['course'],
+    });
+  }
+
+  /**
+   * Активировать по invite token потока (создаёт студента если его нет)
+   */
+  async activateByStreamToken(inviteToken: string, telegramId: number, userId?: string, firstName?: string, lastName?: string, username?: string): Promise<StreamStudent> {
+    // Ищем поток по токену
+    const stream = await this.findStreamByInviteToken(inviteToken);
+    
+    if (!stream) {
+      throw new NotFoundException('Недействительная ссылка приглашения');
+    }
+
+    // Проверяем, есть ли уже этот студент в потоке
+    let student = await this.studentRepository.findOne({
+      where: { streamId: stream.id, telegramId },
+      relations: ['stream', 'stream.course', 'user'],
+    });
+
+    if (student) {
+      // Студент уже есть - активируем если ещё не активирован
+      if (student.invitationStatus !== 'activated') {
+        student.invitationStatus = 'activated';
+        student.activatedAt = new Date();
+        if (userId) student.userId = userId;
+        await this.studentRepository.save(student);
+      }
+      return student;
+    }
+
+    // Создаём нового студента
+    student = this.studentRepository.create({
+      streamId: stream.id,
+      telegramId,
+      firstName: firstName || 'Ученик',
+      lastName,
+      telegramUsername: username,
+      invitationStatus: 'activated',
+      activatedAt: new Date(),
+      paymentStatus: stream.price > 0 ? 'pending' : 'free',
+      userId,
+    });
+
+    const savedStudent = await this.studentRepository.save(student);
+    
+    // Загружаем с relations
+    return this.studentRepository.findOne({
+      where: { id: savedStudent.id },
+      relations: ['stream', 'stream.course', 'user'],
+    }) as Promise<StreamStudent>;
+  }
+
+  /**
    * Найти ученика по ID
    */
   async findOne(id: string): Promise<StreamStudent> {

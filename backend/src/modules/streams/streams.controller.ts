@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { StreamsService } from './streams.service';
 import { CreateStreamDto, UpdateStreamDto } from './dto';
 import { TelegramAuthGuard } from '../auth/guards/telegram-auth.guard';
@@ -20,7 +21,10 @@ import { User } from '../users/entities/user.entity';
 @Controller('streams')
 @UseGuards(TelegramAuthGuard, RolesGuard)
 export class StreamsController {
-  constructor(private readonly streamsService: StreamsService) {}
+  constructor(
+    private readonly streamsService: StreamsService,
+    private readonly configService: ConfigService,
+  ) {}
 
   /**
    * Создать новый поток
@@ -82,6 +86,37 @@ export class StreamsController {
     @Param('id') id: string,
   ) {
     return this.streamsService.getStats(id, user.id);
+  }
+
+  /**
+   * Получить ссылку приглашения для потока
+   * GET /api/streams/:id/invite-link
+   */
+  @Get(':id/invite-link')
+  @Roles('creator', 'admin')
+  async getInviteLink(
+    @CurrentUser() user: User,
+    @Param('id') id: string,
+  ) {
+    const stream = await this.streamsService.findOneByCreator(id, user.id);
+    const botUsername = this.configService.get<string>('TELEGRAM_BOT_USERNAME');
+    
+    if (!botUsername) {
+      return {
+        inviteLink: null,
+        error: 'Bot username not configured',
+      };
+    }
+
+    // Формат: https://t.me/BOT_NAME?start=INVITE_TOKEN
+    const inviteLink = `https://t.me/${botUsername}?start=${stream.inviteToken}`;
+    
+    return {
+      inviteLink,
+      inviteToken: stream.inviteToken,
+      streamName: stream.name,
+      courseName: stream.course?.title,
+    };
   }
 
   /**
