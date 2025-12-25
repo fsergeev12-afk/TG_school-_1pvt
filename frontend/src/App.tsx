@@ -52,13 +52,32 @@ function AppContent() {
   useEffect(() => {
     const authenticate = async () => {
       // Проверка URL параметра для форсирования роли (для тестирования)
+      // Имеет АБСОЛЮТНЫЙ приоритет над реальной авторизацией
       const urlParams = new URLSearchParams(window.location.search);
       const forceRole = urlParams.get('role'); // ?role=student или ?role=creator
+      
+      console.log('[Auth] forceRole:', forceRole, 'initData:', !!webApp?.initData);
+
+      // Если указан ?role= — используем мок пользователя с этой ролью
+      if (forceRole) {
+        console.log('[Auth] Using forced role:', forceRole);
+        setUser({
+          id: forceRole === 'creator' ? 'dev-creator-id' : 'dev-student-id',
+          telegramId: tgUser?.id || 123456789,
+          firstName: tgUser?.first_name || 'Тестовый',
+          lastName: tgUser?.last_name || (forceRole === 'creator' ? 'Создатель' : 'Ученик'),
+          telegramUsername: tgUser?.username || (forceRole === 'creator' ? 'test_creator' : 'test_student'),
+          role: forceRole as 'creator' | 'student' | 'admin',
+          createdAt: new Date().toISOString(),
+        });
+        return;
+      }
 
       // Если есть реальные данные Telegram - пробуем авторизоваться
-      if (webApp?.initData && !forceRole) {
+      if (webApp?.initData) {
         try {
           const { data } = await apiClient.get('/auth/me');
+          console.log('[Auth] Real user from API:', data);
           setUser(data);
           return;
         } catch (error) {
@@ -66,15 +85,15 @@ function AppContent() {
         }
       }
 
-      // Мок пользователь для разработки/тестирования
-      const role = forceRole || 'student';
+      // Fallback: мок пользователь student
+      console.log('[Auth] Fallback to mock student');
       setUser({
-        id: role === 'creator' ? 'dev-creator-id' : 'dev-student-id',
+        id: 'dev-student-id',
         telegramId: tgUser?.id || 123456789,
         firstName: tgUser?.first_name || 'Тестовый',
-        lastName: tgUser?.last_name || (role === 'creator' ? 'Создатель' : 'Ученик'),
-        telegramUsername: tgUser?.username || (role === 'creator' ? 'test_creator' : 'test_student'),
-        role: role as 'creator' | 'student' | 'admin',
+        lastName: tgUser?.last_name || 'Ученик',
+        telegramUsername: tgUser?.username || 'test_student',
+        role: 'student',
         createdAt: new Date().toISOString(),
       });
     };
