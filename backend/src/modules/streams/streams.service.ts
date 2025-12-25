@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { Stream } from './entities/stream.entity';
 import { Course } from '../courses/entities/course.entity';
 import { CreateStreamDto, UpdateStreamDto } from './dto';
@@ -44,6 +45,7 @@ export class StreamsService {
       ...dto,
       creatorId,
       startsAt: dto.startsAt ? new Date(dto.startsAt) : null,
+      inviteToken: uuidv4(), // Генерируем уникальный токен приглашения
     });
 
     return this.streamRepository.save(stream);
@@ -170,6 +172,7 @@ export class StreamsService {
       sendWelcome: originalStream.sendWelcome,
       notifyOnLessonOpen: originalStream.notifyOnLessonOpen,
       isActive: false, // Новый поток неактивен по умолчанию
+      inviteToken: uuidv4(), // Новый токен для клона
     });
 
     return this.streamRepository.save(clonedStream);
