@@ -147,17 +147,18 @@ export default function StreamDetailPage() {
             <Button 
               variant="secondary" 
               fullWidth
-              onClick={async () => {
-                try {
-                  // Получаем invite link с бэкенда
-                  const { data } = await apiClient.get(`/streams/${id}/invite-link`);
-                  setInviteLink(data.inviteLink || 'Ссылка недоступна');
-                  setIsCopied(false);
-                  setAddStudentsModalOpen(true);
-                } catch (error) {
-                  console.error('Error getting invite link:', error);
-                  showToast('Ошибка получения ссылки', 'error');
-                }
+              onClick={() => {
+                // Получаем invite link с бэкенда
+                apiClient.get(`/streams/${id}/invite-link`)
+                  .then(({ data }) => {
+                    setInviteLink(data.inviteLink || 'Ссылка недоступна');
+                    setIsCopied(false);
+                    setAddStudentsModalOpen(true);
+                  })
+                  .catch((error) => {
+                    console.error('Error getting invite link:', error);
+                    showToast('Ошибка получения ссылки', 'error');
+                  });
               }}
             >
               📤 Добавить учеников
