@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTelegram } from './hooks/useTelegram';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from './store';
 import { apiClient } from './api/client';
 
@@ -26,9 +26,14 @@ const queryClient = new QueryClient({
 function AppContent() {
   const { webApp, user: tgUser } = useTelegram();
   const { setUser, user, isLoading } = useAuthStore();
+  const [isActivating, setIsActivating] = useState(false);
+  const [activationError, setActivationError] = useState<string | null>(null);
 
+  // Получаем start_param из Telegram WebApp (invite token для студентов)
+  const startParam = webApp?.initDataUnsafe?.start_param;
+  
   // Отладка
-  console.log('[App] webApp:', !!webApp, 'tgUser:', tgUser, 'user:', user, 'isLoading:', isLoading);
+  console.log('[App] webApp:', !!webApp, 'tgUser:', tgUser, 'startParam:', startParam);
 
   useEffect(() => {
     if (webApp) {
@@ -48,17 +53,13 @@ function AppContent() {
     }
   }, [webApp]);
 
-  // Аутентификация
+  // Аутентификация и определение роли
   useEffect(() => {
     const authenticate = async () => {
-      // Проверка URL параметра для форсирования роли (для тестирования)
-      // Имеет АБСОЛЮТНЫЙ приоритет над реальной авторизацией
+      // URL параметр для тестирования (приоритет над всем)
       const urlParams = new URLSearchParams(window.location.search);
-      const forceRole = urlParams.get('role'); // ?role=student или ?role=creator
+      const forceRole = urlParams.get('role');
       
-      console.log('[Auth] forceRole:', forceRole, 'initData:', !!webApp?.initData);
-
-      // Если указан ?role= — используем мок пользователя с этой ролью
       if (forceRole) {
         console.log('[Auth] Using forced role:', forceRole);
         setUser({
@@ -66,52 +67,148 @@ function AppContent() {
           telegramId: tgUser?.id || 123456789,
           firstName: tgUser?.first_name || 'Тестовый',
           lastName: tgUser?.last_name || (forceRole === 'creator' ? 'Создатель' : 'Ученик'),
-          telegramUsername: tgUser?.username || (forceRole === 'creator' ? 'test_creator' : 'test_student'),
+          telegramUsername: tgUser?.username || 'test_user',
           role: forceRole as 'creator' | 'student' | 'admin',
           createdAt: new Date().toISOString(),
         });
         return;
       }
 
-      // Если есть реальные данные Telegram - пробуем авторизоваться
-      if (webApp?.initData) {
-        try {
-          const { data } = await apiClient.get('/auth/me');
-          console.log('[Auth] Real user from API:', data);
-          setUser(data);
-          return;
-        } catch (error) {
-          console.error('Auth error:', error);
-        }
-      }
+      // ============================================
+      // ГЛАВНАЯ ЛОГИКА ОПРЕДЕЛЕНИЯ РОЛИ:
+      // ============================================
+      // 
+      // 1. Есть start_param (invite token) → СТУДЕНТ
+      //    Пользователь перешёл по ссылке-приглашению от преподавателя
+      //    Активируем его и показываем курс
+      //
+      // 2. Нет start_param → ПРЕПОДАВАТЕЛЬ
+      //    Пользователь открыл бота напрямую через Menu Button
+      //    Показываем интерфейс создателя
+      // ============================================
 
-      // Fallback: мок пользователь student
-      console.log('[Auth] Fallback to mock student');
-      setUser({
-        id: 'dev-student-id',
-        telegramId: tgUser?.id || 123456789,
-        firstName: tgUser?.first_name || 'Тестовый',
-        lastName: tgUser?.last_name || 'Ученик',
-        telegramUsername: tgUser?.username || 'test_student',
-        role: 'student',
-        createdAt: new Date().toISOString(),
-      });
+      if (startParam) {
+        // СТУДЕНТ - перешёл по invite-ссылке
+        console.log('[Auth] Student mode - activating with token:', startParam);
+        setIsActivating(true);
+        
+        try {
+          // Активируем студента по токену
+          const { data } = await apiClient.post('/students/activate', { 
+            accessToken: startParam 
+          });
+          
+          console.log('[Auth] Student activated:', data);
+          
+          // Устанавливаем пользователя как студента
+          setUser({
+            id: data.student?.userId || 'student-id',
+            telegramId: tgUser?.id || 0,
+            firstName: tgUser?.first_name || 'Ученик',
+            lastName: tgUser?.last_name,
+            telegramUsername: tgUser?.username,
+            role: 'student',
+            createdAt: new Date().toISOString(),
+          });
+          
+        } catch (error: any) {
+          console.error('[Auth] Student activation error:', error);
+          setActivationError(
+            error.response?.data?.message || 
+            'Не удалось активировать приглашение. Возможно, ссылка недействительна.'
+          );
+          
+          // Fallback - показываем как студента без курса
+          setUser({
+            id: 'guest-student',
+            telegramId: tgUser?.id || 0,
+            firstName: tgUser?.first_name || 'Гость',
+            lastName: tgUser?.last_name,
+            telegramUsername: tgUser?.username,
+            role: 'student',
+            createdAt: new Date().toISOString(),
+          });
+        } finally {
+          setIsActivating(false);
+        }
+        
+      } else {
+        // ПРЕПОДАВАТЕЛЬ - открыл бота напрямую
+        console.log('[Auth] Creator mode - direct bot access');
+        
+        // Пробуем получить данные с сервера
+        if (webApp?.initData) {
+          try {
+            const { data } = await apiClient.get('/auth/me');
+            console.log('[Auth] User from API:', data);
+            
+            // Принудительно ставим роль creator если открыл напрямую
+            setUser({
+              ...data,
+              role: 'creator',
+            });
+            return;
+          } catch (error) {
+            console.error('[Auth] API error, using mock creator:', error);
+          }
+        }
+        
+        // Fallback - мок создатель
+        setUser({
+          id: 'creator-id',
+          telegramId: tgUser?.id || 123456789,
+          firstName: tgUser?.first_name || 'Преподаватель',
+          lastName: tgUser?.last_name,
+          telegramUsername: tgUser?.username || 'creator',
+          role: 'creator',
+          createdAt: new Date().toISOString(),
+        });
+      }
     };
 
     if (webApp) {
       authenticate();
     }
-  }, [webApp, tgUser, setUser]);
+  }, [webApp, tgUser, startParam, setUser]);
 
+  // Загрузка WebApp
   if (!webApp) {
     return <LoadingScreen message="Открывайте приложение через Telegram" />;
   }
 
+  // Активация студента
+  if (isActivating) {
+    return <LoadingScreen message="Активация приглашения..." />;
+  }
+
+  // Загрузка пользователя
   if (isLoading) {
     return <LoadingScreen message="Загрузка..." />;
   }
 
-  // Определяем начальный маршрут по роли
+  // Ошибка активации
+  if (activationError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{
+        backgroundColor: 'var(--tg-theme-bg-color)',
+        color: 'var(--tg-theme-text-color)',
+      }}>
+        <div className="text-center">
+          <div className="text-4xl mb-4">❌</div>
+          <h2 className="text-xl font-semibold mb-2">Ошибка</h2>
+          <p className="text-[var(--tg-theme-hint-color)] mb-4">{activationError}</p>
+          <button
+            onClick={() => webApp.close()}
+            className="px-6 py-3 bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-xl"
+          >
+            Закрыть
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Определяем маршрут по роли
   const getDefaultRoute = () => {
     if (user?.role === 'creator' || user?.role === 'admin') {
       return '/creator';
