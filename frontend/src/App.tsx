@@ -29,11 +29,16 @@ function AppContent() {
   const [isActivating, setIsActivating] = useState(false);
   const [activationError, setActivationError] = useState<string | null>(null);
 
-  // Получаем start_param из Telegram WebApp (invite token для студентов)
-  const startParam = webApp?.initDataUnsafe?.start_param;
+  // Получаем start_param из нескольких источников:
+  // 1. URL параметр ?start=TOKEN (когда Mini App открыт через web_app кнопку)
+  // 2. initDataUnsafe.start_param (когда Mini App открыт через deep link t.me/bot?start=TOKEN)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlStartParam = urlParams.get('start');
+  const tgStartParam = webApp?.initDataUnsafe?.start_param;
+  const startParam = urlStartParam || tgStartParam;
   
   // Отладка
-  console.log('[App] webApp:', !!webApp, 'tgUser:', tgUser, 'startParam:', startParam);
+  console.log('[App] webApp:', !!webApp, 'tgUser:', tgUser, 'startParam:', startParam, '(url:', urlStartParam, 'tg:', tgStartParam, ')');
 
   useEffect(() => {
     if (webApp) {
