@@ -63,14 +63,14 @@ function AppContent() {
       }
 
       // Мок пользователь для разработки/тестирования
-      // Роль: student для тестирования интерфейса ученика
+      // Роль: creator для тестирования интерфейса создателя
       setUser({
-        id: 'dev-student-id',
+        id: 'dev-creator-id',
         telegramId: tgUser?.id || 123456789,
         firstName: tgUser?.first_name || 'Тестовый',
-        lastName: tgUser?.last_name || 'Ученик',
-        telegramUsername: tgUser?.username || 'test_student',
-        role: 'student',
+        lastName: tgUser?.last_name || 'Создатель',
+        telegramUsername: tgUser?.username || 'test_creator',
+        role: 'creator',
         createdAt: new Date().toISOString(),
       });
     };
