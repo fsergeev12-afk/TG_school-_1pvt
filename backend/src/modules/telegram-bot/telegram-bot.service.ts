@@ -56,6 +56,39 @@ export class TelegramBotService implements OnModuleInit {
   }
 
   /**
+   * Отправить сообщение с кнопкой открытия Mini App
+   * Используется для мгновенного перехода ученика на курс
+   */
+  async sendMessageWithWebApp(
+    chatId: number,
+    text: string,
+    buttonText: string,
+    startParam?: string,
+  ): Promise<TelegramBot.Message> {
+    const webAppUrl = this.configService.get<string>('WEBAPP_URL') || 'https://tg-school-1pvt.vercel.app';
+    
+    // Добавляем start_param в URL если есть
+    const url = startParam ? `${webAppUrl}?start=${startParam}` : webAppUrl;
+
+    try {
+      return await this.bot.sendMessage(chatId, text, {
+        parse_mode: 'HTML',
+        reply_markup: {
+          inline_keyboard: [[
+            {
+              text: buttonText,
+              web_app: { url },
+            },
+          ]],
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Ошибка отправки сообщения с WebApp: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Отправить welcome сообщение (объединенное: приглашение + welcome)
    */
   async sendWelcomeMessage(
