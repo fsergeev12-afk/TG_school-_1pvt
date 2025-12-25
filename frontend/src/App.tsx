@@ -30,15 +30,17 @@ function AppContent() {
   const [activationError, setActivationError] = useState<string | null>(null);
 
   // Получаем start_param из нескольких источников:
-  // 1. URL параметр ?start=TOKEN (когда Mini App открыт через web_app кнопку)
-  // 2. initDataUnsafe.start_param (когда Mini App открыт через deep link t.me/bot?start=TOKEN)
+  // 1. URL параметр ?startapp=TOKEN (Direct Link формат: t.me/bot/app?startapp=TOKEN)
+  // 2. URL параметр ?start=TOKEN (web_app кнопка)
+  // 3. initDataUnsafe.start_param (deep link: t.me/bot?start=TOKEN)
   const urlParams = new URLSearchParams(window.location.search);
+  const urlStartAppParam = urlParams.get('startapp'); // Direct Link формат
   const urlStartParam = urlParams.get('start');
   const tgStartParam = webApp?.initDataUnsafe?.start_param;
-  const startParam = urlStartParam || tgStartParam;
+  const startParam = urlStartAppParam || urlStartParam || tgStartParam;
   
   // Отладка
-  console.log('[App] webApp:', !!webApp, 'tgUser:', tgUser, 'startParam:', startParam, '(url:', urlStartParam, 'tg:', tgStartParam, ')');
+  console.log('[App] webApp:', !!webApp, 'tgUser:', tgUser, 'startParam:', startParam, '(startapp:', urlStartAppParam, 'start:', urlStartParam, 'tg:', tgStartParam, ')');
 
   useEffect(() => {
     if (webApp) {
