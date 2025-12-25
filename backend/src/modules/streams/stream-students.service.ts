@@ -166,12 +166,12 @@ export class StreamStudentsService {
     student = this.studentRepository.create({
       streamId: stream.id,
       telegramId,
-      firstName: firstName || 'Ученик',
-      lastName,
+      telegramFirstName: firstName || 'Ученик',
+      telegramLastName: lastName,
       telegramUsername: username,
       invitationStatus: 'activated',
       activatedAt: new Date(),
-      paymentStatus: stream.price > 0 ? 'pending' : 'free',
+      paymentStatus: stream.price > 0 ? 'unpaid' : 'paid', // paid = бесплатный курс
       userId,
     });
 
