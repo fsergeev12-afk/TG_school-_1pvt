@@ -32,10 +32,10 @@ export default function LessonDetailPage() {
     if (!telegramFileId) return;
     
     try {
-      const result = await getFileUrl.mutateAsync(telegramFileId);
-      if (result.url) {
+      const url = await getFileUrl.mutateAsync(telegramFileId);
+      if (url) {
         // Открыть через Google Docs Viewer
-        const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(result.url)}&embedded=true`;
+        const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
         window.open(viewerUrl, '_blank');
       }
     } catch {
@@ -47,10 +47,10 @@ export default function LessonDetailPage() {
     if (!telegramFileId) return;
     
     try {
-      const result = await getFileUrl.mutateAsync(telegramFileId);
-      if (result.url) {
+      const url = await getFileUrl.mutateAsync(telegramFileId);
+      if (url) {
         const a = document.createElement('a');
-        a.href = result.url;
+        a.href = url;
         a.download = fileName;
         a.target = '_blank';
         a.rel = 'noopener noreferrer';

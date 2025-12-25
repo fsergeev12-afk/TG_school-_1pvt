@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import api from '../client';
+import { apiClient } from '../client';
 
 // Типы для студенческого курса
 export interface StudentLesson {
@@ -60,7 +60,7 @@ export function useStudentCourse() {
   return useQuery<StudentCourse>({
     queryKey: ['studentCourse'],
     queryFn: async () => {
-      const response = await api.get('/student/course');
+      const response = await apiClient.get('/student/course');
       return response.data;
     },
     staleTime: 1000 * 60 * 5, // 5 минут
@@ -75,7 +75,7 @@ export function useStudentLesson(lessonId: string | undefined) {
   return useQuery<StudentLessonDetail>({
     queryKey: ['studentLesson', lessonId],
     queryFn: async () => {
-      const response = await api.get(`/student/lessons/${lessonId}`);
+      const response = await apiClient.get(`/student/lessons/${lessonId}`);
       return response.data;
     },
     enabled: !!lessonId,
@@ -91,7 +91,7 @@ export function useActivateAccess() {
   
   return useMutation({
     mutationFn: async (accessToken: string) => {
-      const response = await api.post('/students/activate', { accessToken });
+      const response = await apiClient.post('/students/activate', { accessToken });
       return response.data;
     },
     onSuccess: () => {
@@ -108,7 +108,7 @@ export function useCheckAccessToken(accessToken: string | null) {
   return useQuery({
     queryKey: ['checkAccessToken', accessToken],
     queryFn: async () => {
-      const response = await api.get(`/students/check/${accessToken}`);
+      const response = await apiClient.get(`/students/check/${accessToken}`);
       return response.data;
     },
     enabled: !!accessToken,
