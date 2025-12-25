@@ -136,16 +136,21 @@ function AppContent() {
         // ПРЕПОДАВАТЕЛЬ - открыл бота напрямую
         console.log('[Auth] Creator mode - direct bot access');
         
-        // Пробуем получить данные с сервера
+        // Пробуем получить данные с сервера и стать создателем
         if (webApp?.initData) {
           try {
-            const { data } = await apiClient.get('/auth/me');
-            console.log('[Auth] User from API:', data);
+            // Вызываем become-creator чтобы обновить роль на creator
+            const { data } = await apiClient.post('/auth/become-creator');
+            console.log('[Auth] User became creator:', data);
             
-            // Принудительно ставим роль creator если открыл напрямую
             setUser({
-              ...data,
+              id: data.id,
+              telegramId: data.telegramId,
+              firstName: data.firstName,
+              lastName: data.lastName,
+              telegramUsername: data.telegramUsername,
               role: 'creator',
+              createdAt: data.createdAt,
             });
             return;
           } catch (error) {

@@ -360,8 +360,11 @@ export default function CreateCoursePage() {
       showToast('Курс создан!', 'success');
       // Редирект на страницу курсов, а не на редактирование
       navigate('/creator/courses');
-    } catch {
-      showToast('Ошибка создания курса', 'error');
+    } catch (error: any) {
+      console.error('[CreateCourse] Error:', error);
+      console.error('[CreateCourse] Response:', error.response?.data);
+      const message = error.response?.data?.message || 'Ошибка создания курса';
+      showToast(message, 'error');
     } finally {
       setIsCreating(false);
     }
