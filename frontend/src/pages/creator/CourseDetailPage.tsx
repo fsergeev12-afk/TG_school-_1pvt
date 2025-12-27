@@ -639,9 +639,12 @@ export default function CourseDetailPage() {
                         >
                           🗑️
                         </button>
-                        <span className="text-[var(--tg-theme-hint-color)] ml-1">
-                          {expandedBlocks.has(block.id) ? '▼' : '▶'}
-                        </span>
+                        {/* Accordion стрелка - крупная и понятная */}
+                        <div className={`w-6 h-6 flex items-center justify-center transition-transform duration-200 ${expandedBlocks.has(block.id) ? 'rotate-180' : ''}`}>
+                          <svg className="w-5 h-5 text-[var(--tg-theme-hint-color)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
 
@@ -914,27 +917,23 @@ export default function CourseDetailPage() {
         )}
       </Modal>
 
-      {/* Delete Block Confirmation */}
-      <Modal isOpen={!!deleteBlockConfirm} onClose={() => setDeleteBlockConfirm(null)} title="🗑️ Удалить блок?" size="sm">
+      {/* Delete Block Confirmation - прямой вопрос */}
+      <Modal isOpen={!!deleteBlockConfirm} onClose={() => setDeleteBlockConfirm(null)} title={`Удалить «${deleteBlockConfirm?.title}»?`} size="sm">
         <div className="space-y-4">
-          <p className="text-[var(--tg-theme-text-color)]">
-            Вы уверены, что хотите удалить блок <strong>"{deleteBlockConfirm?.title}"</strong>?
+          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+            Все уроки в этом блоке будут удалены.
           </p>
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">Все уроки в этом блоке также будут удалены.</p>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button type="button" fullWidth variant="secondary" onClick={() => setDeleteBlockConfirm(null)}>Отмена</Button>
             <Button type="button" fullWidth variant="danger" onClick={handleDeleteBlock}>Удалить</Button>
           </div>
         </div>
       </Modal>
 
-      {/* Delete Lesson Confirmation */}
-      <Modal isOpen={!!deleteLessonConfirm} onClose={() => setDeleteLessonConfirm(null)} title="🗑️ Удалить урок?" size="sm">
-        <div className="space-y-4">
-          <p className="text-[var(--tg-theme-text-color)]">
-            Вы уверены, что хотите удалить урок <strong>"{deleteLessonConfirm?.title}"</strong>?
-          </p>
-          <div className="flex gap-2">
+      {/* Delete Lesson Confirmation - прямой вопрос */}
+      <Modal isOpen={!!deleteLessonConfirm} onClose={() => setDeleteLessonConfirm(null)} title={`Удалить «${deleteLessonConfirm?.title}»?`} size="sm">
+        <div className="space-y-3">
+          <div className="flex gap-3">
             <Button type="button" fullWidth variant="secondary" onClick={() => setDeleteLessonConfirm(null)}>Отмена</Button>
             <Button type="button" fullWidth variant="danger" onClick={handleDeleteLesson}>Удалить</Button>
           </div>

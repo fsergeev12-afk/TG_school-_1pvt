@@ -4,6 +4,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragEndEvent,
@@ -36,28 +37,26 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 50 : undefined,
-    opacity: isDragging ? 0.8 : 1,
+    opacity: isDragging ? 0.9 : 1,
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      <div className={`relative ${isDragging ? 'shadow-lg scale-[1.02]' : ''} transition-all`}>
-        {/* Drag Handle */}
+      <div className={`relative ${isDragging ? 'shadow-lg scale-[1.01] bg-[var(--tg-theme-bg-color)] rounded-xl' : ''} transition-all`}>
+        {/* Drag Handle - понятная иконка "перетащить" */}
         <div
           {...listeners}
-          className="absolute left-0 top-0 bottom-0 w-8 flex items-center justify-center cursor-grab active:cursor-grabbing text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)] z-10"
+          className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center cursor-grab active:cursor-grabbing text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)] active:text-[var(--tg-theme-button-color)] z-10 touch-manipulation"
         >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="9" cy="5" r="1.5" />
-            <circle cx="15" cy="5" r="1.5" />
-            <circle cx="9" cy="12" r="1.5" />
-            <circle cx="15" cy="12" r="1.5" />
-            <circle cx="9" cy="19" r="1.5" />
-            <circle cx="15" cy="19" r="1.5" />
+          {/* Hamburger / Move icon - более понятная иконка */}
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="4" y1="8" x2="20" y2="8" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="16" x2="20" y2="16" />
           </svg>
         </div>
         {/* Content with padding for handle */}
-        <div className="pl-8">
+        <div className="pl-10">
           {children}
         </div>
       </div>
@@ -76,10 +75,17 @@ export function SortableList<T extends { id: string }>({
   onReorder,
   renderItem,
 }: SortableListProps<T>) {
+  // Быстрый отклик для drag-n-drop (distance: 3 вместо 8)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 3, // Быстрее реагирует на drag
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 100, // Короткая задержка для touch
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
