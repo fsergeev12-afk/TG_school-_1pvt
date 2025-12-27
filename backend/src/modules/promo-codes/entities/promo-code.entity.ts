@@ -61,7 +61,7 @@ export class PromoCode {
   /**
    * Срок действия (null = бессрочно)
    */
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   expiresAt: Date;
 
   /**
