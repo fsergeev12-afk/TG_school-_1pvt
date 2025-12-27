@@ -9,6 +9,9 @@ import * as path from 'path';
 const databaseUrl = process.env.DATABASE_URL;
 const usePostgres = !!databaseUrl;
 
+// Отладка: показываем видит ли приложение DATABASE_URL
+console.log(`[Database] DATABASE_URL: ${databaseUrl ? 'настроен ✓' : 'НЕ НАСТРОЕН ✗'}`);
+
 // SQLite конфигурация (для локальной разработки)
 const sqliteConfig: TypeOrmModuleOptions = {
   type: 'sqlite',
