@@ -244,6 +244,7 @@ export class StudentCourseController {
       id: lesson.id,
       title: lesson.title,
       description: lesson.description,
+      blockTitle: lesson.block?.title || '', // Название блока для навигации
       videoType: lesson.videoType,
       videoExternalUrl: lesson.videoExternalUrl,
       videoTelegramFileId: lesson.videoTelegramFileId,
