@@ -22,13 +22,15 @@ export const Input: React.FC<InputProps> = ({
       )}
       <input
         className={`
-          w-full px-4 py-3 rounded-xl
+          w-full px-4 py-3.5 rounded-xl
           bg-[var(--tg-theme-secondary-bg-color,#f0f0f0)]
           text-[var(--tg-theme-text-color)]
+          text-base
           placeholder:text-[var(--tg-theme-hint-color)]
           border-2 border-transparent
           focus:border-[var(--tg-theme-button-color)] focus:outline-none
           transition-colors duration-200
+          min-h-[48px]
           ${error ? 'border-red-500' : ''}
           ${className}
         `}

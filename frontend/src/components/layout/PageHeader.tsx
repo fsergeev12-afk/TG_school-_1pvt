@@ -30,27 +30,29 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-[var(--tg-theme-bg-color)] px-4 py-3 safe-area-pt">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-10 bg-[var(--tg-theme-bg-color)] px-4 py-3 safe-area-pt border-b border-[var(--tg-theme-hint-color)]/10">
+      <div className="flex items-center justify-between min-h-[44px]">
+        <div className="flex items-center gap-2">
           {showBack && (
             <button
               onClick={handleBack}
-              className="p-1 -ml-1 text-[var(--tg-theme-link-color)]"
+              className="w-10 h-10 -ml-2 flex items-center justify-center rounded-full text-[var(--tg-theme-link-color)] active:bg-[var(--tg-theme-secondary-bg-color)] transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
           )}
-          <div>
-            <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)]">{title}</h1>
+          <div className="min-w-0">
+            <h1 className="text-lg font-bold text-[var(--tg-theme-text-color)] truncate">{title}</h1>
             {subtitle && (
-              <p className="text-sm text-[var(--tg-theme-hint-color)]">{subtitle}</p>
+              <p className="text-sm text-[var(--tg-theme-hint-color)] truncate">{subtitle}</p>
             )}
           </div>
         </div>
-        {action}
+        <div className="flex-shrink-0 ml-2">
+          {action}
+        </div>
       </div>
     </header>
   );

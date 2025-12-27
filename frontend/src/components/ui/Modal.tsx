@@ -55,7 +55,7 @@ export const Modal: React.FC<ModalProps> = ({
             </h2>
             <button
               onClick={onClose}
-              className="p-2 -mr-2 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)] transition-colors"
+              className="w-10 h-10 flex items-center justify-center rounded-full text-xl text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)] hover:bg-[var(--tg-theme-secondary-bg-color)] active:scale-95 transition-all"
             >
               ✕
             </button>

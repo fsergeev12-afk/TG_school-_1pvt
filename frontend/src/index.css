@@ -81,11 +81,83 @@ body {
   animation: slideUp 0.3s ease-out;
 }
 
-/* Mobile-first стили */
+/* =============================================
+   MOBILE-FIRST СТИЛИ ДЛЯ TELEGRAM MINI APP
+   ============================================= */
+
+/* Базовые размеры для мобилки */
+html {
+  font-size: 16px;
+  touch-action: manipulation; /* Убирает задержку 300ms на тапах */
+}
+
+/* Touch-friendly элементы */
+button, 
+a, 
+input, 
+select, 
+textarea,
+[role="button"] {
+  min-height: 44px; /* Apple рекомендует минимум 44px для touch targets */
+  touch-action: manipulation;
+}
+
+/* Убираем синюю подсветку на Android */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Предотвращаем случайный zoom при фокусе на input */
+input, select, textarea {
+  font-size: 16px !important; /* iOS зумит если font-size < 16px */
+}
+
+/* Плавный скролл */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Мобильные отступы */
+.mobile-container {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+}
+
+/* Полноэкранные модалки на мобилке */
 @media (max-width: 640px) {
   body {
-    font-size: 14px;
+    font-size: 15px;
   }
+  
+  /* Увеличиваем кнопки на мобилке */
+  .btn-mobile {
+    min-height: 48px;
+    font-size: 16px;
+    padding: 12px 20px;
+  }
+  
+  /* Карточки на всю ширину */
+  .card-mobile {
+    margin-left: -16px;
+    margin-right: -16px;
+    border-radius: 0;
+  }
+}
+
+/* Safe areas для устройств с вырезом */
+.safe-top {
+  padding-top: max(16px, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+/* Фиксированные элементы с учётом safe area */
+.fixed-bottom-safe {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
 

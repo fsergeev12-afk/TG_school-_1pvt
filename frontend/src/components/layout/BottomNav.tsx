@@ -14,7 +14,9 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, badge }) => {
     <NavLink
       to={to}
       className={({ isActive }) => `
-        flex flex-col items-center justify-center py-2 px-4 relative
+        flex flex-col items-center justify-center py-3 px-5 relative
+        min-h-[56px] min-w-[64px]
+        active:opacity-70 transition-opacity
         ${isActive 
           ? 'text-[var(--tg-theme-button-color)]' 
           : 'text-[var(--tg-theme-hint-color)]'
@@ -24,12 +26,12 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, badge }) => {
       <div className="relative">
         {icon}
         {badge !== undefined && badge > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+          <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-xs min-w-[18px] h-[18px] rounded-full flex items-center justify-center px-1">
             {badge > 9 ? '9+' : badge}
           </span>
         )}
       </div>
-      <span className="text-xs mt-1">{label}</span>
+      <span className="text-xs mt-1 font-medium">{label}</span>
     </NavLink>
   );
 };
