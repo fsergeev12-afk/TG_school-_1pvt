@@ -235,6 +235,28 @@ export const useReorderLessons = () => {
   });
 };
 
+// ============ Cover Upload ============
+export const useUploadCover = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ courseId, file }: { courseId: string; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await apiClient.post<{ url: string; fileName: string }>(
+        `/files/cover/${courseId}`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course', variables.courseId] });
+    },
+  });
+};
+
 // ============ Materials ============
 export interface LessonMaterial {
   id: string;

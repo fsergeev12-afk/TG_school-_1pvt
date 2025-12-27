@@ -1,8 +1,8 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateCourse, useCreateBlock, useCreateLesson, useUploadMaterial, useAddMaterial } from '../../api/hooks';
+import { useCreateCourse, useCreateBlock, useCreateLesson, useUploadMaterial, useAddMaterial, useUploadCover } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Button, Card, Input, Modal, SortableList } from '../../components/ui';
+import { Button, Card, Input, Modal, SortableList, FullscreenEditor } from '../../components/ui';
 import { useUIStore } from '../../store';
 
 interface FileDraft {
@@ -37,6 +37,7 @@ export default function CreateCoursePage() {
   const createLesson = useCreateLesson();
   const uploadMaterial = useUploadMaterial();
   const addMaterial = useAddMaterial();
+  const uploadCover = useUploadCover();
   const { showToast } = useUIStore();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +49,7 @@ export default function CreateCoursePage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   // Шаг 2: Структура
   const [blocks, setBlocks] = useState<BlockDraft[]>([]);
@@ -90,6 +92,9 @@ export default function CreateCoursePage() {
         showToast('Файл слишком большой (макс 5MB)', 'error');
         return;
       }
+      // Сохраняем файл для последующей загрузки
+      setCoverFile(file);
+      // Создаём превью
       const reader = new FileReader();
       reader.onload = () => setCoverPreview(reader.result as string);
       reader.readAsDataURL(file);
@@ -98,6 +103,7 @@ export default function CreateCoursePage() {
 
   const removeCover = () => {
     setCoverPreview(null);
+    setCoverFile(null);
   };
 
   // Блоки
@@ -322,6 +328,17 @@ export default function CreateCoursePage() {
         description: description.trim() || undefined,
       });
 
+      // Загружаем обложку если есть
+      if (coverFile) {
+        try {
+          await uploadCover.mutateAsync({ courseId: course.id, file: coverFile });
+        } catch (coverError) {
+          console.error('[CreateCourse] Cover upload error:', coverError);
+          // Не прерываем создание курса если обложка не загрузилась
+          showToast('Обложка не загружена, но курс создан', 'info');
+        }
+      }
+
       for (const blockDraft of blocks) {
         const block = await createBlock.mutateAsync({
           courseId: course.id,
@@ -436,25 +453,25 @@ export default function CreateCoursePage() {
                   />
                   <button
                     onClick={removeCover}
-                    className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center"
+                    className="absolute top-2 right-2 w-10 h-10 bg-red-500 text-white rounded-full flex items-center justify-center text-xl shadow-lg"
                   >
                     ✕
                   </button>
                 </div>
               ) : (
-                <label className="block">
-                  <div className="border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl p-8 text-center cursor-pointer hover:border-[var(--tg-theme-button-color)]/50 transition-colors">
-                    <div className="text-3xl mb-2">📤</div>
-                    <p className="text-sm text-[var(--tg-theme-hint-color)]">
+                <label className="block cursor-pointer active:opacity-80">
+                  <div className="border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl p-8 text-center transition-colors active:border-[var(--tg-theme-button-color)] active:bg-[var(--tg-theme-button-color)]/5">
+                    <div className="text-4xl mb-3">📷</div>
+                    <p className="text-[var(--tg-theme-text-color)] font-medium">
                       Загрузить изображение
                     </p>
-                    <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
+                    <p className="text-xs text-[var(--tg-theme-hint-color)] mt-2">
                       JPG, PNG • до 5MB
                     </p>
                   </div>
                   <input
                     type="file"
-                    accept="image/jpeg,image/png"
+                    accept="image/jpeg,image/png,image/jpg,image/*"
                     onChange={handleCoverChange}
                     className="hidden"
                   />
@@ -656,13 +673,23 @@ export default function CreateCoursePage() {
         </div>
       </Modal>
 
-      {/* Lesson Modal */}
-      <Modal
+      {/* Lesson Fullscreen Editor */}
+      <FullscreenEditor
         isOpen={lessonModalOpen}
         onClose={() => setLessonModalOpen(false)}
-        title={editingLesson ? '✏️ Редактировать урок' : '📝 Новый урок'}
+        title={editingLesson ? 'Редактировать урок' : 'Новый урок'}
+        footer={
+          <Button
+            fullWidth
+            onClick={saveLesson}
+            disabled={!lessonForm.title.trim()}
+            className="text-lg py-4"
+          >
+            {editingLesson ? '✓ Сохранить урок' : '+ Создать урок'}
+          </Button>
+        }
       >
-        <div className="space-y-4">
+        <div className="space-y-6">
           <Input
             label="Название урока *"
             placeholder="Введение в тему"
@@ -676,22 +703,26 @@ export default function CreateCoursePage() {
               Описание урока
             </label>
             <textarea
-              className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] min-h-[80px] resize-none"
+              className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] min-h-[120px] resize-none text-base"
               placeholder="О чём этот урок..."
               value={lessonForm.description}
               onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })}
               maxLength={500}
             />
+            <div className="text-right text-xs text-[var(--tg-theme-hint-color)] mt-1">
+              {lessonForm.description.length} / 500
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+          {/* Видео */}
+          <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3">
               🎬 Видео
             </label>
-            <div className="grid grid-cols-2 gap-2 mb-3">
+            <div className="grid grid-cols-2 gap-3 mb-3">
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: 'telegram', videoUrl: '' })}
-                className={`p-3 rounded-xl border-2 text-sm transition-colors ${
+                className={`p-4 rounded-xl border-2 text-sm transition-colors ${
                   lessonForm.videoType === 'telegram'
                     ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/10'
                     : 'border-[var(--tg-theme-hint-color)]/30'
@@ -702,7 +733,7 @@ export default function CreateCoursePage() {
               </button>
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: 'external', videoUrl: '' })}
-                className={`p-3 rounded-xl border-2 text-sm transition-colors ${
+                className={`p-4 rounded-xl border-2 text-sm transition-colors ${
                   lessonForm.videoType === 'external'
                     ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/10'
                     : 'border-[var(--tg-theme-hint-color)]/30'
@@ -714,8 +745,8 @@ export default function CreateCoursePage() {
             </div>
 
             {lessonForm.videoType === 'telegram' && (
-              <div className="border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl p-4 text-center">
-                <div className="text-2xl mb-2">📤</div>
+              <div className="border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl p-6 text-center">
+                <div className="text-3xl mb-2">📤</div>
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">
                   Загрузка видео через Telegram-бота
                 </p>
@@ -736,7 +767,7 @@ export default function CreateCoursePage() {
             {lessonForm.videoType && (
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: null, videoUrl: '' })}
-                className="text-sm text-[var(--tg-theme-hint-color)] mt-2"
+                className="text-sm text-red-500 mt-3 p-2"
               >
                 ✕ Убрать видео
               </button>
@@ -744,25 +775,25 @@ export default function CreateCoursePage() {
           </div>
 
           {/* Документы */}
-          <div>
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+          <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3">
               📄 Документы
             </label>
             
             {/* Список файлов */}
             {lessonFiles.length > 0 && (
-              <div className="space-y-2 mb-3">
+              <div className="space-y-2 mb-4">
                 {lessonFiles.map((fileDraft) => (
                   <div
                     key={fileDraft.id}
-                    className="flex items-center gap-2 p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg cursor-pointer hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors"
+                    className="flex items-center gap-3 p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl cursor-pointer active:opacity-80 transition-opacity"
                     onClick={() => openFilePreview(fileDraft)}
                   >
-                    <span className="text-lg">
+                    <span className="text-2xl">
                       {fileDraft.type === 'pdf' ? '📕' : '📄'}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-[var(--tg-theme-text-color)] truncate">
+                      <p className="text-[var(--tg-theme-text-color)] truncate">
                         {fileDraft.name}
                       </p>
                       <p className="text-xs text-[var(--tg-theme-hint-color)]">
@@ -774,9 +805,9 @@ export default function CreateCoursePage() {
                         e.stopPropagation();
                         removeFile(fileDraft.id);
                       }}
-                      className="p-1 text-[var(--tg-theme-hint-color)] hover:text-red-500"
+                      className="p-2 text-red-500"
                     >
-                      ✕
+                      🗑️
                     </button>
                   </div>
                 ))}
@@ -787,33 +818,23 @@ export default function CreateCoursePage() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.doc,.docx"
+              accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={handleFileSelect}
               className="hidden"
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full p-3 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-hint-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:text-[var(--tg-theme-button-color)] transition-colors"
+              className="w-full p-4 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-hint-color)] active:bg-[var(--tg-theme-button-color)]/5 transition-colors"
             >
-              <span className="text-lg">📤</span>
-              <span className="text-sm">Добавить документ</span>
+              <span className="text-xl">📤</span>
+              <span>Добавить документ</span>
             </button>
-            <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1 text-center">
+            <p className="text-xs text-[var(--tg-theme-hint-color)] mt-2 text-center">
               PDF, DOC, DOCX • до 20MB
             </p>
           </div>
-
-          <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
-            <Button
-              fullWidth
-              onClick={saveLesson}
-              disabled={!lessonForm.title.trim()}
-            >
-              {editingLesson ? 'Сохранить изменения' : 'Создать урок'}
-            </Button>
-          </div>
         </div>
-      </Modal>
+      </FullscreenEditor>
 
       {/* File Preview Modal */}
       <Modal

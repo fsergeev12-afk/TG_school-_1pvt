@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -8,6 +8,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -17,13 +19,15 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 
 interface SortableItemProps {
   id: string;
   children: React.ReactNode;
+  isDragOverlay?: boolean;
 }
 
-export const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
+export const SortableItem: React.FC<SortableItemProps> = ({ id, children, isDragOverlay }) => {
   const {
     attributes,
     listeners,
@@ -36,18 +40,28 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 50 : undefined,
-    opacity: isDragging ? 0.95 : 1,
+    zIndex: isDragging ? 100 : undefined,
+    opacity: isDragging ? 0.4 : 1,
   };
+
+  if (isDragOverlay) {
+    return (
+      <div className="relative shadow-2xl scale-105 bg-[var(--tg-theme-bg-color)] rounded-xl ring-2 ring-[var(--tg-theme-button-color)]">
+        <div className="pl-14">
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      <div className={`relative ${isDragging ? 'shadow-xl scale-[1.02] bg-[var(--tg-theme-bg-color)] rounded-xl ring-2 ring-[var(--tg-theme-button-color)]' : ''} transition-all`}>
+      <div className={`relative ${isDragging ? 'invisible' : ''} transition-all`}>
         {/* Drag Handle - БОЛЬШАЯ кнопка для мобилки */}
         <div
           {...listeners}
           className="absolute left-0 top-0 bottom-0 w-14 flex items-center justify-center cursor-grab active:cursor-grabbing z-10"
-          style={{ touchAction: 'none' }} // Критично! Блокирует scroll при drag
+          style={{ touchAction: 'none' }}
         >
           {/* Крупная иконка перетаскивания */}
           <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--tg-theme-secondary-bg-color)] active:bg-[var(--tg-theme-button-color)] active:text-white transition-colors">
@@ -78,16 +92,19 @@ export function SortableList<T extends { id: string }>({
   onReorder,
   renderItem,
 }: SortableListProps<T>) {
-  // МГНОВЕННЫЙ отклик для drag-n-drop — БЕЗ delay!
+  const [activeId, setActiveId] = useState<string | null>(null);
+  
+  // МГНОВЕННЫЙ отклик для drag-n-drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3,
+        distance: 5,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        distance: 5, // Только distance, БЕЗ delay — мгновенный отклик
+        delay: 150, // Небольшая задержка чтобы отличить scroll от drag
+        tolerance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -95,16 +112,40 @@ export function SortableList<T extends { id: string }>({
     })
   );
 
-  // Блокируем scroll страницы при начале drag
-  const handleDragStart = useCallback(() => {
+  // Блокируем ВСЁ при начале drag
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+    
+    // Полная блокировка скролла
     document.body.style.overflow = 'hidden';
     document.body.style.touchAction = 'none';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${window.scrollY}px`;
+    document.documentElement.style.overflow = 'hidden';
+    
+    // Вибрация для тактильного фидбека (если поддерживается)
+    if (navigator.vibrate) {
+      navigator.vibrate(50);
+    }
   }, []);
 
   // Возвращаем scroll после drag
   const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const scrollY = document.body.style.top;
+    
+    // Восстанавливаем скролл
     document.body.style.overflow = '';
     document.body.style.touchAction = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    document.documentElement.style.overflow = '';
+    
+    // Восстанавливаем позицию скролла
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    
+    setActiveId(null);
     
     const { active, over } = event;
 
@@ -113,8 +154,28 @@ export function SortableList<T extends { id: string }>({
       const newIndex = items.findIndex((item) => item.id === over.id);
       const newItems = arrayMove(items, oldIndex, newIndex);
       onReorder(newItems);
+      
+      // Вибрация при успешном перемещении
+      if (navigator.vibrate) {
+        navigator.vibrate(30);
+      }
     }
   }, [items, onReorder]);
+
+  const handleDragCancel = useCallback(() => {
+    const scrollY = document.body.style.top;
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
+    document.body.style.top = '';
+    document.documentElement.style.overflow = '';
+    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    setActiveId(null);
+  }, []);
+
+  const activeItem = activeId ? items.find(item => item.id === activeId) : null;
+  const activeIndex = activeId ? items.findIndex(item => item.id === activeId) : -1;
 
   return (
     <DndContext
@@ -122,6 +183,8 @@ export function SortableList<T extends { id: string }>({
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
+      modifiers={[restrictToVerticalAxis]}
     >
       <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
         <div className="space-y-2">
@@ -132,7 +195,15 @@ export function SortableList<T extends { id: string }>({
           ))}
         </div>
       </SortableContext>
+      
+      {/* Drag Overlay - плавающий элемент при перетаскивании */}
+      <DragOverlay>
+        {activeItem ? (
+          <SortableItem id={activeItem.id} isDragOverlay>
+            {renderItem(activeItem, activeIndex)}
+          </SortableItem>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
-

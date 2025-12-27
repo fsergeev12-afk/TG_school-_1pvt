@@ -17,7 +17,7 @@ import {
   LessonMaterial,
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Card, Button, Input, Modal, SortableList } from '../../components/ui';
+import { Card, Button, Input, Modal, SortableList, FullscreenEditor } from '../../components/ui';
 import { useUIStore } from '../../store';
 
 type VideoType = 'telegram' | 'external' | null;
@@ -736,13 +736,23 @@ export default function CourseDetailPage() {
         </div>
       </Modal>
 
-      {/* Lesson Modal */}
-      <Modal
+      {/* Lesson Fullscreen Editor */}
+      <FullscreenEditor
         isOpen={lessonModalOpen}
         onClose={() => setLessonModalOpen(false)}
-        title={editingLessonId ? '✏️ Редактировать урок' : '📝 Новый урок'}
+        title={editingLessonId ? 'Редактировать урок' : 'Новый урок'}
+        footer={
+          <Button 
+            fullWidth 
+            onClick={handleSaveLesson} 
+            disabled={!lessonForm.title.trim()}
+            className="text-lg py-4"
+          >
+            {editingLessonId ? '✓ Сохранить урок' : '+ Создать урок'}
+          </Button>
+        }
       >
-        <div className="space-y-4">
+        <div className="space-y-6">
           <Input
             label="Название урока *"
             placeholder="Введение в тему"
@@ -754,35 +764,24 @@ export default function CourseDetailPage() {
           <div>
             <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">Описание урока</label>
             <textarea
-              className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] min-h-[80px] resize-none"
+              className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] min-h-[120px] resize-none text-base"
               placeholder="О чём этот урок..."
               value={lessonForm.description}
               onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })}
               maxLength={500}
             />
+            <div className="text-right text-xs text-[var(--tg-theme-hint-color)] mt-1">
+              {lessonForm.description.length} / 500
+            </div>
           </div>
 
-          {/* КНОПКА СРАЗУ ПОСЛЕ ОПИСАНИЯ */}
-          <Button fullWidth onClick={handleSaveLesson} disabled={!lessonForm.title.trim()}>
-            {editingLessonId ? '✓ Сохранить урок' : '+ Создать урок'}
-          </Button>
-
-          {/* Видео и документы — опционально, ниже */}
-          <details className="group">
-            <summary className="flex items-center gap-2 text-sm text-[var(--tg-theme-hint-color)] cursor-pointer py-2">
-              <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-              Дополнительно: видео и документы
-            </summary>
-            <div className="pt-3 space-y-4">
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">🎬 Видео</label>
-            <div className="grid grid-cols-2 gap-2 mb-3">
+          {/* Видео */}
+          <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3">🎬 Видео</label>
+            <div className="grid grid-cols-2 gap-3 mb-3">
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: 'telegram', videoUrl: '' })}
-                className={`p-3 rounded-xl border-2 text-sm transition-colors ${
+                className={`p-4 rounded-xl border-2 text-sm transition-colors ${
                   lessonForm.videoType === 'telegram'
                     ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/10'
                     : 'border-[var(--tg-theme-hint-color)]/30'
@@ -793,7 +792,7 @@ export default function CourseDetailPage() {
               </button>
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: 'external', videoUrl: '' })}
-                className={`p-3 rounded-xl border-2 text-sm transition-colors ${
+                className={`p-4 rounded-xl border-2 text-sm transition-colors ${
                   lessonForm.videoType === 'external'
                     ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/10'
                     : 'border-[var(--tg-theme-hint-color)]/30'
@@ -805,8 +804,8 @@ export default function CourseDetailPage() {
             </div>
 
             {lessonForm.videoType === 'telegram' && (
-              <div className="border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl p-4 text-center">
-                <div className="text-2xl mb-2">📤</div>
+              <div className="border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl p-6 text-center">
+                <div className="text-3xl mb-2">📤</div>
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">Загрузка видео через Telegram-бота</p>
                 <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">Функция в разработке</p>
               </div>
@@ -823,7 +822,7 @@ export default function CourseDetailPage() {
             {lessonForm.videoType && (
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: null, videoUrl: '' })}
-                className="text-sm text-[var(--tg-theme-hint-color)] mt-2"
+                className="text-sm text-red-500 mt-3 p-2"
               >
                 ✕ Убрать видео
               </button>
@@ -832,62 +831,61 @@ export default function CourseDetailPage() {
 
           {/* Материалы (только для существующих уроков) */}
           {editingLessonId && !editingLesson?.isNew && (
-            <div>
-              <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">📄 Документы</label>
+            <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
+              <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3">📄 Документы</label>
               
               {materials && materials.length > 0 && (
-                <div className="space-y-2 mb-3">
+                <div className="space-y-2 mb-4">
                   {materials.map((material) => (
                     <div
                       key={material.id}
-                      className="flex items-center gap-2 p-2 bg-[var(--tg-theme-secondary-bg-color)] rounded-lg cursor-pointer hover:bg-[var(--tg-theme-hint-color)]/10 transition-colors"
+                      className="flex items-center gap-3 p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl cursor-pointer active:opacity-80 transition-opacity"
                       onClick={() => openFilePreview(material)}
                     >
-                      <span className="text-lg">{material.fileType === 'pdf' ? '📕' : '📄'}</span>
+                      <span className="text-2xl">{material.fileType === 'pdf' ? '📕' : '📄'}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-[var(--tg-theme-text-color)] truncate">{material.fileName}</p>
+                        <p className="text-[var(--tg-theme-text-color)] truncate">{material.fileName}</p>
                         <p className="text-xs text-[var(--tg-theme-hint-color)]">{formatFileSize(material.fileSizeBytes)}</p>
                       </div>
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDeleteMaterial(material); }}
-                        className="p-1 text-[var(--tg-theme-hint-color)] hover:text-red-500"
+                        className="p-2 text-red-500"
                       >
-                        ✕
+                        🗑️
                       </button>
                     </div>
                   ))}
                 </div>
               )}
 
-              <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx" onChange={handleFileSelect} className="hidden" />
+              <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={handleFileSelect} className="hidden" />
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadMaterial.isPending || addMaterial.isPending}
-                className="w-full p-3 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-hint-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:text-[var(--tg-theme-button-color)] transition-colors disabled:opacity-50"
+                className="w-full p-4 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-hint-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:text-[var(--tg-theme-button-color)] transition-colors disabled:opacity-50"
               >
                 {uploadMaterial.isPending || addMaterial.isPending ? (
-                  <>Загрузка...</>
+                  <span className="animate-pulse">Загрузка...</span>
                 ) : (
                   <>
-                    <span className="text-lg">📤</span>
-                    <span className="text-sm">Добавить документ</span>
+                    <span className="text-xl">📤</span>
+                    <span>Добавить документ</span>
                   </>
                 )}
               </button>
-              <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1 text-center">PDF, DOC, DOCX • до 20MB</p>
+              <p className="text-xs text-[var(--tg-theme-hint-color)] mt-2 text-center">PDF, DOC, DOCX • до 20MB</p>
             </div>
           )}
 
           {editingLesson?.isNew && (
-            <p className="text-xs text-[var(--tg-theme-hint-color)] text-center">
-              💡 Документы можно добавить после сохранения изменений
-            </p>
-          )}
-
+            <div className="p-4 bg-blue-50 rounded-xl">
+              <p className="text-sm text-blue-600 text-center">
+                💡 Документы можно добавить после сохранения изменений
+              </p>
             </div>
-          </details>
+          )}
         </div>
-      </Modal>
+      </FullscreenEditor>
 
       {/* File Preview Modal */}
       <Modal
