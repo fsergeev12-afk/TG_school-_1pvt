@@ -39,6 +39,7 @@ export interface StudentLessonDetail {
   id: string;
   title: string;
   description?: string;
+  blockTitle?: string; // Название блока для навигации
   videoType?: 'telegram' | 'external' | null;
   videoExternalUrl?: string;
   videoTelegramFileId?: string;

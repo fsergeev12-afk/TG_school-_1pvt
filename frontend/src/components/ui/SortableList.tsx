@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -37,26 +37,29 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 50 : undefined,
-    opacity: isDragging ? 0.9 : 1,
+    opacity: isDragging ? 0.95 : 1,
   };
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      <div className={`relative ${isDragging ? 'shadow-lg scale-[1.01] bg-[var(--tg-theme-bg-color)] rounded-xl' : ''} transition-all`}>
-        {/* Drag Handle - понятная иконка "перетащить" */}
+      <div className={`relative ${isDragging ? 'shadow-xl scale-[1.02] bg-[var(--tg-theme-bg-color)] rounded-xl ring-2 ring-[var(--tg-theme-button-color)]' : ''} transition-all`}>
+        {/* Drag Handle - БОЛЬШАЯ кнопка для мобилки */}
         <div
           {...listeners}
-          className="absolute left-0 top-0 bottom-0 w-10 flex items-center justify-center cursor-grab active:cursor-grabbing text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)] active:text-[var(--tg-theme-button-color)] z-10 touch-manipulation"
+          className="absolute left-0 top-0 bottom-0 w-14 flex items-center justify-center cursor-grab active:cursor-grabbing z-10"
+          style={{ touchAction: 'none' }} // Критично! Блокирует scroll при drag
         >
-          {/* Hamburger / Move icon - более понятная иконка */}
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="4" y1="8" x2="20" y2="8" />
-            <line x1="4" y1="12" x2="20" y2="12" />
-            <line x1="4" y1="16" x2="20" y2="16" />
-          </svg>
+          {/* Крупная иконка перетаскивания */}
+          <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--tg-theme-secondary-bg-color)] active:bg-[var(--tg-theme-button-color)] active:text-white transition-colors">
+            <svg className="w-6 h-6 text-[var(--tg-theme-hint-color)]" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="4" y="5" width="16" height="2" rx="1" />
+              <rect x="4" y="11" width="16" height="2" rx="1" />
+              <rect x="4" y="17" width="16" height="2" rx="1" />
+            </svg>
+          </div>
         </div>
         {/* Content with padding for handle */}
-        <div className="pl-10">
+        <div className="pl-14">
           {children}
         </div>
       </div>
@@ -75,17 +78,16 @@ export function SortableList<T extends { id: string }>({
   onReorder,
   renderItem,
 }: SortableListProps<T>) {
-  // Быстрый отклик для drag-n-drop (distance: 3 вместо 8)
+  // МГНОВЕННЫЙ отклик для drag-n-drop — БЕЗ delay!
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3, // Быстрее реагирует на drag
+        distance: 3,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 100, // Короткая задержка для touch
-        tolerance: 5,
+        distance: 5, // Только distance, БЕЗ delay — мгновенный отклик
       },
     }),
     useSensor(KeyboardSensor, {
@@ -93,7 +95,17 @@ export function SortableList<T extends { id: string }>({
     })
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  // Блокируем scroll страницы при начале drag
+  const handleDragStart = useCallback(() => {
+    document.body.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+  }, []);
+
+  // Возвращаем scroll после drag
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -102,12 +114,13 @@ export function SortableList<T extends { id: string }>({
       const newItems = arrayMove(items, oldIndex, newIndex);
       onReorder(newItems);
     }
-  };
+  }, [items, onReorder]);
 
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
