@@ -2,37 +2,39 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import * as path from 'path';
 
-// Конфигурация TypeORM для SQLite (локальная разработка)
-// Легко перейти на PostgreSQL позже!
+// Конфигурация TypeORM
+// Автоматически использует PostgreSQL если есть DATABASE_URL (Railway)
+// Иначе SQLite для локальной разработки
 
-const isSQLite = process.env.DATABASE_TYPE === 'sqlite' || !process.env.DATABASE_TYPE;
+const databaseUrl = process.env.DATABASE_URL;
+const usePostgres = !!databaseUrl;
 
-// SQLite конфигурация (для локальной разработки и Railway)
+// SQLite конфигурация (для локальной разработки)
 const sqliteConfig: TypeOrmModuleOptions = {
   type: 'sqlite',
   database: process.env.DATABASE_NAME || 'database.sqlite',
-  synchronize: true, // Для SQLite всегда true (MVP)
+  synchronize: true,
   logging: process.env.NODE_ENV === 'development',
   entities: [path.join(__dirname, '../**/*.entity{.ts,.js}')],
   migrations: [path.join(__dirname, '../database/migrations/*{.ts,.js}')],
 };
 
-// PostgreSQL конфигурация (для продакшена)
+// PostgreSQL конфигурация (Railway — через DATABASE_URL)
 const postgresConfig: TypeOrmModuleOptions = {
   type: 'postgres',
-  host: process.env.DATABASE_HOST || 'localhost',
-  port: parseInt(process.env.DATABASE_PORT) || 5432,
-  username: process.env.DATABASE_USER || 'postgres',
-  password: process.env.DATABASE_PASSWORD || 'postgres',
-  database: process.env.DATABASE_NAME || 'telegram_course_platform',
-  synchronize: process.env.NODE_ENV === 'development',
+  url: databaseUrl, // Railway предоставляет полный URL
+  synchronize: true, // Для MVP — автосоздание таблиц
   logging: process.env.NODE_ENV === 'development',
   entities: [path.join(__dirname, '../**/*.entity{.ts,.js}')],
   migrations: [path.join(__dirname, '../database/migrations/*{.ts,.js}')],
+  ssl: databaseUrl?.includes('railway') ? { rejectUnauthorized: false } : false, // SSL для Railway
 };
 
 // Экспортируем нужную конфигурацию
-export const typeOrmConfig = isSQLite ? sqliteConfig : postgresConfig;
+export const typeOrmConfig = usePostgres ? postgresConfig : sqliteConfig;
+
+// Логируем какую БД используем
+console.log(`[Database] Using ${usePostgres ? 'PostgreSQL (Railway)' : 'SQLite (local)'}`);
 
 // DataSource для миграций
 export const AppDataSource = new DataSource(typeOrmConfig as DataSourceOptions);
