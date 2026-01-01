@@ -26,11 +26,15 @@ async function bootstrap() {
   const port = process.env.PORT || 3000;
   await app.listen(port, '0.0.0.0');
 
+  const dbType = process.env.DATABASE_URL ? 'PostgreSQL' : 'SQLite';
+  const isProduction = !!process.env.DATABASE_URL || process.env.NODE_ENV === 'production';
+
   console.log(`
   🚀 Backend запущен на http://localhost:${port}
   📚 API доступен на http://localhost:${port}/api
   📁 Файлы доступны на http://localhost:${port}/uploads/
-  🗄️  База данных: ${process.env.DATABASE_TYPE || 'sqlite'}
+  🗄️  База данных: ${dbType}
+  🌍 Режим: ${isProduction ? 'production' : 'development'}
   `);
 }
 

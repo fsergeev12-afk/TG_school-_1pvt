@@ -17,16 +17,23 @@ export class TelegramBotService implements OnModuleInit {
       return;
     }
 
-    // Для локальной разработки используем polling
-    // Для продакшена переключимся на webhook
-    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
+    // Определяем production по наличию DATABASE_URL (Railway) или NODE_ENV
+    const isProduction = 
+      !!this.configService.get<string>('DATABASE_URL') || 
+      this.configService.get<string>('NODE_ENV') === 'production';
 
+    // В production используем polling=false чтобы избежать конфликтов
+    // Webhook нужно будет настроить отдельно
     this.bot = new TelegramBot(token, {
-      polling: !isProduction, // polling для dev, webhook для prod
+      polling: !isProduction,
     });
 
     this.logger.log('Telegram Bot инициализирован');
-    this.logger.log(`Режим: ${isProduction ? 'webhook' : 'polling'}`);
+    this.logger.log(`Режим: ${isProduction ? 'webhook (polling отключен)' : 'polling'}`);
+    
+    if (isProduction) {
+      this.logger.warn('⚠️ Для работы в production настройте webhook через /api/telegram/set-webhook');
+    }
   }
 
   /**
