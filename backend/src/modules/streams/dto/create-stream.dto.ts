@@ -11,17 +11,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-
-/**
- * DTO для расписания урока
- */
-export class LessonScheduleItemDto {
-  @IsString()
-  lessonId: string;
-
-  @IsDateString()
-  scheduledOpenAt: string;
-}
+import { LessonScheduleItemDto } from './create-schedule.dto';
 
 /**
  * DTO для создания потока
