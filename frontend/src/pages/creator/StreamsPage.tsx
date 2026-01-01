@@ -132,8 +132,8 @@ export default function StreamsPage() {
   return (
     <div className="pb-24">
       <PageHeader
-        title="Потоки"
-        subtitle={streams ? `${streams.length} потоков` : undefined}
+        title="Modula"
+        subtitle={streams ? `${streams.length} потоков` : 'Потоки'}
         action={
           !isCreating ? (
             <Button size="sm" onClick={() => setIsCreating(true)}>
@@ -172,7 +172,7 @@ export default function StreamsPage() {
             {step === 1 && (
               <>
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                  Выберите курс для потока:
+                  Выберите проект для потока:
                 </p>
                 <div className="space-y-2 max-h-[300px] overflow-y-auto">
                   {courses?.map((course) => (
@@ -202,16 +202,16 @@ export default function StreamsPage() {
                           {course.title}
                         </div>
                         <div className="text-sm text-[var(--tg-theme-hint-color)]">
-                          {course.blocks?.length || 0} блоков • {
+                          {course.blocks?.length || 0} разделов • {
                             course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0
-                          } уроков
+                          } материалов
                         </div>
                       </div>
                     </div>
                   ))}
                   {(!courses || courses.length === 0) && (
                     <p className="text-sm text-[var(--tg-theme-hint-color)] text-center py-4">
-                      Сначала создайте курс
+                      Сначала создайте проект
                     </p>
                   )}
                 </div>
@@ -234,7 +234,7 @@ export default function StreamsPage() {
             {step === 2 && (
               <>
                 <p className="font-medium text-[var(--tg-theme-text-color)]">
-                  📅 Доступ к урокам
+                  📅 Доступ к материалам
                 </p>
 
                 {/* Сначала информация о режиме по умолчанию */}
@@ -243,10 +243,10 @@ export default function StreamsPage() {
                     <span className="text-2xl">📖</span>
                     <div>
                       <p className="font-medium text-[var(--tg-theme-text-color)]">
-                        По умолчанию: все уроки сразу
+                        По умолчанию: все материалы сразу
                       </p>
                       <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
-                        Ученики получат доступ ко всем урокам сразу после старта потока
+                        Участники получат доступ ко всем материалам сразу после старта потока
                       </p>
                     </div>
                   </div>
@@ -266,10 +266,10 @@ export default function StreamsPage() {
                   />
                   <div>
                     <div className="font-medium text-[var(--tg-theme-text-color)]">
-                      🗓️ Открывать уроки по расписанию
+                      🗓️ Открывать материалы по расписанию
                     </div>
                     <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
-                      Укажите дату открытия для каждого урока вручную
+                      Укажите дату открытия для каждого материала вручную
                     </p>
                   </div>
                 </label>
@@ -349,13 +349,13 @@ export default function StreamsPage() {
                     <div className={`p-3 rounded-xl ${allLessonsScheduled ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
                       <p className={`text-sm font-medium ${allLessonsScheduled ? 'text-green-700' : 'text-orange-700'}`}>
                         {allLessonsScheduled 
-                          ? `✓ Все ${allLessons.length} уроков запланированы`
-                          : `⚠️ Запланировано ${lessonSchedules.length} из ${allLessons.length} уроков`
+                          ? `✓ Все ${allLessons.length} материалов запланировано`
+                          : `⚠️ Запланировано ${lessonSchedules.length} из ${allLessons.length} материалов`
                         }
                       </p>
                       {!allLessonsScheduled && (
                         <p className="text-xs text-orange-600 mt-1">
-                          Укажите дату для всех уроков или отключите расписание
+                          Укажите дату для всех материалов или отключите расписание
                         </p>
                       )}
                     </div>
@@ -381,7 +381,7 @@ export default function StreamsPage() {
             {step === 3 && (
               <>
                 <p className="font-medium text-[var(--tg-theme-text-color)]">
-                  🔔 Уведомления ученикам
+                  🔔 Уведомления участникам
                 </p>
 
                 <div className="space-y-3">
@@ -397,7 +397,7 @@ export default function StreamsPage() {
                         ✅ Приветственное сообщение
                       </div>
                       <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
-                        Отправляется при первой активации ученика
+                        Отправляется при первой активации участника
                       </p>
                     </div>
                   </label>
@@ -412,11 +412,11 @@ export default function StreamsPage() {
                     />
                     <div>
                       <div className="font-medium text-[var(--tg-theme-text-color)]">
-                        Уведомлять при открытии урока
+                        Уведомлять при открытии материала
                       </div>
                       <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
                         {scheduleEnabled 
-                          ? 'Ученик получит уведомление, когда откроется новый урок'
+                          ? 'Участник получит уведомление, когда откроется новый материал'
                           : 'Доступно только при включённом расписании'}
                       </p>
                     </div>
@@ -456,10 +456,10 @@ export default function StreamsPage() {
                     📋 Итого:
                   </p>
                   <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                    📚 Курс: {selectedCourse?.title}
+                    📚 Проект: {selectedCourse?.title}
                   </p>
                   <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                    📅 Доступ: {scheduleEnabled ? `По расписанию (${lessonSchedules.length} уроков)` : 'Все уроки сразу'}
+                    📅 Доступ: {scheduleEnabled ? `По расписанию (${lessonSchedules.length} материалов)` : 'Все материалы сразу'}
                   </p>
                   <p className="text-xs text-[var(--tg-theme-hint-color)]">
                     🔔 Уведомления: {notifyOnLessonOpen ? 'Включены' : 'Только приветствие'}
@@ -499,7 +499,7 @@ export default function StreamsPage() {
               У вас пока нет потоков
             </p>
             <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
-              Создайте поток, чтобы пригласить учеников
+              Создайте поток, чтобы пригласить участников
             </p>
             <Button className="mt-4" onClick={() => setIsCreating(true)}>
               + Создать поток
@@ -523,7 +523,7 @@ export default function StreamsPage() {
                   {stream.name}
                 </h3>
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                  Курс: {stream.course?.title || 'Не указан'}
+                  Проект: {stream.course?.title || 'Не указан'}
                 </p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs">
                   <span className="text-[var(--tg-theme-hint-color)]">
@@ -560,7 +560,7 @@ export default function StreamsPage() {
           </div>
           
           <Input
-            label="Дата и время открытия урока"
+            label="Дата и время открытия материала"
             type="datetime-local"
             value={tempDateTime}
             onChange={(e) => setTempDateTime(e.target.value)}

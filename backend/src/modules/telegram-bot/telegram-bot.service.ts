@@ -96,6 +96,15 @@ export class TelegramBotService implements OnModuleInit {
   }
 
   /**
+   * Генерация Direct Link для Mini App
+   */
+  private generateDirectLink(accessToken: string): string {
+    const botUsername = this.configService.get<string>('TELEGRAM_BOT_USERNAME') || 'Bllocklyyy_bot';
+    const appShortName = this.configService.get<string>('TELEGRAM_APP_SHORT_NAME') || 'Amber';
+    return `https://t.me/${botUsername}/${appShortName}?startapp=${accessToken}`;
+  }
+
+  /**
    * Отправить welcome сообщение (объединенное: приглашение + welcome)
    */
   async sendWelcomeMessage(
@@ -104,16 +113,15 @@ export class TelegramBotService implements OnModuleInit {
     courseName: string,
     accessToken: string,
   ): Promise<void> {
-    const botUsername = this.configService.get<string>('TELEGRAM_BOT_USERNAME');
-    const link = `https://t.me/${botUsername}?start=${accessToken}`;
+    const link = this.generateDirectLink(accessToken);
 
     const message = `
-🎓 Привет! <b>${creatorName}</b> приглашает тебя на курс "<b>${courseName}</b>"!
+🎓 Привет! <b>${creatorName}</b> приглашает тебя в проект "<b>${courseName}</b>"!
 
-Переходи на платформу, чтобы начать обучение:
+Переходи по ссылке, чтобы начать:
 🔗 ${link}
 
-📌 Закрепи это сообщение — здесь всегда будет актуальная ссылка на курс!
+📌 Закрепи это сообщение — здесь всегда будет актуальная ссылка!
     `.trim();
 
     await this.sendMessage(telegramId, message);
@@ -128,16 +136,15 @@ export class TelegramBotService implements OnModuleInit {
     creatorName: string,
     accessToken: string,
   ): Promise<void> {
-    const botUsername = this.configService.get<string>('TELEGRAM_BOT_USERNAME');
-    const link = `https://t.me/${botUsername}?start=${accessToken}`;
+    const link = this.generateDirectLink(accessToken);
 
     // Ждем 10 секунд (в продакшене будет через Bull Queue)
     setTimeout(async () => {
       const message = `
-📚 Новый урок доступен!
+📚 Новый материал доступен!
 
 От <b>${creatorName}</b>:
-Переходи на платформу, чтобы начать обучение.
+Переходи по ссылке, чтобы начать.
 🔗 ${link}
       `.trim();
 
@@ -155,14 +162,13 @@ export class TelegramBotService implements OnModuleInit {
     messageText: string,
     accessToken: string,
   ): Promise<void> {
-    const botUsername = this.configService.get<string>('TELEGRAM_BOT_USERNAME');
-    const link = `https://t.me/${botUsername}?start=${accessToken}`;
+    const link = this.generateDirectLink(accessToken);
 
     const message = `
 От <b>${creatorName}</b>:
 ${messageText}
 
-🔗 ${link}
+🔗 Перейти в проект: ${link}
     `.trim();
 
     await this.sendMessage(telegramId, message);

@@ -148,7 +148,7 @@ export class NotificationsService {
   }
 
   /**
-   * Отправить уведомление об открытии урока
+   * Отправить уведомление об открытии материала
    */
   async sendLessonOpenedNotification(
     student: StreamStudent,
@@ -159,14 +159,16 @@ export class NotificationsService {
       const notification = await this.create(
         student.id,
         'lesson_opened',
-        '📚 Новый урок доступен!',
-        `Урок "${lessonTitle}" теперь открыт для просмотра.`,
+        '📚 Новый материал доступен!',
+        `Материал "${lessonTitle}" теперь открыт для просмотра.`,
         student.streamId,
       );
 
-      await this.telegramBotService.sendMessage(
+      // Используем метод с direct link
+      await this.telegramBotService.sendDemoNotification(
         student.telegramId,
-        `📚 <b>Новый урок доступен!</b>\n\nОт <b>${creatorName}</b>:\nУрок "${lessonTitle}" теперь открыт для просмотра.\n\n🔗 Перейдите в приложение, чтобы начать обучение.`,
+        creatorName,
+        student.accessToken,
       );
 
       notification.status = 'sent';
@@ -174,7 +176,7 @@ export class NotificationsService {
       await this.notificationRepository.save(notification);
 
     } catch (error) {
-      this.logger.error(`Ошибка уведомления об уроке: ${error.message}`);
+      this.logger.error(`Ошибка уведомления о материале: ${error.message}`);
     }
   }
 
@@ -191,7 +193,7 @@ export class NotificationsService {
         student.id,
         'welcome',
         '🎓 Добро пожаловать!',
-        `Вы успешно присоединились к курсу "${courseName}".`,
+        `Вы успешно присоединились к проекту "${courseName}".`,
         student.streamId,
       );
 

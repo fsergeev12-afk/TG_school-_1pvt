@@ -7,7 +7,8 @@ import { Block } from './entities/block.entity';
 import { Lesson } from './entities/lesson.entity';
 import { LessonMaterial } from './entities/lesson-material.entity';
 
-// Entities from other modules (for StudentCourseController)
+// Entities from other modules (for StudentCourseController and cascade delete)
+import { Stream } from '../streams/entities/stream.entity';
 import { StreamStudent } from '../streams/entities/stream-student.entity';
 import { LessonSchedule } from '../streams/entities/lesson-schedule.entity';
 
@@ -29,7 +30,7 @@ import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Course, Block, Lesson, LessonMaterial, StreamStudent, LessonSchedule]),
+    TypeOrmModule.forFeature([Course, Block, Lesson, LessonMaterial, Stream, StreamStudent, LessonSchedule]),
     forwardRef(() => AuthModule), // Для TelegramAuthGuard
     forwardRef(() => UsersModule), // Для UsersService в guard
   ],

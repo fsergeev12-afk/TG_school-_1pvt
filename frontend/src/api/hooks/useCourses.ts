@@ -53,15 +53,28 @@ export const useUpdateCourse = () => {
   });
 };
 
+export const useCourseStreamsCount = (id: string) => {
+  return useQuery({
+    queryKey: ['course', id, 'streams-count'],
+    queryFn: async () => {
+      const { data } = await apiClient.get<{ count: number }>(`/courses/${id}/streams-count`);
+      return data.count;
+    },
+    enabled: !!id,
+  });
+};
+
 export const useDeleteCourse = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(`/courses/${id}`);
+      const { data } = await apiClient.delete<{ deletedStreams: number }>(`/courses/${id}`);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['streams'] });
     },
   });
 };

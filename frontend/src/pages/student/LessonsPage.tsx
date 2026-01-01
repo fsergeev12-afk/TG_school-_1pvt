@@ -4,7 +4,7 @@ import { PageHeader } from '../../components/layout';
 import { Card, Button } from '../../components/ui';
 import { useStudentCourse } from '../../api/hooks';
 
-// Модалка "Урок откроется..."
+// Модалка "Материал откроется..."
 interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -22,7 +22,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, onClose, schedule
       >
         <div className="text-4xl mb-4">⏳</div>
         <h3 className="font-semibold text-lg text-[var(--tg-theme-text-color)] mb-2">
-          Урок откроется
+          Материал откроется
         </h3>
         <p className="text-[var(--tg-theme-text-color)] mb-4">
           {scheduledAt}
@@ -70,8 +70,10 @@ export default function LessonsPage() {
   };
 
   const handleAskQuestion = () => {
-    // TODO: Получить username бота из API или конфига
-    window.open('https://t.me/TG_school_1pvt_bot', '_blank');
+    // Открываем чат с ботом для вопросов
+    // Бот должен перенаправить сообщение создателю курса
+    const botUsername = 'Bllocklyyy_bot'; // TODO: получить из конфига
+    window.open(`https://t.me/${botUsername}?start=question`, '_blank');
   };
 
   if (isLoading) {
@@ -85,10 +87,10 @@ export default function LessonsPage() {
   if (!course) {
     return (
       <div className="min-h-screen">
-        <PageHeader title="Курс" showBack />
+        <PageHeader title="Проект" showBack />
         <div className="p-4">
           <Card className="text-center py-8">
-            <p className="text-[var(--tg-theme-hint-color)]">Курс не найден</p>
+            <p className="text-[var(--tg-theme-hint-color)]">Проект не найден</p>
           </Card>
         </div>
       </div>
@@ -100,13 +102,13 @@ export default function LessonsPage() {
       <PageHeader title="Назад" showBack />
 
       <div className="p-4 space-y-4">
-        {/* Заголовок курса */}
+        {/* Заголовок проекта */}
         <div>
           <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)]">
             {course.title}
           </h1>
           <p className="text-[var(--tg-theme-hint-color)]">
-            {course.totalLessons} уроков в {course.blocks.length} блоках
+            {course.totalLessons} материалов в {course.blocks.length} разделах
           </p>
         </div>
 
@@ -114,7 +116,7 @@ export default function LessonsPage() {
         <Card className="border border-[var(--tg-theme-hint-color)]/20">
           <div className="text-center">
             <p className="text-[var(--tg-theme-text-color)] mb-1">
-              💬 Есть вопросы по курсу?
+              💬 Есть вопросы по проекту?
             </p>
             <p className="text-sm text-[var(--tg-theme-hint-color)] mb-3">
               Напишите преподавателю
@@ -129,11 +131,11 @@ export default function LessonsPage() {
           </div>
         </Card>
 
-        {/* Блоки с уроками (Accordion) */}
+        {/* Разделы с материалами (Accordion) */}
         <div className="space-y-2">
           {course.blocks.map((block, blockIndex) => (
             <div key={block.id} className="bg-[var(--tg-theme-secondary-bg-color)] rounded-xl overflow-hidden">
-              {/* Заголовок блока */}
+              {/* Заголовок раздела */}
               <button
                 onClick={() => toggleBlock(block.id)}
                 className="w-full flex items-center justify-between p-4 text-left"
@@ -141,7 +143,7 @@ export default function LessonsPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-lg">📂</span>
                   <span className="font-semibold text-[var(--tg-theme-text-color)]">
-                    Блок {blockIndex + 1}: {block.title}
+                    {block.title}
                   </span>
                 </div>
                 <svg 
@@ -156,7 +158,7 @@ export default function LessonsPage() {
                 </svg>
               </button>
 
-              {/* Уроки блока */}
+              {/* Материалы раздела */}
               {expandedBlocks[block.id] && (
                 <div className="border-t border-[var(--tg-theme-hint-color)]/10">
                   {block.lessons.map((lesson) => (
@@ -173,7 +175,7 @@ export default function LessonsPage() {
                         {lesson.available ? '▸' : '🔒'}
                       </span>
                       
-                      {/* Название урока */}
+                      {/* Название материала */}
                       <div className="flex-1 min-w-0">
                         <p className={`text-[var(--tg-theme-text-color)] ${lesson.available ? '' : 'text-[var(--tg-theme-hint-color)]'}`}>
                           {lesson.title}

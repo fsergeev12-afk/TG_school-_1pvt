@@ -6,7 +6,8 @@ import {
   useSendBroadcast, 
   useDeleteStream,
   useStreamSchedule,
-  useCourse
+  useCourse,
+  useRemoveStudent
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal } from '../../components/ui';
@@ -24,6 +25,7 @@ export default function StreamDetailPage() {
   const { data: course } = useCourse(stream?.courseId || '');
   const sendBroadcast = useSendBroadcast();
   const deleteStream = useDeleteStream();
+  const removeStudent = useRemoveStudent();
   const { showToast } = useUIStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('students');
@@ -34,6 +36,20 @@ export default function StreamDetailPage() {
   const [addStudentsModalOpen, setAddStudentsModalOpen] = useState(false);
   const [inviteLink, setInviteLink] = useState('');
   const [isCopied, setIsCopied] = useState(false);
+
+  // Delete student confirmation
+  const [deleteStudentConfirm, setDeleteStudentConfirm] = useState<{ id: string; name: string } | null>(null);
+
+  const handleRemoveStudent = async () => {
+    if (!deleteStudentConfirm || !id) return;
+    try {
+      await removeStudent.mutateAsync({ streamId: id, studentId: deleteStudentConfirm.id });
+      setDeleteStudentConfirm(null);
+      showToast('Участник удалён из потока', 'success');
+    } catch {
+      showToast('Ошибка удаления участника', 'error');
+    }
+  };
 
   const handleSendBroadcast = async () => {
     if (!broadcastMessage.trim() || !id) return;
@@ -85,7 +101,7 @@ export default function StreamDetailPage() {
   }
 
   const tabs = [
-    { id: 'students' as TabType, label: 'Ученики' },
+    { id: 'students' as TabType, label: 'Участники' },
     { id: 'schedule' as TabType, label: '📅' },
     { id: 'broadcast' as TabType, label: 'Рассылка' },
     { id: 'payments' as TabType, label: 'Оплаты' },
@@ -156,17 +172,17 @@ export default function StreamDetailPage() {
                 setAddStudentsModalOpen(true);
               }}
             >
-              📤 Добавить учеников
+              📤 Добавить участников
             </Button>
 
             {students?.length === 0 && (
               <div className="text-center py-8">
                 <div className="text-4xl mb-3">👥</div>
                 <p className="text-[var(--tg-theme-hint-color)]">
-                  Пока нет учеников
+                  Пока нет участников
                 </p>
                 <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
-                  Пригласите учеников, чтобы они появились здесь
+                  Пригласите участников, чтобы они появились здесь
                 </p>
               </div>
             )}
@@ -175,12 +191,17 @@ export default function StreamDetailPage() {
               <Card key={student.id}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[var(--tg-theme-button-color)]/20 flex items-center justify-center text-sm font-medium text-[var(--tg-theme-button-color)]">
-                    {student.firstName?.[0] || '?'}
+                    {student.firstName?.[0] || student.telegramFirstName?.[0] || '?'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-[var(--tg-theme-text-color)]">
-                      {student.firstName} {student.lastName}
+                      {student.firstName || student.telegramFirstName || 'Без имени'} {student.lastName || student.telegramLastName || ''}
                     </div>
+                    {student.username || student.telegramUsername ? (
+                      <div className="text-xs text-[var(--tg-theme-link-color)]">
+                        @{student.username || student.telegramUsername}
+                      </div>
+                    ) : null}
                     <div className="flex gap-2 mt-1 text-xs">
                       <span className={`px-2 py-0.5 rounded ${
                         student.invitationStatus === 'activated'
@@ -198,12 +219,29 @@ export default function StreamDetailPage() {
                       </span>
                     </div>
                   </div>
-                  <button
-                    className="p-2 text-[var(--tg-theme-hint-color)]"
-                    onClick={() => navigate(`/creator/chats/${student.id}`)}
-                  >
-                    💬
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      className="w-10 h-10 flex items-center justify-center rounded-full text-[var(--tg-theme-link-color)] hover:bg-[var(--tg-theme-secondary-bg-color)]"
+                      onClick={() => {
+                        const username = student.username || student.telegramUsername;
+                        if (username) {
+                          window.open(`https://t.me/${username}`, '_blank');
+                        } else {
+                          showToast('У участника нет username', 'info');
+                        }
+                      }}
+                      title="Написать в Telegram"
+                    >
+                      💬
+                    </button>
+                    <button
+                      className="w-10 h-10 flex items-center justify-center rounded-full text-red-400 hover:bg-red-50"
+                      onClick={() => setDeleteStudentConfirm({ id: student.id, name: student.firstName || student.telegramFirstName || 'Участник' })}
+                      title="Удалить из потока"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
               </Card>
             ))}
@@ -214,7 +252,7 @@ export default function StreamDetailPage() {
         {activeTab === 'schedule' && (
           <div className="space-y-4">
             <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
-              📅 Расписание уроков
+              📅 Расписание материалов
             </h3>
 
             {!stream.scheduleEnabled ? (
@@ -224,7 +262,7 @@ export default function StreamDetailPage() {
                   Расписание отключено
                 </p>
                 <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
-                  Все уроки доступны сразу после оплаты
+                  Все материалы доступны сразу после оплаты
                 </p>
               </Card>
             ) : (
@@ -260,7 +298,7 @@ export default function StreamDetailPage() {
 
                 {allLessons.length === 0 && (
                   <p className="text-sm text-[var(--tg-theme-hint-color)] text-center py-4">
-                    В курсе пока нет уроков
+                    В проекте пока нет материалов
                   </p>
                 )}
               </div>
@@ -282,7 +320,7 @@ export default function StreamDetailPage() {
               maxLength={1000}
             />
             <div className="flex justify-between text-xs text-[var(--tg-theme-hint-color)]">
-              <span>👥 Получатели: {activatedCount} активированных учеников</span>
+              <span>👥 Получатели: {activatedCount} активированных участников</span>
               <span>{broadcastMessage.length} / 1000</span>
             </div>
             <p className="text-xs text-[var(--tg-theme-hint-color)]">
@@ -372,7 +410,7 @@ export default function StreamDetailPage() {
                 disabled
               />
               <p className="text-xs text-[var(--tg-theme-hint-color)] mt-2">
-                Курс: {stream.course?.title}
+                Проект: {stream.course?.title}
               </p>
             </Card>
 
@@ -382,7 +420,7 @@ export default function StreamDetailPage() {
               </h4>
               <div className="flex items-center gap-2">
                 <Input
-                  label="Цена курса"
+                  label="Цена проекта"
                   type="number"
                   value={stream.price || 3000}
                   disabled
@@ -409,12 +447,12 @@ export default function StreamDetailPage() {
                 🗑️ Опасная зона
               </h4>
               <p className="text-xs text-[var(--tg-theme-hint-color)] mb-3">
-                ⚠️ Это действие нельзя отменить. Все ученики потеряют доступ к курсу.
+                ⚠️ Это действие нельзя отменить. Все участники потеряют доступ к проекту.
               </p>
               {isDeleting ? (
                 <div className="space-y-2">
                   <p className="text-sm text-red-600">
-                    Вы уверены? В потоке {students?.length || 0} учеников.
+                    Вы уверены? В потоке {students?.length || 0} участников.
                   </p>
                   <div className="flex gap-2">
                     <Button
@@ -450,11 +488,11 @@ export default function StreamDetailPage() {
       <Modal
         isOpen={addStudentsModalOpen}
         onClose={() => setAddStudentsModalOpen(false)}
-        title="📤 Добавить учеников"
+        title="📤 Добавить участников"
       >
         <div className="space-y-4">
           <p className="text-sm text-[var(--tg-theme-hint-color)]">
-            Поделитесь ссылкой-приглашением с учениками. После перехода по ссылке они смогут оплатить курс и получить доступ.
+            Поделитесь ссылкой-приглашением с участниками. После перехода по ссылке они смогут оплатить и получить доступ.
           </p>
 
           <div>
@@ -500,11 +538,42 @@ export default function StreamDetailPage() {
               variant="secondary"
               fullWidth
               onClick={() => {
-                const text = encodeURIComponent(`Приглашаю на курс "${stream?.course?.title}"\n${inviteLink}`);
+                const text = encodeURIComponent(`Приглашаю в проект "${stream?.course?.title}"\n${inviteLink}`);
                 window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`, '_blank');
               }}
             >
               📱 Telegram
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Student Confirmation */}
+      <Modal
+        isOpen={!!deleteStudentConfirm}
+        onClose={() => setDeleteStudentConfirm(null)}
+        title={`Удалить ${deleteStudentConfirm?.name}?`}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+            Участник потеряет доступ к проекту и перестанет получать уведомления.
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setDeleteStudentConfirm(null)}
+            >
+              Отмена
+            </Button>
+            <Button
+              variant="danger"
+              fullWidth
+              onClick={handleRemoveStudent}
+              loading={removeStudent.isPending}
+            >
+              Удалить
             </Button>
           </div>
         </div>

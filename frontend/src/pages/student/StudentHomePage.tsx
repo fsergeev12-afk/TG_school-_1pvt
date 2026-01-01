@@ -17,19 +17,19 @@ export default function StudentHomePage() {
     );
   }
 
-  // Если нет курса - показать приглашение
+  // Если нет проекта - показать приглашение
   if (error || !course) {
     return (
       <div className="min-h-screen">
-        <PageHeader title={`Привет, ${user?.firstName || 'Ученик'}! 👋`} />
+        <PageHeader title={`Привет, ${user?.firstName || 'Участник'}! 👋`} />
         <div className="p-4">
           <Card className="text-center py-8">
             <div className="text-4xl mb-4">📚</div>
             <h2 className="font-semibold text-lg text-[var(--tg-theme-text-color)] mb-2">
-              Вы ещё не записаны на курс
+              Вы ещё не записаны на проект
             </h2>
             <p className="text-[var(--tg-theme-hint-color)] mb-4">
-              Получите ссылку-приглашение от преподавателя, чтобы начать обучение
+              Получите ссылку-приглашение от автора, чтобы начать
             </p>
           </Card>
         </div>
@@ -41,21 +41,15 @@ export default function StudentHomePage() {
   if (course.requiresPayment && !course.isPaid) {
     return (
       <div className="min-h-screen">
-        <PageHeader title={`Привет, ${user?.firstName || 'Ученик'}! 👋`} />
+        <PageHeader title={`Привет, ${user?.firstName || 'Участник'}! 👋`} />
         <div className="p-4">
           <Card className="overflow-hidden">
-            {/* Обложка */}
-            <div className="aspect-[16/9] relative -mx-4 -mt-4 mb-4">
-              {course.coverImageUrl ? (
-                <img src={course.coverImageUrl} alt={course.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600 flex items-center justify-center">
-                  <span className="text-white/50 text-sm">[Обложка курса]</span>
-                </div>
-              )}
+            {/* Иконка */}
+            <div className="py-6 flex items-center justify-center bg-[var(--tg-theme-button-color)]/10">
+              <span className="text-4xl">📚</span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 pt-4">
               <h2 className="font-semibold text-lg text-[var(--tg-theme-text-color)]">
                 {course.title}
               </h2>
@@ -66,7 +60,7 @@ export default function StudentHomePage() {
                 {(course.price / 100).toLocaleString('ru-RU')} ₽
               </p>
               <Button fullWidth onClick={() => navigate(`/student/payment?streamId=${course.streamId}`)}>
-                Оплатить курс
+                Оплатить
               </Button>
             </div>
           </Card>
@@ -75,26 +69,20 @@ export default function StudentHomePage() {
     );
   }
 
-  // Полный доступ к курсу
+  // Полный доступ к проекту
   return (
     <div className="min-h-screen">
-      <PageHeader title={`Привет, ${user?.firstName || 'Ученик'}! 👋`} />
+      <PageHeader title={`Привет, ${user?.firstName || 'Участник'}! 👋`} />
 
       <div className="p-4">
         <Card className="overflow-hidden">
-          {/* Обложка курса */}
-          <div className="aspect-[16/9] relative -mx-4 -mt-4 mb-4">
-            {course.coverImageUrl ? (
-              <img src={course.coverImageUrl} alt={course.title} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600 flex items-center justify-center">
-                <span className="text-white/50 text-sm">[Дефолтная обложка]</span>
-              </div>
-            )}
+          {/* Иконка проекта */}
+          <div className="py-6 flex items-center justify-center bg-[var(--tg-theme-button-color)]/10">
+            <span className="text-4xl">📚</span>
           </div>
 
-          {/* Информация о курсе */}
-          <div className="space-y-3">
+          {/* Информация о проекте */}
+          <div className="space-y-3 pt-4">
             <div className="flex items-start gap-2">
               <span className="text-green-500 text-xl flex-shrink-0">✅</span>
               <h2 className="font-semibold text-lg text-[var(--tg-theme-text-color)]">
@@ -103,11 +91,11 @@ export default function StudentHomePage() {
             </div>
             
             <p className="text-[var(--tg-theme-hint-color)]">
-              {course.totalLessons} уроков | {course.allAvailable ? 'Все доступны' : `${course.availableLessons} доступно`}
+              {course.totalLessons} материалов | {course.allAvailable ? 'Все доступны' : `${course.availableLessons} доступно`}
             </p>
 
             <Button fullWidth onClick={() => navigate('/student/lessons')} className="mt-2">
-              Перейти к курсу
+              Перейти к проекту
             </Button>
           </div>
         </Card>

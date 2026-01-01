@@ -168,7 +168,7 @@ export default function CourseDetailPage() {
     setNewBlockTitle('');
     setAddBlockModalOpen(false);
     markChanged();
-    showToast('Блок добавлен', 'success');
+    showToast('Раздел добавлен', 'success');
   };
 
   const handleBlockKeyDown = (e: React.KeyboardEvent) => {
@@ -225,7 +225,7 @@ export default function CourseDetailPage() {
     
     setDeleteBlockConfirm(null);
     markChanged();
-    showToast('Блок удалён', 'success');
+    showToast('Раздел удалён', 'success');
   };
 
   const handleBlocksReorder = (reorderedBlocks: BlockDraft[]) => {
@@ -256,7 +256,7 @@ export default function CourseDetailPage() {
 
   const handleSaveLesson = () => {
     if (!lessonForm.title.trim() || !lessonBlockId) {
-      showToast('Введите название урока', 'error');
+      showToast('Введите название материала', 'error');
       return;
     }
 
@@ -281,7 +281,7 @@ export default function CourseDetailPage() {
             }
           : block
       ));
-      showToast('Урок обновлён', 'success');
+      showToast('Материал обновлён', 'success');
     } else {
       // Create new lesson
       const newLesson: LessonDraft = {
@@ -298,7 +298,7 @@ export default function CourseDetailPage() {
           ? { ...block, lessons: [...block.lessons, newLesson] }
           : block
       ));
-      showToast('Урок добавлен', 'success');
+      showToast('Материал добавлен', 'success');
     }
 
     setLessonModalOpen(false);
@@ -332,7 +332,7 @@ export default function CourseDetailPage() {
     
     setDeleteLessonConfirm(null);
     markChanged();
-    showToast('Урок удалён', 'success');
+    showToast('Материал удалён', 'success');
   };
 
   const handleLessonsReorder = (blockId: string, reorderedLessons: LessonDraft[]) => {
@@ -531,7 +531,7 @@ export default function CourseDetailPage() {
   if (!course) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-[var(--tg-theme-hint-color)]">Курс не найден</div>
+        <div className="text-[var(--tg-theme-hint-color)]">Проект не найден</div>
       </div>
     );
   }
@@ -543,7 +543,7 @@ export default function CourseDetailPage() {
   return (
     <div className="pb-24">
       <PageHeader
-        title="Редактирование курса"
+        title="Редактирование проекта"
         subtitle={course.title}
         showBack
         onBack={() => {
@@ -556,19 +556,15 @@ export default function CourseDetailPage() {
       />
 
       <div className="p-4 space-y-4">
-        {/* Информация о курсе */}
+        {/* Информация о проекте */}
         <Card>
           <div className="flex items-center gap-4">
-            {course.coverImageUrl ? (
-              <img src={course.coverImageUrl} alt="" className="w-20 h-20 rounded-xl object-cover" />
-            ) : (
-              <div className="w-20 h-20 rounded-xl bg-[var(--tg-theme-button-color)]/10 flex items-center justify-center text-3xl">
-                📚
-              </div>
-            )}
+            <div className="w-16 h-16 rounded-xl bg-[var(--tg-theme-button-color)]/10 flex items-center justify-center text-3xl">
+              📚
+            </div>
             <div className="flex-1">
               <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                {visibleBlocks.length} блоков • {totalLessons} уроков
+                {visibleBlocks.length} разделов • {totalLessons} материалов
               </p>
               {course.description && (
                 <p className="text-sm text-[var(--tg-theme-text-color)] mt-1 line-clamp-2">
@@ -582,16 +578,16 @@ export default function CourseDetailPage() {
           </div>
         </Card>
 
-        {/* Структура курса */}
+        {/* Структура проекта */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-[var(--tg-theme-text-color)]">Структура курса</h2>
+            <h2 className="font-semibold text-[var(--tg-theme-text-color)]">Структура проекта</h2>
             <span className="text-xs text-[var(--tg-theme-hint-color)]">⋮⋮ перетащите для сортировки</span>
           </div>
 
           {visibleBlocks.length === 0 ? (
             <Card className="text-center py-8">
-              <p className="text-[var(--tg-theme-hint-color)]">Нажмите кнопку ниже, чтобы добавить блок</p>
+              <p className="text-[var(--tg-theme-hint-color)]">Нажмите кнопку ниже, чтобы добавить раздел</p>
             </Card>
           ) : (
             <div className="space-y-3">
@@ -625,7 +621,7 @@ export default function CourseDetailPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <span className="text-xs text-[var(--tg-theme-hint-color)] mr-2">
-                          {block.lessons.filter(l => !l.isDeleted).length} уроков
+                          {block.lessons.filter(l => !l.isDeleted).length} материалов
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}
@@ -679,7 +675,7 @@ export default function CourseDetailPage() {
                             )}
                           />
                         ) : (
-                          <p className="text-xs text-[var(--tg-theme-hint-color)] text-center py-2">Пока нет уроков</p>
+                          <p className="text-xs text-[var(--tg-theme-hint-color)] text-center py-2">Пока нет материалов</p>
                         )}
                         <Button
                           variant="ghost"
@@ -687,7 +683,7 @@ export default function CourseDetailPage() {
                           className="w-full mt-2"
                           onClick={(e) => { e.stopPropagation(); openCreateLesson(block.id); }}
                         >
-                          + Добавить урок
+                          + Добавить материал
                         </Button>
                       </div>
                     )}
@@ -702,7 +698,7 @@ export default function CourseDetailPage() {
             className="w-full mt-4 p-4 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-button-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:bg-[var(--tg-theme-button-color)]/5 transition-colors"
           >
             <span className="text-xl">+</span>
-            <span className="font-medium">Добавить блок</span>
+            <span className="font-medium">Добавить раздел</span>
           </button>
         </div>
       </div>
@@ -720,10 +716,10 @@ export default function CourseDetailPage() {
       </div>
 
       {/* Add Block Modal */}
-      <Modal isOpen={addBlockModalOpen} onClose={() => setAddBlockModalOpen(false)} title="📂 Новый блок" size="sm">
+      <Modal isOpen={addBlockModalOpen} onClose={() => setAddBlockModalOpen(false)} title="📂 Новый раздел" size="sm">
         <div className="space-y-4">
           <Input
-            label="Название блока *"
+            label="Название раздела *"
             placeholder="Введение"
             value={newBlockTitle}
             onChange={(e) => setNewBlockTitle(e.target.value)}
@@ -731,7 +727,7 @@ export default function CourseDetailPage() {
             autoFocus
           />
           <Button fullWidth onClick={handleAddBlock} disabled={!newBlockTitle.trim()}>
-            Создать блок
+            Создать раздел
           </Button>
         </div>
       </Modal>
@@ -740,7 +736,7 @@ export default function CourseDetailPage() {
       <FullscreenEditor
         isOpen={lessonModalOpen}
         onClose={() => setLessonModalOpen(false)}
-        title={editingLessonId ? 'Редактировать урок' : 'Новый урок'}
+        title={editingLessonId ? 'Редактировать материал' : 'Новый материал'}
         footer={
           <Button 
             fullWidth 
@@ -748,13 +744,13 @@ export default function CourseDetailPage() {
             disabled={!lessonForm.title.trim()}
             className="text-lg py-4"
           >
-            {editingLessonId ? '✓ Сохранить урок' : '+ Создать урок'}
+            {editingLessonId ? '✓ Сохранить материал' : '+ Создать материал'}
           </Button>
         }
       >
         <div className="space-y-6">
           <Input
-            label="Название урока *"
+            label="Название *"
             placeholder="Введение в тему"
             value={lessonForm.title}
             onChange={(e) => setLessonForm({ ...lessonForm, title: e.target.value })}
@@ -762,7 +758,7 @@ export default function CourseDetailPage() {
           />
 
           <div>
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">Описание урока</label>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">Описание</label>
             <textarea
               className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] min-h-[120px] resize-none text-base"
               placeholder="О чём этот урок..."
@@ -775,9 +771,9 @@ export default function CourseDetailPage() {
             </div>
           </div>
 
-          {/* Видео */}
+          {/* Ссылка */}
           <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3">🎬 Видео</label>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3">🔗 Ссылка</label>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: 'telegram', videoUrl: '' })}
@@ -787,7 +783,7 @@ export default function CourseDetailPage() {
                     : 'border-[var(--tg-theme-hint-color)]/30'
                 }`}
               >
-                📹 Загрузить
+                📹 Загрузить файл
                 <div className="text-xs text-[var(--tg-theme-hint-color)] mt-1">до 50MB</div>
               </button>
               <button
@@ -798,8 +794,8 @@ export default function CourseDetailPage() {
                     : 'border-[var(--tg-theme-hint-color)]/30'
                 }`}
               >
-                🔗 Ссылка
-                <div className="text-xs text-[var(--tg-theme-hint-color)] mt-1">YouTube, Vimeo</div>
+                🔗 Внешняя ссылка
+                <div className="text-xs text-[var(--tg-theme-hint-color)] mt-1">Любой URL</div>
               </button>
             </div>
 
@@ -813,7 +809,7 @@ export default function CourseDetailPage() {
 
             {lessonForm.videoType === 'external' && (
               <Input
-                placeholder="https://youtube.com/watch?v=..."
+                placeholder="https://..."
                 value={lessonForm.videoUrl}
                 onChange={(e) => setLessonForm({ ...lessonForm, videoUrl: e.target.value })}
               />
@@ -824,7 +820,7 @@ export default function CourseDetailPage() {
                 onClick={() => setLessonForm({ ...lessonForm, videoType: null, videoUrl: '' })}
                 className="text-sm text-red-500 mt-3 p-2"
               >
-                ✕ Убрать видео
+                ✕ Убрать ссылку
               </button>
             )}
           </div>
@@ -931,7 +927,7 @@ export default function CourseDetailPage() {
       <Modal isOpen={!!deleteBlockConfirm} onClose={() => setDeleteBlockConfirm(null)} title={`Удалить «${deleteBlockConfirm?.title}»?`} size="sm">
         <div className="space-y-4">
           <p className="text-sm text-[var(--tg-theme-hint-color)]">
-            Все уроки в этом блоке будут удалены.
+            Все материалы в этом разделе будут удалены.
           </p>
           <div className="flex gap-3">
             <Button type="button" fullWidth variant="secondary" onClick={() => setDeleteBlockConfirm(null)}>Отмена</Button>

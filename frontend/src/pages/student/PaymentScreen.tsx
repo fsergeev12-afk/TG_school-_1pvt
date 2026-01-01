@@ -12,17 +12,17 @@ export default function PaymentScreen() {
     <div className="min-h-screen bg-telegram-bg p-4">
       <div className="max-w-md mx-auto">
         <h1 className="text-2xl font-bold text-telegram-text mb-6 text-center">
-          💳 Оплата курса
+          💳 Оплата проекта
         </h1>
 
-        {/* Информация о курсе */}
+        {/* Информация о проекте */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="aspect-video bg-gray-200 rounded mb-4 flex items-center justify-center">
-            <span className="text-gray-400">Обложка курса</span>
+            <span className="text-gray-400">Иконка проекта</span>
           </div>
-          <h2 className="text-xl font-semibold mb-2">Название курса</h2>
+          <h2 className="text-xl font-semibold mb-2">Название проекта</h2>
           <p className="text-gray-600 mb-4">От: Имя создателя</p>
-          <p className="text-sm text-gray-500">12 уроков в 3 блоках</p>
+          <p className="text-sm text-gray-500">12 материалов в 3 разделах</p>
         </div>
 
         {/* Информация об оплате */}

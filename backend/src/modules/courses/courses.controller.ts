@@ -75,6 +75,20 @@ export class CoursesController {
   }
 
   /**
+   * Получить количество потоков для курса
+   * GET /api/courses/:id/streams-count
+   */
+  @Get(':id/streams-count')
+  @Roles('creator')
+  async getStreamsCount(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() user: User,
+  ) {
+    const count = await this.coursesService.getStreamsCount(id, user.id);
+    return { count };
+  }
+
+  /**
    * Обновить курс
    * PATCH /api/courses/:id
    */
@@ -115,7 +129,7 @@ export class CoursesController {
   }
 
   /**
-   * Удалить курс
+   * Удалить курс и все связанные потоки
    * DELETE /api/courses/:id
    */
   @Delete(':id')
@@ -124,8 +138,11 @@ export class CoursesController {
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() user: User,
   ) {
-    await this.coursesService.remove(id, user.id);
-    return { message: 'Курс удалён' };
+    const result = await this.coursesService.remove(id, user.id);
+    return { 
+      message: 'Проект удалён', 
+      deletedStreams: result.deletedStreams 
+    };
   }
 }
 

@@ -1,14 +1,19 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull } from 'typeorm';
 import { Course } from './entities/course.entity';
+import { Stream } from '../streams/entities/stream.entity';
 import { CreateCourseDto, UpdateCourseDto } from './dto';
 
 @Injectable()
 export class CoursesService {
+  private readonly logger = new Logger(CoursesService.name);
+
   constructor(
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    @InjectRepository(Stream)
+    private readonly streamRepository: Repository<Stream>,
   ) {}
 
   /**
@@ -99,13 +104,33 @@ export class CoursesService {
   }
 
   /**
-   * Удалить курс (soft delete)
+   * Получить количество потоков для курса
    */
-  async remove(id: string, creatorId: string): Promise<void> {
+  async getStreamsCount(id: string, creatorId: string): Promise<number> {
+    await this.findOneByCreator(id, creatorId);
+    return this.streamRepository.count({ where: { courseId: id } });
+  }
+
+  /**
+   * Удалить курс и все связанные потоки (soft delete для курса, hard delete для потоков)
+   */
+  async remove(id: string, creatorId: string): Promise<{ deletedStreams: number }> {
     const course = await this.findOneByCreator(id, creatorId);
 
+    // Удаляем все потоки курса
+    const streams = await this.streamRepository.find({ where: { courseId: id } });
+    const deletedStreams = streams.length;
+    
+    if (deletedStreams > 0) {
+      this.logger.log(`Удаляем ${deletedStreams} потоков для курса ${id}`);
+      await this.streamRepository.remove(streams);
+    }
+
+    // Soft delete курса
     course.deletedAt = new Date();
     await this.courseRepository.save(course);
+
+    return { deletedStreams };
   }
 
   /**

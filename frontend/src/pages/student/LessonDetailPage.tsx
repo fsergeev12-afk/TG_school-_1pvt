@@ -74,10 +74,10 @@ export default function LessonDetailPage() {
   if (!lesson) {
     return (
       <div className="min-h-screen">
-        <PageHeader title="Урок" showBack />
+        <PageHeader title="Материал" showBack />
         <div className="p-4">
           <Card className="text-center py-8">
-            <p className="text-[var(--tg-theme-hint-color)]">Урок не найден</p>
+            <p className="text-[var(--tg-theme-hint-color)]">Материал не найден</p>
           </Card>
         </div>
       </div>
@@ -87,7 +87,7 @@ export default function LessonDetailPage() {
   return (
     <div className="min-h-screen pb-24">
       <PageHeader
-        title="Назад к курсу"
+        title="Назад к проекту"
         showBack
         onBack={() => navigate('/student/lessons')}
       />
@@ -129,7 +129,7 @@ export default function LessonDetailPage() {
           </p>
         )}
 
-        {/* Кнопка "Открыть видео" */}
+        {/* Кнопка "Открыть" */}
         {lesson.videoType && (
           <Button 
             fullWidth 
@@ -139,7 +139,7 @@ export default function LessonDetailPage() {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
-            Открыть видео
+            Открыть
           </Button>
         )}
 
@@ -162,7 +162,7 @@ export default function LessonDetailPage() {
               className="flex items-center gap-2 text-[var(--tg-theme-link-color)] py-2"
             >
               <span>📎</span>
-              <span>Открыть материалы ({lesson.materials.length})</span>
+              <span>Открыть файлы ({lesson.materials.length})</span>
               <svg 
                 className={`w-4 h-4 transition-transform ${materialsExpanded ? 'rotate-180' : ''}`}
                 fill="none" 

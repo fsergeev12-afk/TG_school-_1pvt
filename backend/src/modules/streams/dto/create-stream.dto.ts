@@ -7,7 +7,21 @@ import {
   MaxLength,
   MinLength,
   Min,
+  IsArray,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+/**
+ * DTO для расписания урока
+ */
+export class LessonScheduleItemDto {
+  @IsString()
+  lessonId: string;
+
+  @IsDateString()
+  scheduledOpenAt: string;
+}
 
 /**
  * DTO для создания потока
@@ -64,6 +78,15 @@ export class CreateStreamDto {
   @IsBoolean()
   @IsOptional()
   notifyOnLessonOpen?: boolean;
+
+  /**
+   * Расписание уроков (при scheduleEnabled=true)
+   */
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => LessonScheduleItemDto)
+  lessonSchedules?: LessonScheduleItemDto[];
 }
 
 

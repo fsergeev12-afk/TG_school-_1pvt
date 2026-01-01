@@ -1,18 +1,23 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Stream } from './entities/stream.entity';
+import { LessonSchedule } from './entities/lesson-schedule.entity';
 import { Course } from '../courses/entities/course.entity';
 import { CreateStreamDto, UpdateStreamDto } from './dto';
 
 @Injectable()
 export class StreamsService {
+  private readonly logger = new Logger(StreamsService.name);
+
   constructor(
     @InjectRepository(Stream)
     private readonly streamRepository: Repository<Stream>,
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
+    @InjectRepository(LessonSchedule)
+    private readonly lessonScheduleRepository: Repository<LessonSchedule>,
   ) {}
 
   /**
@@ -41,14 +46,35 @@ export class StreamsService {
     // Проверяем владение курсом
     await this.checkCourseOwnership(dto.courseId, creatorId);
 
+    // Извлекаем lessonSchedules из dto
+    const { lessonSchedules, ...streamData } = dto;
+
     const stream = this.streamRepository.create({
-      ...dto,
+      ...streamData,
       creatorId,
       startsAt: dto.startsAt ? new Date(dto.startsAt) : null,
       inviteToken: uuidv4(), // Генерируем уникальный токен приглашения
     });
 
-    return this.streamRepository.save(stream);
+    const savedStream = await this.streamRepository.save(stream);
+
+    // Создаём расписание уроков если включено и есть данные
+    if (dto.scheduleEnabled && lessonSchedules && lessonSchedules.length > 0) {
+      this.logger.log(`Создаём расписание для ${lessonSchedules.length} уроков`);
+      
+      const scheduleEntities = lessonSchedules.map(schedule => 
+        this.lessonScheduleRepository.create({
+          streamId: savedStream.id,
+          lessonId: schedule.lessonId,
+          scheduledOpenAt: new Date(schedule.scheduledOpenAt),
+        })
+      );
+
+      await this.lessonScheduleRepository.save(scheduleEntities);
+      this.logger.log(`Расписание сохранено для потока ${savedStream.id}`);
+    }
+
+    return savedStream;
   }
 
   /**
