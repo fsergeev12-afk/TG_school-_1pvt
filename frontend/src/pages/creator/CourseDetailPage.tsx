@@ -433,23 +433,51 @@ export default function CourseDetailPage() {
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !serverLessonId) return;
+    if (!file) return;
+
+    // Если урок не сохранён, сначала сохраним его
+    if (!serverLessonId && editingLesson) {
+      if (!lessonForm.title.trim()) {
+        showToast('Сначала введите название материала', 'error');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      
+      showToast('Сохраняю материал...', 'info');
+      await handleSaveLesson();
+      // После сохранения serverLessonId обновится, но нужно подождать
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    // Проверяем снова после возможного сохранения
+    const currentLesson = lessonBlockId 
+      ? localBlocks.find(b => b.id === lessonBlockId)?.lessons.find(l => l.id === editingLessonId)
+      : null;
+    const currentServerLessonId = currentLesson && !currentLesson.isNew ? currentLesson.id : '';
+    
+    if (!currentServerLessonId) {
+      showToast('Ошибка: не удалось сохранить материал', 'error');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
 
     const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
     if (!allowedTypes.includes(file.type)) {
       showToast('Разрешены только PDF, DOC, DOCX', 'error');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
     if (file.size > 20 * 1024 * 1024) {
       showToast('Файл слишком большой (макс 20MB)', 'error');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
     try {
       const uploadResult = await uploadMaterial.mutateAsync(file);
       await addMaterial.mutateAsync({
-        lessonId: serverLessonId,
+        lessonId: currentServerLessonId,
         fileId: uploadResult.fileId,
         fileName: uploadResult.fileName,
         fileType: file.name.split('.').pop() || 'pdf',
