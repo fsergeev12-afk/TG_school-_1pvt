@@ -114,10 +114,16 @@ export class TelegramBotGateway implements OnModuleInit {
 
       try {
         // Ищем все потоки, в которых состоит этот ученик
-        const students = await this.studentRepository.find({
-          where: { telegramId, invitationStatus: 'activated' },
-          relations: ['stream', 'stream.creator'],
-        });
+        // Важно: telegramId в PostgreSQL хранится как bigint (string), нужно явное приведение
+        const students = await this.studentRepository
+          .createQueryBuilder('student')
+          .leftJoinAndSelect('student.stream', 'stream')
+          .leftJoinAndSelect('stream.creator', 'creator')
+          .where('student.telegramId = :telegramId', { telegramId: String(telegramId) })
+          .andWhere('student.invitationStatus = :status', { status: 'activated' })
+          .getMany();
+        
+        this.logger.log(`Найдено ${students.length} записей студентов для telegramId=${telegramId}`);
 
         if (students.length === 0) {
           // Ученик не состоит ни в одном потоке
@@ -130,6 +136,7 @@ export class TelegramBotGateway implements OnModuleInit {
 
         // Отправляем сообщение всем создателям (обычно ученик в одном потоке)
         const creatorIds = [...new Set(students.map(s => s.stream?.creatorId).filter(Boolean))];
+        this.logger.log(`CreatorIds для сообщения: ${JSON.stringify(creatorIds)}`);
         
         for (const creatorId of creatorIds) {
           await this.chatsService.addIncomingMessage(
