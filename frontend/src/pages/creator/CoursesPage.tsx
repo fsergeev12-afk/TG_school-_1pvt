@@ -74,7 +74,7 @@ export default function CoursesPage() {
                 📚
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-[var(--tg-theme-text-color)] truncate">
+                <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
                   {course.title}
                 </h3>
                 <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">

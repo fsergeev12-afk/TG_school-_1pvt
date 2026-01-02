@@ -186,7 +186,7 @@ export default function LessonDetailPage() {
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[var(--tg-theme-text-color)] truncate text-sm">
+                      <p className="text-[var(--tg-theme-text-color)] text-sm break-words">
                         {material.fileName}
                       </p>
                       <p className="text-xs text-[var(--tg-theme-hint-color)]">

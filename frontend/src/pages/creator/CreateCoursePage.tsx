@@ -446,7 +446,7 @@ export default function CreateCoursePage() {
                             onClick={(e) => e.stopPropagation()}
                           />
                         ) : (
-                          <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
+                          <span className="font-medium text-[var(--tg-theme-text-color)]">
                             {blockIndex + 1}. {block.title}
                           </span>
                         )}
@@ -491,7 +491,7 @@ export default function CreateCoursePage() {
                                 <span className="text-xs text-[var(--tg-theme-hint-color)] w-8">
                                   {blockIndex + 1}.{lessonIndex + 1}
                                 </span>
-                                <span className="text-sm text-[var(--tg-theme-text-color)] flex-1 truncate">
+                                <span className="text-sm text-[var(--tg-theme-text-color)] flex-1">
                                   {lesson.title}
                                 </span>
                                 {lesson.videoType && (
@@ -721,7 +721,7 @@ export default function CreateCoursePage() {
                       {fileDraft.type === 'pdf' ? '📕' : '📄'}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[var(--tg-theme-text-color)] truncate">
+                      <p className="text-[var(--tg-theme-text-color)]">
                         {fileDraft.name}
                       </p>
                       <p className="text-xs text-[var(--tg-theme-hint-color)]">
@@ -782,7 +782,7 @@ export default function CreateCoursePage() {
                 {selectedFile.type === 'pdf' ? '📕' : '📄'}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-[var(--tg-theme-text-color)] font-medium truncate">
+                <p className="text-[var(--tg-theme-text-color)] font-medium">
                   {selectedFile.name}
                 </p>
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">

@@ -175,6 +175,30 @@ export default function StreamDetailPage() {
               📤 Добавить участников
             </Button>
 
+            {/* Статистика */}
+            {students && students.length > 0 && (
+              <div className="grid grid-cols-3 gap-2">
+                <Card className="text-center py-3">
+                  <div className="text-xl font-bold text-[var(--tg-theme-text-color)]">
+                    {students?.filter(s => s.invitationStatus === 'invited').length || 0}
+                  </div>
+                  <div className="text-xs text-[var(--tg-theme-hint-color)]">Приглашено</div>
+                </Card>
+                <Card className="text-center py-3">
+                  <div className="text-xl font-bold text-green-600">
+                    {activatedCount}
+                  </div>
+                  <div className="text-xs text-[var(--tg-theme-hint-color)]">Активировано</div>
+                </Card>
+                <Card className="text-center py-3">
+                  <div className="text-xl font-bold text-blue-600">
+                    {paidCount}
+                  </div>
+                  <div className="text-xs text-[var(--tg-theme-hint-color)]">Оплачено</div>
+                </Card>
+              </div>
+            )}
+
             {students?.length === 0 && (
               <div className="text-center py-8">
                 <div className="text-4xl mb-3">👥</div>
@@ -275,7 +299,7 @@ export default function StreamDetailPage() {
                           <span className="text-xs text-[var(--tg-theme-hint-color)]">
                             {lesson.blockIndex}.{lesson.lessonIndex}
                           </span>
-                          <div className="font-medium text-sm text-[var(--tg-theme-text-color)] truncate">
+                          <div className="font-medium text-sm text-[var(--tg-theme-text-color)]">
                             {lesson.title}
                           </div>
                         </div>

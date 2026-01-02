@@ -303,7 +303,7 @@ export default function StreamsPage() {
                                     <span className="text-xs text-[var(--tg-theme-hint-color)] font-medium">
                                       {blockIdx + 1}.{lessonIdx + 1}
                                     </span>
-                                    <span className="text-sm text-[var(--tg-theme-text-color)] truncate">
+                                    <span className="text-sm text-[var(--tg-theme-text-color)]">
                                       {lesson.title}
                                     </span>
                                   </div>
