@@ -85,12 +85,14 @@ export class NotificationsService {
     // Проверяем права
     const stream = await this.streamRepository.findOne({
       where: { id: dto.streamId },
-      relations: ['students', 'creator'],
+      relations: ['students', 'creator', 'course'],
     });
 
     if (!stream || stream.creatorId !== creatorId) {
       throw new ForbiddenException('Нет доступа к этому потоку');
     }
+
+    const courseName = stream.course?.title || 'Проект';
 
     // Фильтруем учеников
     let students = stream.students || [];
@@ -125,6 +127,7 @@ export class NotificationsService {
         await this.telegramBotService.sendBroadcastMessage(
           student.telegramId,
           stream.creator?.firstName || 'Создатель',
+          courseName,
           dto.message,
           student.accessToken,
         );
@@ -154,6 +157,7 @@ export class NotificationsService {
     student: StreamStudent,
     lessonTitle: string,
     creatorName: string,
+    courseName: string,
   ): Promise<void> {
     try {
       const notification = await this.create(
@@ -164,10 +168,11 @@ export class NotificationsService {
         student.streamId,
       );
 
-      // Используем метод с direct link
-      await this.telegramBotService.sendDemoNotification(
+      await this.telegramBotService.sendLessonNotification(
         student.telegramId,
         creatorName,
+        courseName,
+        lessonTitle,
         student.accessToken,
       );
 

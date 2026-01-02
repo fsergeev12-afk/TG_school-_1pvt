@@ -34,7 +34,7 @@ export class ScheduleCronService {
         scheduledOpenAt: LessThanOrEqual(now),
         isOpened: false,
       },
-      relations: ['stream', 'stream.students', 'stream.creator', 'lesson'],
+      relations: ['stream', 'stream.students', 'stream.creator', 'stream.course', 'lesson'],
     });
 
     if (schedulesToOpen.length === 0) {
@@ -59,12 +59,14 @@ export class ScheduleCronService {
 
           const creatorName = schedule.stream.creator?.firstName || 'Создатель';
           const lessonTitle = schedule.lesson?.title || 'Новый урок';
+          const courseName = schedule.stream.course?.title || 'Проект';
 
           for (const student of students) {
             await this.notificationsService.sendLessonOpenedNotification(
               student,
               lessonTitle,
               creatorName,
+              courseName,
             );
 
             // Rate limiting

@@ -113,44 +113,45 @@ export class TelegramBotService implements OnModuleInit {
     courseName: string,
     accessToken: string,
   ): Promise<void> {
-    const link = this.generateDirectLink(accessToken);
-
     const message = `
-🎓 Привет! <b>${creatorName}</b> приглашает тебя в проект "<b>${courseName}</b>"!
+🎓 Привет! <b>${creatorName}</b> приглашает тебя на проект "<b>${courseName}</b>"!
 
-Переходи по ссылке, чтобы начать:
-🔗 ${link}
-
-📌 Закрепи это сообщение — здесь всегда будет актуальная ссылка!
+Нажми кнопку ниже, чтобы начать обучение.
     `.trim();
 
-    await this.sendMessage(telegramId, message);
+    await this.sendMessageWithWebApp(
+      telegramId,
+      message,
+      `Открыть "${courseName}"`,
+      accessToken,
+    );
     this.logger.log(`Welcome сообщение отправлено пользователю ${telegramId}`);
   }
 
   /**
-   * Отправить демо-уведомление (через 10 секунд после активации)
+   * Отправить уведомление о новом материале
    */
-  async sendDemoNotification(
+  async sendLessonNotification(
     telegramId: number,
     creatorName: string,
+    courseName: string,
+    lessonTitle: string,
     accessToken: string,
   ): Promise<void> {
-    const link = this.generateDirectLink(accessToken);
+    const message = `
+📚 <b>Новый материал доступен!</b>
 
-    // Ждем 10 секунд (в продакшене будет через Bull Queue)
-    setTimeout(async () => {
-      const message = `
-📚 Новый материал доступен!
+От <b>${creatorName}</b> в проекте "<b>${courseName}</b>":
+Материал "${lessonTitle}" открыт для просмотра.
+    `.trim();
 
-От <b>${creatorName}</b>:
-Переходи по ссылке, чтобы начать.
-🔗 ${link}
-      `.trim();
-
-      await this.sendMessage(telegramId, message);
-      this.logger.log(`Демо-уведомление отправлено пользователю ${telegramId}`);
-    }, 10000); // 10 секунд
+    await this.sendMessageWithWebApp(
+      telegramId,
+      message,
+      `Открыть "${courseName}"`,
+      accessToken,
+    );
+    this.logger.log(`Уведомление о материале отправлено пользователю ${telegramId}`);
   }
 
   /**
@@ -159,19 +160,22 @@ export class TelegramBotService implements OnModuleInit {
   async sendBroadcastMessage(
     telegramId: number,
     creatorName: string,
+    courseName: string,
     messageText: string,
     accessToken: string,
   ): Promise<void> {
-    const link = this.generateDirectLink(accessToken);
-
     const message = `
-От <b>${creatorName}</b>:
-${messageText}
+💬 <b>Сообщение от ${creatorName}</b>
 
-🔗 Перейти в проект: ${link}
+${messageText}
     `.trim();
 
-    await this.sendMessage(telegramId, message);
+    await this.sendMessageWithWebApp(
+      telegramId,
+      message,
+      `Открыть "${courseName}"`,
+      accessToken,
+    );
     this.logger.log(`Broadcast сообщение отправлено пользователю ${telegramId}`);
   }
 
