@@ -142,16 +142,21 @@ export class StudentActivationController {
    * 1. accessToken студента - индивидуальная ссылка
    * 2. inviteToken потока - общая ссылка для всех
    */
+  private readonly activationLogger = new Logger('StudentActivation');
+
   @Post('activate')
   @UseGuards(TelegramAuthGuard)
   async activate(
     @CurrentUser() user: User,
     @Body('accessToken') accessToken: string,
   ) {
+    this.activationLogger.log(`[activate] token=${accessToken}, userId=${user.id}, telegramId=${user.telegramId}`);
+    
     // Пробуем сначала как индивидуальный токен студента
     let student = await this.studentsService.findByAccessToken(accessToken);
     
     if (student) {
+      this.activationLogger.log(`[activate] Найден по accessToken студента: studentId=${student.id}, streamId=${student.streamId}`);
       // Индивидуальный токен - активируем существующего студента
       student = await this.studentsService.activate(
         accessToken,
@@ -159,6 +164,7 @@ export class StudentActivationController {
         user.id,
       );
     } else {
+      this.activationLogger.log(`[activate] Не найден по accessToken, пробуем как inviteToken потока`);
       // Пробуем как общий токен потока
       student = await this.studentsService.activateByStreamToken(
         accessToken,
@@ -169,6 +175,8 @@ export class StudentActivationController {
         user.telegramUsername,
       );
     }
+
+    this.activationLogger.log(`[activate] Результат: studentId=${student.id}, streamId=${student.streamId}, courseId=${student.stream?.courseId}`);
 
     return {
       success: true,

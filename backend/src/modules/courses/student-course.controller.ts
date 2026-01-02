@@ -36,12 +36,16 @@ export class StudentCourseController {
     private readonly scheduleRepository: Repository<LessonSchedule>,
   ) {}
 
+  private readonly logger = new (require('@nestjs/common').Logger)('StudentCourseController');
+
   /**
    * Получить список всех курсов студента
    * GET /api/student/courses
    */
   @Get('courses')
   async getMyCourses(@CurrentUser() user: User) {
+    this.logger.log(`[getMyCourses] userId=${user.id}, telegramId=${user.telegramId}`);
+    
     // Найти все активные подписки студента
     const students = await this.studentRepository.find({
       where: { 
@@ -50,6 +54,12 @@ export class StudentCourseController {
       },
       relations: ['stream', 'stream.course', 'stream.course.creator'],
       order: { activatedAt: 'DESC' },
+    });
+
+    this.logger.log(`[getMyCourses] Найдено ${students.length} записей StreamStudent`);
+    
+    students.forEach((s, i) => {
+      this.logger.log(`[getMyCourses] [${i}] studentId=${s.id}, streamId=${s.streamId}, streamName=${s.stream?.name}, courseId=${s.stream?.courseId}`);
     });
 
     if (!students || students.length === 0) {

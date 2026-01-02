@@ -129,24 +129,33 @@ export class StreamStudentsService {
 
   /**
    * Найти поток по invite token
+   * Ищем по любому токену без проверки isActive - 
+   * студент должен иметь возможность активироваться по любой ссылке
    */
   async findStreamByInviteToken(inviteToken: string): Promise<Stream | null> {
     return this.streamRepository.findOne({
-      where: { inviteToken, isActive: true },
+      where: { inviteToken },
       relations: ['course'],
     });
   }
+
+  private readonly logger = new (require('@nestjs/common').Logger)(StreamStudentsService.name);
 
   /**
    * Активировать по invite token потока (создаёт студента если его нет)
    */
   async activateByStreamToken(inviteToken: string, telegramId: number, userId?: string, firstName?: string, lastName?: string, username?: string): Promise<StreamStudent> {
+    this.logger.log(`[activateByStreamToken] inviteToken=${inviteToken}, telegramId=${telegramId}, userId=${userId}`);
+    
     // Ищем поток по токену
     const stream = await this.findStreamByInviteToken(inviteToken);
     
     if (!stream) {
+      this.logger.error(`[activateByStreamToken] Поток НЕ НАЙДЕН по токену: ${inviteToken}`);
       throw new NotFoundException('Недействительная ссылка приглашения');
     }
+
+    this.logger.log(`[activateByStreamToken] Найден поток: id=${stream.id}, name=${stream.name}, courseId=${stream.courseId}`);
 
     // Проверяем, есть ли уже этот студент в потоке
     let student = await this.studentRepository.findOne({
@@ -155,6 +164,7 @@ export class StreamStudentsService {
     });
 
     if (student) {
+      this.logger.log(`[activateByStreamToken] Студент УЖЕ ЕСТЬ в потоке: studentId=${student.id}`);
       // Студент уже есть - активируем если ещё не активирован
       if (student.invitationStatus !== 'activated') {
         student.invitationStatus = 'activated';
@@ -164,6 +174,8 @@ export class StreamStudentsService {
       }
       return student;
     }
+
+    this.logger.log(`[activateByStreamToken] Создаём НОВОГО студента в потоке ${stream.id}`);
 
     // Создаём нового студента
     student = this.studentRepository.create({
@@ -180,6 +192,8 @@ export class StreamStudentsService {
     });
 
     const savedStudent = await this.studentRepository.save(student);
+    
+    this.logger.log(`[activateByStreamToken] Студент СОЗДАН: id=${savedStudent.id}, streamId=${savedStudent.streamId}, accessToken=${savedStudent.accessToken}`);
     
     // Загружаем с relations
     return this.studentRepository.findOne({
