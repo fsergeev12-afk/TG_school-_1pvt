@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCreateCourse, useCreateBlock, useCreateLesson, useUploadMaterial, useAddMaterial, useUploadCover } from '../../api/hooks';
+import { useCreateCourse, useCreateBlock, useCreateLesson, useUploadMaterial, useAddMaterial } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal, SortableList, FullscreenEditor } from '../../components/ui';
 import { useUIStore } from '../../store';
@@ -37,7 +37,6 @@ export default function CreateCoursePage() {
   const createLesson = useCreateLesson();
   const uploadMaterial = useUploadMaterial();
   const addMaterial = useAddMaterial();
-  const uploadCover = useUploadCover();
   const { showToast } = useUIStore();
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -304,17 +303,6 @@ export default function CreateCoursePage() {
         title: title.trim(),
         description: description.trim() || undefined,
       });
-
-      // Загружаем обложку если есть
-      if (coverFile) {
-        try {
-          await uploadCover.mutateAsync({ courseId: course.id, file: coverFile });
-        } catch (coverError) {
-          console.error('[CreateCourse] Cover upload error:', coverError);
-          // Не прерываем создание курса если обложка не загрузилась
-          showToast('Обложка не загружена, но проект создан', 'info');
-        }
-      }
 
       for (const blockDraft of blocks) {
         const block = await createBlock.mutateAsync({
