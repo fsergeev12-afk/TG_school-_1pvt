@@ -1,6 +1,10 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { TelegramBotService } from './telegram-bot.service';
 import { UsersService } from '../users/users.service';
+import { ChatsService } from '../chats/chats.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { StreamStudent } from '../streams/entities/stream-student.entity';
 
 @Injectable()
 export class TelegramBotGateway implements OnModuleInit {
@@ -9,6 +13,9 @@ export class TelegramBotGateway implements OnModuleInit {
   constructor(
     private telegramBotService: TelegramBotService,
     private usersService: UsersService,
+    private chatsService: ChatsService,
+    @InjectRepository(StreamStudent)
+    private studentRepository: Repository<StreamStudent>,
   ) {}
 
   onModuleInit() {
@@ -90,7 +97,7 @@ export class TelegramBotGateway implements OnModuleInit {
       }
     });
 
-    // Обработка других сообщений
+    // Обработка других сообщений (вопросы от учеников)
     bot.on('message', async (msg) => {
       // Пропускаем команды (они обработаны выше)
       if (msg.text?.startsWith('/')) {
@@ -98,11 +105,63 @@ export class TelegramBotGateway implements OnModuleInit {
       }
 
       const chatId = msg.chat.id;
+      const telegramId = msg.from?.id;
+      const text = msg.text;
       
-      await this.telegramBotService.sendMessage(
-        chatId,
-        'Используй <b>Menu Button</b> внизу, чтобы открыть платформу! 👇',
-      );
+      if (!telegramId || !text) {
+        return;
+      }
+
+      this.logger.log(`Получено сообщение от ${telegramId}: ${text.substring(0, 50)}...`);
+
+      try {
+        // Ищем все потоки, в которых состоит этот ученик
+        const students = await this.studentRepository.find({
+          where: { telegramId, invitationStatus: 'activated' },
+          relations: ['stream', 'stream.creator'],
+        });
+
+        if (students.length === 0) {
+          // Ученик не состоит ни в одном потоке
+          await this.telegramBotService.sendMessage(
+            chatId,
+            '💬 Чтобы задать вопрос преподавателю, сначала присоединись к проекту по ссылке-приглашению.\n\nОткрой <b>Menu Button</b> внизу для навигации 👇',
+          );
+          return;
+        }
+
+        // Отправляем сообщение всем создателям (обычно ученик в одном потоке)
+        const creatorIds = [...new Set(students.map(s => s.stream?.creatorId).filter(Boolean))];
+        
+        for (const creatorId of creatorIds) {
+          await this.chatsService.addIncomingMessage(
+            creatorId,
+            telegramId,
+            text,
+            msg.message_id,
+            {
+              username: msg.from?.username,
+              firstName: msg.from?.first_name,
+              lastName: msg.from?.last_name,
+            },
+          );
+        }
+
+        // Подтверждаем получение
+        await this.telegramBotService.sendMessage(
+          chatId,
+          '✅ Ваше сообщение отправлено преподавателю. Ожидайте ответа!',
+        );
+
+        this.logger.log(`Сообщение от ${telegramId} сохранено для ${creatorIds.length} создателей`);
+
+      } catch (error) {
+        this.logger.error(`Ошибка обработки сообщения: ${error.message}`);
+        await this.telegramBotService.sendMessage(
+          chatId,
+          'Произошла ошибка. Попробуйте позже или откройте <b>Menu Button</b> внизу 👇',
+        );
+      }
     });
 
     this.logger.log('Обработчики команд настроены');
