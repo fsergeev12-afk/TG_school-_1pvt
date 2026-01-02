@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 import { StreamStudent } from './entities/stream-student.entity';
 import { Stream } from './entities/stream.entity';
 import { AddStudentDto, BulkAddStudentsDto } from './dto';
@@ -56,6 +57,7 @@ export class StreamStudentsService {
       telegramLastName: dto.telegramLastName,
       invitationStatus: 'invited',
       paymentStatus: 'unpaid',
+      accessToken: uuidv4(), // Генерируем уникальный токен
     });
 
     return this.studentRepository.save(student);
@@ -89,6 +91,7 @@ export class StreamStudentsService {
           telegramId,
           invitationStatus: 'invited',
           paymentStatus: 'unpaid',
+          accessToken: uuidv4(), // Генерируем уникальный токен
         });
 
         await this.studentRepository.save(student);
@@ -173,6 +176,7 @@ export class StreamStudentsService {
       activatedAt: new Date(),
       paymentStatus: stream.price > 0 ? 'unpaid' : 'paid', // paid = бесплатный курс
       userId,
+      accessToken: uuidv4(), // Генерируем уникальный токен
     });
 
     const savedStudent = await this.studentRepository.save(student);
