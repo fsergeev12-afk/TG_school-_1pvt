@@ -9,6 +9,8 @@ export const useConversations = () => {
       const { data } = await apiClient.get<Conversation[]>('/chats');
       return data;
     },
+    refetchInterval: 10000, // Обновляем каждые 10 секунд
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -44,6 +46,8 @@ export const useMessages = (conversationId: string, limit = 50, offset = 0) => {
       return data;
     },
     enabled: !!conversationId,
+    refetchInterval: 5000, // Обновляем сообщения каждые 5 секунд
+    refetchOnWindowFocus: true,
   });
 };
 

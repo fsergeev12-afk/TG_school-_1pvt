@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/layout';
 import { Card, Button } from '../../components/ui';
 import { useStudentCourse } from '../../api/hooks';
+import { TELEGRAM_BOT_USERNAME } from '../../config';
 
 // Модалка "Материал откроется..."
 interface ScheduleModalProps {
@@ -71,9 +72,8 @@ export default function LessonsPage() {
 
   const handleAskQuestion = () => {
     // Открываем чат с ботом для вопросов
-    // Бот должен перенаправить сообщение создателю курса
-    const botUsername = 'Bllocklyyy_bot'; // TODO: получить из конфига
-    window.open(`https://t.me/${botUsername}?start=question`, '_blank');
+    // Бот перенаправит сообщение создателю курса
+    window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}?start=question`, '_blank');
   };
 
   if (isLoading) {
