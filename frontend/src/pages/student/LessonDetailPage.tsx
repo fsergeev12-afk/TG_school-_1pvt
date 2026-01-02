@@ -96,13 +96,13 @@ export default function LessonDetailPage() {
         {/* Название блока */}
         {lesson.blockTitle && (
           <div className="flex items-center gap-2 text-sm text-[var(--tg-theme-hint-color)]">
-            <span>📂</span>
-            <span>{lesson.blockTitle}</span>
+            <span className="flex-shrink-0">📂</span>
+            <span className="break-words">{lesson.blockTitle}</span>
           </div>
         )}
         
         {/* Заголовок урока */}
-        <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)]">
+        <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)] break-words">
           {lesson.title}
         </h1>
 

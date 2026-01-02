@@ -104,7 +104,7 @@ export default function LessonsPage() {
       <div className="p-4 space-y-4">
         {/* Заголовок проекта */}
         <div>
-          <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)]">
+          <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)] break-words">
             {course.title}
           </h1>
           <p className="text-[var(--tg-theme-hint-color)]">
@@ -140,9 +140,9 @@ export default function LessonsPage() {
                 onClick={() => toggleBlock(block.id)}
                 className="w-full flex items-center justify-between p-4 text-left"
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">📂</span>
-                  <span className="font-semibold text-[var(--tg-theme-text-color)]">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-lg flex-shrink-0">📂</span>
+                  <span className="font-semibold text-[var(--tg-theme-text-color)] break-words">
                     {block.title}
                   </span>
                 </div>
@@ -176,8 +176,8 @@ export default function LessonsPage() {
                       </span>
                       
                       {/* Название материала */}
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-[var(--tg-theme-text-color)] ${lesson.available ? '' : 'text-[var(--tg-theme-hint-color)]'}`}>
+                      <div className="flex-1">
+                        <p className={`text-[var(--tg-theme-text-color)] break-words ${lesson.available ? '' : 'text-[var(--tg-theme-hint-color)]'}`}>
                           {lesson.title}
                         </p>
                         {!lesson.available && lesson.scheduledAt && (

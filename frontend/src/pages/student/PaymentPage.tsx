@@ -108,7 +108,7 @@ export default function PaymentPage() {
 
           {/* Информация */}
           <div>
-            <h2 className="font-semibold text-lg text-[var(--tg-theme-text-color)]">
+            <h2 className="font-semibold text-lg text-[var(--tg-theme-text-color)] break-words">
               {course.title}
             </h2>
             <p className="text-[var(--tg-theme-hint-color)]">
