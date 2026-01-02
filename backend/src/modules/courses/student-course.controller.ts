@@ -6,6 +6,7 @@ import {
   NotFoundException,
   ForbiddenException,
   ParseUUIDPipe,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -36,7 +37,7 @@ export class StudentCourseController {
     private readonly scheduleRepository: Repository<LessonSchedule>,
   ) {}
 
-  private readonly logger = new (require('@nestjs/common').Logger)('StudentCourseController');
+  private readonly logger = new Logger('StudentCourseController');
 
   /**
    * Получить список всех курсов студента

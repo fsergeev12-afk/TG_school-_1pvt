@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, ConflictException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
@@ -139,7 +139,7 @@ export class StreamStudentsService {
     });
   }
 
-  private readonly logger = new (require('@nestjs/common').Logger)(StreamStudentsService.name);
+  private readonly logger = new Logger(StreamStudentsService.name);
 
   /**
    * Активировать по invite token потока (создаёт студента если его нет)
