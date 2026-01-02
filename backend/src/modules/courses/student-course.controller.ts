@@ -37,6 +37,49 @@ export class StudentCourseController {
   ) {}
 
   /**
+   * Получить список всех курсов студента
+   * GET /api/student/courses
+   */
+  @Get('courses')
+  async getMyCourses(@CurrentUser() user: User) {
+    // Найти все активные подписки студента
+    const students = await this.studentRepository.find({
+      where: { 
+        userId: user.id,
+        invitationStatus: 'activated',
+      },
+      relations: ['stream', 'stream.course', 'stream.course.creator'],
+      order: { activatedAt: 'DESC' },
+    });
+
+    if (!students || students.length === 0) {
+      return [];
+    }
+
+    return students.map(student => {
+      const stream = student.stream;
+      const course = stream?.course;
+      
+      const requiresPayment = (stream.price || 0) > 0;
+      const isPaid = student.paymentStatus === 'paid';
+
+      return {
+        id: course.id,
+        title: course.title,
+        description: course.description,
+        coverImageUrl: course.coverImageUrl,
+        creatorName: course.creator?.firstName || 'Автор',
+        streamId: stream.id,
+        streamName: stream.name,
+        price: stream.price,
+        requiresPayment,
+        isPaid,
+        accessToken: student.accessToken,
+      };
+    });
+  }
+
+  /**
    * Получить курс студента
    * GET /api/student/course
    */

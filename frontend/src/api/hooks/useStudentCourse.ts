@@ -35,6 +35,20 @@ export interface StudentCourse {
   blocks: StudentBlock[];
 }
 
+export interface StudentCourseListItem {
+  id: string;
+  title: string;
+  description?: string;
+  coverImageUrl?: string;
+  creatorName: string;
+  streamId: string;
+  streamName?: string;
+  price?: number;
+  requiresPayment: boolean;
+  isPaid: boolean;
+  accessToken: string;
+}
+
 export interface StudentLessonDetail {
   id: string;
   title: string;
@@ -52,6 +66,21 @@ export interface StudentLessonDetail {
   }[];
   prevLessonId: string | null;
   nextLessonId: string | null;
+}
+
+/**
+ * Получить список всех курсов студента
+ */
+export function useStudentCourses() {
+  return useQuery<StudentCourseListItem[]>({
+    queryKey: ['studentCourses'],
+    queryFn: async () => {
+      const response = await apiClient.get('/student/courses');
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5 минут
+    retry: false,
+  });
 }
 
 /**
