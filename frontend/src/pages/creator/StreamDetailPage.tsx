@@ -197,9 +197,9 @@ export default function StreamDetailPage() {
                     <div className="font-medium text-[var(--tg-theme-text-color)]">
                       {student.firstName || student.telegramFirstName || 'Без имени'} {student.lastName || student.telegramLastName || ''}
                     </div>
-                    {student.username || student.telegramUsername ? (
+                    {student.telegramUsername ? (
                       <div className="text-xs text-[var(--tg-theme-link-color)]">
-                        @{student.username || student.telegramUsername}
+                        @{student.telegramUsername}
                       </div>
                     ) : null}
                     <div className="flex gap-2 mt-1 text-xs">
@@ -223,9 +223,8 @@ export default function StreamDetailPage() {
                     <button
                       className="w-10 h-10 flex items-center justify-center rounded-full text-[var(--tg-theme-link-color)] hover:bg-[var(--tg-theme-secondary-bg-color)]"
                       onClick={() => {
-                        const username = student.username || student.telegramUsername;
-                        if (username) {
-                          window.open(`https://t.me/${username}`, '_blank');
+                        if (student.telegramUsername) {
+                          window.open(`https://t.me/${student.telegramUsername}`, '_blank');
                         } else {
                           showToast('У участника нет username', 'info');
                         }

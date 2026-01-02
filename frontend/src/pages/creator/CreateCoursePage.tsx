@@ -48,8 +48,6 @@ export default function CreateCoursePage() {
   // Шаг 1: Информация о курсе
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
 
   // Шаг 2: Структура
   const [blocks, setBlocks] = useState<BlockDraft[]>([]);
@@ -84,27 +82,6 @@ export default function CreateCoursePage() {
   const [deleteLessonConfirm, setDeleteLessonConfirm] = useState<{ blockId: string; lessonId: string; title: string } | null>(null);
 
   const [isCreating, setIsCreating] = useState(false);
-
-  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        showToast('Файл слишком большой (макс 5MB)', 'error');
-        return;
-      }
-      // Сохраняем файл для последующей загрузки
-      setCoverFile(file);
-      // Создаём превью
-      const reader = new FileReader();
-      reader.onload = () => setCoverPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeCover = () => {
-    setCoverPreview(null);
-    setCoverFile(null);
-  };
 
   // Блоки
   const openAddBlockModal = () => {

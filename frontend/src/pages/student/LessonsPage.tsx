@@ -133,7 +133,7 @@ export default function LessonsPage() {
 
         {/* Разделы с материалами (Accordion) */}
         <div className="space-y-2">
-          {course.blocks.map((block, blockIndex) => (
+          {course.blocks.map((block) => (
             <div key={block.id} className="bg-[var(--tg-theme-secondary-bg-color)] rounded-xl overflow-hidden">
               {/* Заголовок раздела */}
               <button
