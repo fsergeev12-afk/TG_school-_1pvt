@@ -174,7 +174,8 @@ export class StudentCourseController {
 
           if (schedule && schedule.scheduledOpenAt) {
             const openDate = new Date(schedule.scheduledOpenAt);
-            available = now >= openDate;
+            // Урок доступен если: либо вручную открыт (isOpened), либо время пришло
+            available = schedule.isOpened || now >= openDate;
             if (!available) {
               scheduledAt = this.formatDate(openDate);
             }
@@ -278,7 +279,8 @@ export class StudentCourseController {
     if (schedule && schedule.scheduledOpenAt) {
       const now = new Date();
       const openDate = new Date(schedule.scheduledOpenAt);
-      if (now < openDate) {
+      // Запрещаем доступ только если НЕ открыт вручную И время ещё не пришло
+      if (!schedule.isOpened && now < openDate) {
         throw new ForbiddenException(`Урок откроется ${this.formatDate(openDate)}`);
       }
     }
