@@ -1,11 +1,34 @@
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConversations } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Card, Badge } from '../../components/ui';
+import { Card, Badge, Input } from '../../components/ui';
 
 export default function ChatsPage() {
   const navigate = useNavigate();
   const { data: conversations, isLoading } = useConversations();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Фильтрация чатов по поисковому запросу
+  const filteredConversations = useMemo(() => {
+    if (!conversations) return [];
+    if (!searchQuery.trim()) return conversations;
+
+    const query = searchQuery.toLowerCase();
+    return conversations.filter(conv => {
+      const firstName = (conv.telegramFirstName || '').toLowerCase();
+      const lastName = (conv.telegramLastName || '').toLowerCase();
+      const username = (conv.telegramUsername || '').toLowerCase();
+      const streamName = (conv.stream?.name || '').toLowerCase();
+
+      return (
+        firstName.includes(query) ||
+        lastName.includes(query) ||
+        username.includes(query) ||
+        streamName.includes(query)
+      );
+    });
+  }, [conversations, searchQuery]);
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -22,7 +45,27 @@ export default function ChatsPage() {
     <div>
       <PageHeader title="Чаты" />
 
-      <div className="p-4">
+      <div className="p-4 space-y-4">
+        {/* Поиск */}
+        {conversations && conversations.length > 0 && (
+          <div className="relative">
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="🔍 Поиск по имени или потоку..."
+              className="w-full"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        )}
+
         {isLoading && (
           <div className="text-center py-8 text-[var(--tg-theme-hint-color)]">
             Загрузка...
@@ -41,8 +84,20 @@ export default function ChatsPage() {
           </div>
         )}
 
+        {!isLoading && conversations && conversations.length > 0 && filteredConversations.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-4xl mb-3">🔍</div>
+            <p className="text-[var(--tg-theme-hint-color)]">
+              Ничего не найдено
+            </p>
+            <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
+              Попробуйте изменить запрос
+            </p>
+          </div>
+        )}
+
         <div className="space-y-2">
-          {conversations?.map((conv) => (
+          {filteredConversations?.map((conv) => (
             <Card
               key={conv.id}
               onClick={() => navigate(`/creator/chats/${conv.id}`)}
