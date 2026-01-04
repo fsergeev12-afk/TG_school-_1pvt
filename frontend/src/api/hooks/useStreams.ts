@@ -94,7 +94,7 @@ export const useCloneStream = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, name }: { id, name?: string }) => {
+    mutationFn: async ({ id, name }: { id: string; name?: string }) => {
       const { data } = await apiClient.post<Stream>(`/streams/${id}/clone`, { name });
       return data;
     },
