@@ -1,11 +1,13 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Logger, forwardRef, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { Stream } from './entities/stream.entity';
 import { LessonSchedule } from './entities/lesson-schedule.entity';
+import { StreamStudent } from './entities/stream-student.entity';
 import { Course } from '../courses/entities/course.entity';
 import { CreateStreamDto, UpdateStreamDto } from './dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class StreamsService {
@@ -18,6 +20,10 @@ export class StreamsService {
     private readonly courseRepository: Repository<Course>,
     @InjectRepository(LessonSchedule)
     private readonly lessonScheduleRepository: Repository<LessonSchedule>,
+    @InjectRepository(StreamStudent)
+    private readonly streamStudentRepository: Repository<StreamStudent>,
+    @Inject(forwardRef(() => NotificationsService))
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -202,6 +208,81 @@ export class StreamsService {
     });
 
     return this.streamRepository.save(clonedStream);
+  }
+
+  /**
+   * Открыть все уроки потока сразу (отменить расписание)
+   */
+  async openAllLessons(streamId: string, creatorId: string): Promise<{ success: boolean; openedCount: number }> {
+    const stream = await this.findOneByCreator(streamId, creatorId);
+
+    // Получаем все schedules для потока
+    const schedules = await this.lessonScheduleRepository.find({
+      where: { streamId },
+      relations: ['lesson'],
+    });
+
+    if (schedules.length === 0) {
+      throw new BadRequestException('Нет запланированных уроков для открытия');
+    }
+
+    // Подсчитываем сколько уроков ещё не открыты
+    const closedLessonsCount = schedules.filter(s => !s.isOpened).length;
+
+    if (closedLessonsCount === 0) {
+      throw new BadRequestException('Все уроки уже открыты');
+    }
+
+    // Открываем все уроки
+    for (const schedule of schedules) {
+      if (!schedule.isOpened) {
+        schedule.isOpened = true;
+        schedule.openedAt = new Date();
+        await this.lessonScheduleRepository.save(schedule);
+      }
+    }
+
+    this.logger.log(`Открыто ${closedLessonsCount} уроков для потока ${streamId}`);
+
+    // Отправляем ОДНО уведомление всем студентам
+    const students = await this.streamStudentRepository.find({
+      where: {
+        streamId,
+        invitationStatus: 'activated',
+        paymentStatus: 'paid',
+      },
+    });
+
+    if (students.length > 0 && stream.notifyOnLessonOpen) {
+      const course = await this.courseRepository.findOne({ where: { id: stream.courseId } });
+      const courseName = course?.title || 'Проект';
+
+      for (const student of students) {
+        try {
+          await this.notificationsService.sendAllLessonsOpenedNotification(
+            student,
+            courseName,
+          );
+          await this.delay(100); // Rate limiting
+        } catch (error) {
+          this.logger.error(`Ошибка отправки уведомления студенту ${student.id}: ${error.message}`);
+        }
+      }
+
+      this.logger.log(`Отправлено ${students.length} уведомлений о массовом открытии`);
+    }
+
+    return {
+      success: true,
+      openedCount: closedLessonsCount,
+    };
+  }
+
+  /**
+   * Задержка для rate limiting
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
 

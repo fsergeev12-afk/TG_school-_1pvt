@@ -148,6 +148,19 @@ export class StreamsController {
   }
 
   /**
+   * Открыть все уроки потока сразу (отменить расписание)
+   * POST /api/streams/:id/open-all-lessons
+   */
+  @Post(':id/open-all-lessons')
+  @Roles('creator', 'admin')
+  async openAllLessons(
+    @CurrentUser() user: User,
+    @Param('id') id: string,
+  ) {
+    return this.streamsService.openAllLessons(id, user.id);
+  }
+
+  /**
    * Удалить поток
    * DELETE /api/streams/:id
    */

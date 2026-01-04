@@ -186,6 +186,38 @@ export class NotificationsService {
   }
 
   /**
+   * Уведомление об открытии всех материалов сразу
+   */
+  async sendAllLessonsOpenedNotification(
+    student: StreamStudent,
+    courseName: string,
+  ): Promise<void> {
+    try {
+      const notification = await this.create(
+        student.id,
+        'all_lessons_opened',
+        '🎉 Все материалы доступны!',
+        `Все материалы проекта "${courseName}" теперь открыты для просмотра.`,
+        student.streamId,
+      );
+
+      await this.telegramBotService.sendMessageWithWebApp(
+        student.telegramId,
+        `📚 <b>Все материалы проекта "${courseName}" теперь доступны!</b>\n\nПереходите в проект и приступайте к изучению.`,
+        `Открыть "${courseName}"`,
+        student.accessToken,
+      );
+
+      notification.status = 'sent';
+      notification.sentAt = new Date();
+      await this.notificationRepository.save(notification);
+
+    } catch (error) {
+      this.logger.error(`Ошибка уведомления о массовом открытии: ${error.message}`);
+    }
+  }
+
+  /**
    * Отправить приветственное сообщение
    */
   async sendWelcomeNotification(
