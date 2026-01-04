@@ -353,6 +353,7 @@ export default function StreamDetailPage() {
                     В проекте пока нет материалов
                   </p>
                 )}
+                </div>
               </div>
             )}
           </div>
