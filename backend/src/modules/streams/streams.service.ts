@@ -237,7 +237,6 @@ export class StreamsService {
     for (const schedule of schedules) {
       if (!schedule.isOpened) {
         schedule.isOpened = true;
-        schedule.openedAt = new Date();
         await this.lessonScheduleRepository.save(schedule);
       }
     }
