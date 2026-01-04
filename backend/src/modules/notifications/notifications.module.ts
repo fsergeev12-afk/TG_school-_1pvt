@@ -30,7 +30,6 @@ import { StreamStudent } from '../streams/entities/stream-student.entity';
       Stream,
       StreamStudent,
     ]),
-    ScheduleModule.forRoot(), // Включаем @nestjs/schedule
     forwardRef(() => AuthModule),
     forwardRef(() => TelegramBotModule),
     forwardRef(() => UsersModule),

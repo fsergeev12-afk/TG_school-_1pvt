@@ -24,24 +24,26 @@ export class ScheduleCronService {
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async handleScheduledLessons() {
-    this.logger.debug('Проверка расписания уроков...');
-
     const now = new Date();
+    this.logger.log(`[CRON] Проверка расписания в ${now.toISOString()}`);
 
-    // Находим уроки, которые нужно открыть
-    const schedulesToOpen = await this.scheduleRepository.find({
-      where: {
-        scheduledOpenAt: LessThanOrEqual(now),
-        isOpened: false,
-      },
-      relations: ['stream', 'stream.students', 'stream.creator', 'stream.course', 'lesson'],
-    });
+    try {
+      // Находим уроки, которые нужно открыть
+      const schedulesToOpen = await this.scheduleRepository.find({
+        where: {
+          scheduledOpenAt: LessThanOrEqual(now),
+          isOpened: false,
+        },
+        relations: ['stream', 'stream.students', 'stream.creator', 'stream.course', 'lesson'],
+      });
 
-    if (schedulesToOpen.length === 0) {
-      return;
-    }
+      this.logger.log(`[CRON] Найдено ${schedulesToOpen.length} schedules для потенциального открытия`);
 
-    this.logger.log(`Найдено ${schedulesToOpen.length} уроков для открытия`);
+      if (schedulesToOpen.length === 0) {
+        return;
+      }
+
+      this.logger.log(`[CRON] Открываем ${schedulesToOpen.length} уроков...`);
 
     for (const schedule of schedulesToOpen) {
       try {
@@ -81,8 +83,11 @@ export class ScheduleCronService {
         }
 
       } catch (error) {
-        this.logger.error(`Ошибка открытия урока ${schedule.id}: ${error.message}`);
+        this.logger.error(`[CRON] Ошибка открытия урока ${schedule.id}: ${error.message}`);
       }
+    }
+    } catch (error) {
+      this.logger.error(`[CRON] Критическая ошибка в handleScheduledLessons: ${error.message}`, error.stack);
     }
   }
 
