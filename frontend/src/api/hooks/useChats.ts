@@ -81,6 +81,21 @@ export const useMarkAsRead = () => {
   });
 };
 
+/**
+ * Создать или получить диалог с учеником
+ */
+export const useCreateOrGetConversation = () => {
+  return useMutation({
+    mutationFn: async (telegramId: number) => {
+      const { data } = await apiClient.post<{ conversationId: string }>(
+        '/chats/create-or-get',
+        { telegramId: String(telegramId) }
+      );
+      return data.conversationId;
+    },
+  });
+};
+
 // ============ Broadcasts ============
 export const useSendBroadcast = () => {
   return useMutation({

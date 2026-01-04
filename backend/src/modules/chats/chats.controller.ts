@@ -45,6 +45,27 @@ export class ChatsController {
   }
 
   /**
+   * Создать или получить диалог с учеником по telegramId
+   * POST /api/chats/create-or-get
+   */
+  @Post('create-or-get')
+  async createOrGetConversation(
+    @CurrentUser() user: User,
+    @Body('telegramId') telegramId: string,
+  ) {
+    // Преобразуем telegramId в number
+    const telegramIdNum = parseInt(telegramId, 10);
+    
+    // Получаем или создаём диалог
+    const conversation = await this.chatsService.getOrCreateConversation(
+      user.id,
+      telegramIdNum,
+    );
+
+    return { conversationId: conversation.id };
+  }
+
+  /**
    * Получить диалог по ID
    * GET /api/chats/:id
    */

@@ -7,7 +7,8 @@ import {
   useDeleteStream,
   useStreamSchedule,
   useCourse,
-  useRemoveStudent
+  useRemoveStudent,
+  useCreateOrGetConversation
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal } from '../../components/ui';
@@ -26,6 +27,7 @@ export default function StreamDetailPage() {
   const sendBroadcast = useSendBroadcast();
   const deleteStream = useDeleteStream();
   const removeStudent = useRemoveStudent();
+  const createOrGetConversation = useCreateOrGetConversation();
   const { showToast } = useUIStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('students');
@@ -246,14 +248,15 @@ export default function StreamDetailPage() {
                   <div className="flex items-center gap-1">
                     <button
                       className="w-10 h-10 flex items-center justify-center rounded-full text-[var(--tg-theme-link-color)] hover:bg-[var(--tg-theme-secondary-bg-color)]"
-                      onClick={() => {
-                        if (student.telegramUsername) {
-                          window.open(`https://t.me/${student.telegramUsername}`, '_blank');
-                        } else {
-                          showToast('У участника нет username', 'info');
+                      onClick={async () => {
+                        try {
+                          const conversationId = await createOrGetConversation.mutateAsync(student.telegramId);
+                          navigate(`/creator/chats/${conversationId}`);
+                        } catch (error) {
+                          showToast('Ошибка создания диалога', 'error');
                         }
                       }}
-                      title="Написать в Telegram"
+                      title="Написать сообщение"
                     >
                       💬
                     </button>
