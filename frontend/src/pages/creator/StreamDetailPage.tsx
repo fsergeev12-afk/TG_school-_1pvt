@@ -8,7 +8,8 @@ import {
   useStreamSchedule,
   useCourse,
   useRemoveStudent,
-  useCreateOrGetConversation
+  useCreateOrGetConversation,
+  useOpenAllLessons
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal } from '../../components/ui';
@@ -28,6 +29,7 @@ export default function StreamDetailPage() {
   const deleteStream = useDeleteStream();
   const removeStudent = useRemoveStudent();
   const createOrGetConversation = useCreateOrGetConversation();
+  const openAllLessons = useOpenAllLessons();
   const { showToast } = useUIStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('students');
@@ -41,6 +43,7 @@ export default function StreamDetailPage() {
 
   // Delete student confirmation
   const [deleteStudentConfirm, setDeleteStudentConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [openAllConfirm, setOpenAllConfirm] = useState(false);
 
   const handleRemoveStudent = async () => {
     if (!deleteStudentConfirm || !id) return;
@@ -72,6 +75,17 @@ export default function StreamDetailPage() {
       navigate('/creator/streams');
     } catch {
       showToast('Ошибка удаления', 'error');
+    }
+  };
+
+  const handleOpenAllLessons = async () => {
+    if (!id) return;
+    try {
+      const result = await openAllLessons.mutateAsync(id);
+      showToast(`Открыто ${result.openedCount} материалов!`, 'success');
+      setOpenAllConfirm(false);
+    } catch (error: any) {
+      showToast(error.response?.data?.message || 'Ошибка открытия', 'error');
     }
   };
 
@@ -292,7 +306,19 @@ export default function StreamDetailPage() {
                 </p>
               </Card>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-4">
+                {/* Кнопка "Открыть все материалы" - показывается если есть закрытые уроки */}
+                {schedules && schedules.some(s => !s.isOpened) && (
+                  <Button
+                    variant="secondary"
+                    fullWidth
+                    onClick={() => setOpenAllConfirm(true)}
+                  >
+                    🎉 Открыть все материалы
+                  </Button>
+                )}
+
+                <div className="space-y-2">
                 {allLessons.map((lesson) => {
                   const schedule = schedules?.find(s => s.lessonId === lesson.id);
                   return (
@@ -600,6 +626,39 @@ export default function StreamDetailPage() {
               loading={removeStudent.isPending}
             >
               Удалить
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Open All Lessons Confirmation */}
+      <Modal
+        isOpen={openAllConfirm}
+        onClose={() => setOpenAllConfirm(false)}
+        title="Открыть все материалы?"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-[var(--tg-theme-text-color)]">
+            Все запланированные материалы станут доступны студентам сразу.
+          </p>
+          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+            📬 Студенты получат одно уведомление о том, что все материалы открыты.
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setOpenAllConfirm(false)}
+            >
+              Отмена
+            </Button>
+            <Button
+              fullWidth
+              onClick={handleOpenAllLessons}
+              loading={openAllLessons.isPending}
+            >
+              Открыть все
             </Button>
           </div>
         </div>

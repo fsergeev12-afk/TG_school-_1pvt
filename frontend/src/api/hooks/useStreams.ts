@@ -94,12 +94,29 @@ export const useCloneStream = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ id, name }: { id: string; name?: string }) => {
+    mutationFn: async ({ id, name }: { id, name?: string }) => {
       const { data } = await apiClient.post<Stream>(`/streams/${id}/clone`, { name });
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['streams'] });
+    },
+  });
+};
+
+export const useOpenAllLessons = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (streamId: string) => {
+      const { data } = await apiClient.post<{ success: boolean; openedCount: number }>(
+        `/streams/${streamId}/open-all-lessons`
+      );
+      return data;
+    },
+    onSuccess: (_, streamId) => {
+      queryClient.invalidateQueries({ queryKey: ['stream', streamId] });
+      queryClient.invalidateQueries({ queryKey: ['stream', streamId, 'schedule'] });
     },
   });
 };
