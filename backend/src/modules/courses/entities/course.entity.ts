@@ -55,7 +55,7 @@ export class Course {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   deletedAt: Date; // soft-delete
 }
 

@@ -62,7 +62,7 @@ export class Stream {
   /**
    * Дата начала потока (для автоматического расписания)
    */
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   startsAt: Date;
 
   /**
@@ -111,7 +111,7 @@ export class Stream {
   @UpdateDateColumn()
   updatedAt: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   deletedAt: Date; // soft-delete
 }
 

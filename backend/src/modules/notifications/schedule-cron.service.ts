@@ -26,8 +26,23 @@ export class ScheduleCronService {
   async handleScheduledLessons() {
     const now = new Date();
     this.logger.log(`[CRON] Проверка расписания в ${now.toISOString()}`);
+    this.logger.log(`[CRON] Текущее время UTC: ${now.toISOString()}, MSK: ${new Date(now.getTime() + 3 * 60 * 60 * 1000).toISOString()}`);
 
     try {
+      // Сначала найдем ВСЕ нераскрытые расписания для отладки
+      const allSchedules = await this.scheduleRepository.find({
+        where: {
+          isOpened: false,
+        },
+        relations: ['lesson'],
+        take: 10, // Лимит для логов
+      });
+
+      this.logger.log(`[CRON] Всего нераскрытых уроков в базе: ${allSchedules.length}`);
+      allSchedules.forEach(s => {
+        this.logger.log(`[CRON] - Урок "${s.lesson?.title}": scheduledOpenAt = ${s.scheduledOpenAt?.toISOString()}, isOpened = ${s.isOpened}`);
+      });
+
       // Находим уроки, которые нужно открыть
       const schedulesToOpen = await this.scheduleRepository.find({
         where: {
@@ -37,7 +52,7 @@ export class ScheduleCronService {
         relations: ['stream', 'stream.students', 'stream.creator', 'stream.course', 'lesson'],
       });
 
-      this.logger.log(`[CRON] Найдено ${schedulesToOpen.length} schedules для потенциального открытия`);
+      this.logger.log(`[CRON] Найдено ${schedulesToOpen.length} schedules для открытия (scheduledOpenAt <= ${now.toISOString()})`);
 
       if (schedulesToOpen.length === 0) {
         return;

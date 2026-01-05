@@ -42,7 +42,7 @@ export class LessonSchedule {
   /**
    * Дата и время открытия урока
    */
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'datetime' })
   @Index()
   scheduledOpenAt: Date;
 

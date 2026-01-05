@@ -44,7 +44,7 @@ export class PromoCodeUsage {
   /**
    * Время использования промокода
    */
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   usedAt: Date;
 
   @CreateDateColumn()
