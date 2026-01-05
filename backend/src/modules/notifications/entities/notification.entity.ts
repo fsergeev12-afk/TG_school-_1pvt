@@ -82,7 +82,7 @@ export class Notification {
   /**
    * Время отправки
    */
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   sentAt: Date;
 
   /**

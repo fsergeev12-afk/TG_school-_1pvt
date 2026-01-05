@@ -86,7 +86,7 @@ export class Payment {
   /**
    * Дата завершения платежа
    */
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   @Index()
   completedAt: Date;
 

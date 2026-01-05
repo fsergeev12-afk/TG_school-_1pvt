@@ -37,7 +37,7 @@ export class LessonProgress {
   @Column({ type: 'boolean', default: false })
   isCompleted: boolean;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   completedAt: Date;
 
   @CreateDateColumn()
