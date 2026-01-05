@@ -9,7 +9,8 @@ import {
   useCourse,
   useRemoveStudent,
   useCreateOrGetConversation,
-  useOpenAllLessons
+  useOpenAllLessons,
+  useUpdateSchedule
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal } from '../../components/ui';
@@ -30,6 +31,7 @@ export default function StreamDetailPage() {
   const removeStudent = useRemoveStudent();
   const createOrGetConversation = useCreateOrGetConversation();
   const openAllLessons = useOpenAllLessons();
+  const updateSchedule = useUpdateSchedule();
   const { showToast } = useUIStore();
 
   const [activeTab, setActiveTab] = useState<TabType>('students');
@@ -44,6 +46,11 @@ export default function StreamDetailPage() {
   // Delete student confirmation
   const [deleteStudentConfirm, setDeleteStudentConfirm] = useState<{ id: string; name: string } | null>(null);
   const [openAllConfirm, setOpenAllConfirm] = useState(false);
+  
+  // Edit schedule modal
+  const [editScheduleModalOpen, setEditScheduleModalOpen] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<{ scheduleId: string; lessonId: string; lessonTitle: string; currentDate: string } | null>(null);
+  const [newScheduleDate, setNewScheduleDate] = useState('');
 
   const handleRemoveStudent = async () => {
     if (!deleteStudentConfirm || !id) return;
@@ -86,6 +93,38 @@ export default function StreamDetailPage() {
       setOpenAllConfirm(false);
     } catch (error: any) {
       showToast(error.response?.data?.message || 'Ошибка открытия', 'error');
+    }
+  };
+
+  const handleEditSchedule = (scheduleId: string, lessonId: string, lessonTitle: string, currentDate: string | null) => {
+    setEditingSchedule({ scheduleId, lessonId, lessonTitle, currentDate: currentDate || '' });
+    // Форматируем дату для input type="datetime-local" (YYYY-MM-DDTHH:mm)
+    if (currentDate) {
+      const date = new Date(currentDate);
+      const formatted = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+      setNewScheduleDate(formatted);
+    } else {
+      setNewScheduleDate('');
+    }
+    setEditScheduleModalOpen(true);
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!editingSchedule || !id || !newScheduleDate) return;
+    try {
+      await updateSchedule.mutateAsync({
+        streamId: id,
+        scheduleId: editingSchedule.scheduleId,
+        scheduledOpenAt: new Date(newScheduleDate).toISOString(),
+      });
+      showToast('Расписание обновлено', 'success');
+      setEditScheduleModalOpen(false);
+      setEditingSchedule(null);
+      setNewScheduleDate('');
+    } catch (error: any) {
+      showToast(error?.response?.data?.message || 'Ошибка обновления', 'error');
     }
   };
 
@@ -322,7 +361,16 @@ export default function StreamDetailPage() {
                 {allLessons.map((lesson) => {
                   const schedule = schedules?.find(s => s.lessonId === lesson.id);
                   return (
-                    <Card key={lesson.id} padding="sm">
+                    <Card 
+                      key={lesson.id} 
+                      padding="sm"
+                      className="cursor-pointer hover:bg-[var(--tg-theme-secondary-bg-color)] active:opacity-70 transition-all"
+                      onClick={() => {
+                        if (schedule) {
+                          handleEditSchedule(schedule.id, lesson.id, lesson.title, schedule.scheduledOpenAt);
+                        }
+                      }}
+                    >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                           <span className="text-xs text-[var(--tg-theme-hint-color)]">
@@ -332,11 +380,16 @@ export default function StreamDetailPage() {
                             {lesson.title}
                           </div>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex items-center gap-2">
                           {schedule ? (
-                            <div className={`text-xs ${schedule.isOpened ? 'text-green-600' : 'text-[var(--tg-theme-hint-color)]'}`}>
-                              {schedule.isOpened ? '✅ Открыт' : formatDate(schedule.scheduledOpenAt)}
-                            </div>
+                            <>
+                              <div className={`text-xs ${schedule.isOpened ? 'text-green-600' : 'text-[var(--tg-theme-hint-color)]'}`}>
+                                {schedule.isOpened ? '✅ Открыт' : formatDate(schedule.scheduledOpenAt)}
+                              </div>
+                              <svg className="w-4 h-4 text-[var(--tg-theme-hint-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                              </svg>
+                            </>
                           ) : (
                             <span className="text-xs text-[var(--tg-theme-hint-color)]">
                               Не назначено
@@ -660,6 +713,59 @@ export default function StreamDetailPage() {
               loading={openAllLessons.isPending}
             >
               Открыть все
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Edit Schedule Modal */}
+      <Modal
+        isOpen={editScheduleModalOpen}
+        onClose={() => {
+          setEditScheduleModalOpen(false);
+          setEditingSchedule(null);
+          setNewScheduleDate('');
+        }}
+        title="Редактировать расписание"
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+              {editingSchedule?.lessonTitle}
+            </p>
+            <label className="block text-xs text-[var(--tg-theme-hint-color)] mb-2">
+              Дата и время открытия:
+            </label>
+            <input
+              type="datetime-local"
+              value={newScheduleDate}
+              onChange={(e) => setNewScheduleDate(e.target.value)}
+              className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] text-base"
+            />
+          </div>
+          <p className="text-xs text-[var(--tg-theme-hint-color)]">
+            ℹ️ Материал откроется автоматически в указанное время. Студенты получат уведомление.
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => {
+                setEditScheduleModalOpen(false);
+                setEditingSchedule(null);
+                setNewScheduleDate('');
+              }}
+            >
+              Отмена
+            </Button>
+            <Button
+              fullWidth
+              onClick={handleSaveSchedule}
+              loading={updateSchedule.isPending}
+              disabled={!newScheduleDate}
+            >
+              Сохранить
             </Button>
           </div>
         </div>

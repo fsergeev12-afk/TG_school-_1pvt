@@ -249,4 +249,29 @@ export const useAutoSchedule = () => {
   });
 };
 
+export const useUpdateSchedule = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      streamId, 
+      scheduleId, 
+      scheduledOpenAt 
+    }: { 
+      streamId: string; 
+      scheduleId: string;
+      scheduledOpenAt: string;
+    }) => {
+      const { data } = await apiClient.patch<LessonSchedule>(
+        `/streams/${streamId}/schedule/${scheduleId}`, 
+        { scheduledOpenAt }
+      );
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['stream', variables.streamId, 'schedule'] });
+    },
+  });
+};
+
 
