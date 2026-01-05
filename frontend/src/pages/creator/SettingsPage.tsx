@@ -1,5 +1,5 @@
 import { PageHeader } from '../../components/layout';
-import { Card } from '../../components/ui';
+import { Card, Button } from '../../components/ui';
 import { useAuthStore } from '../../store';
 
 export default function SettingsPage() {
@@ -59,9 +59,16 @@ export default function SettingsPage() {
           <h3 className="font-semibold text-[var(--tg-theme-text-color)] mb-3">
             💬 Поддержка
           </h3>
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">
+          <p className="text-sm text-[var(--tg-theme-hint-color)] mb-3">
             Если у вас возникли вопросы или проблемы, напишите нам в Telegram.
           </p>
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={() => window.open('https://t.me/FedorSergeev12', '_blank')}
+          >
+            Задать вопрос
+          </Button>
         </Card>
       </div>
     </div>

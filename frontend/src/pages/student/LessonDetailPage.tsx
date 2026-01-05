@@ -143,17 +143,6 @@ export default function LessonDetailPage() {
           </Button>
         )}
 
-        {/* Кнопка "Задать вопрос" */}
-        <Button 
-          fullWidth 
-          variant="secondary"
-          onClick={handleAskQuestion}
-          className="flex items-center justify-center gap-2"
-        >
-          <span>💬</span>
-          Задать вопрос
-        </Button>
-
         {/* Материалы */}
         {lesson.materials && lesson.materials.length > 0 && (
           <div>
