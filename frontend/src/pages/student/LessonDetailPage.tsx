@@ -24,10 +24,6 @@ export default function LessonDetailPage() {
     }
   };
 
-  const handleAskQuestion = () => {
-    window.open('https://t.me/TG_school_1pvt_bot', '_blank');
-  };
-
   const handleViewMaterial = async (telegramFileId: string | undefined, fileName: string) => {
     if (!telegramFileId) return;
     
