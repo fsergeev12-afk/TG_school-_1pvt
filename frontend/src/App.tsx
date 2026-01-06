@@ -96,16 +96,14 @@ function AppContent() {
 
       if (startParam) {
         // СТУДЕНТ - перешёл по invite-ссылке
-        console.log('[Auth] Student mode - activating with token:', startParam);
+        console.log('[Auth] Student mode - checking token:', startParam);
         setIsActivating(true);
         
         try {
-          // Активируем студента по токену
-          const { data } = await apiClient.post('/students/activate', { 
-            accessToken: startParam 
-          });
+          // Проверяем токен (без активации)
+          const { data } = await apiClient.get(`/students/check/${startParam}`);
           
-          console.log('[Auth] Student activated:', data);
+          console.log('[Auth] Token check result:', data);
           
           // Устанавливаем пользователя как студента
           setUser({
@@ -118,11 +116,22 @@ function AppContent() {
             createdAt: new Date().toISOString(),
           });
           
+          // Проверяем, активирован ли студент
+          if (data.student?.invitationStatus === 'activated') {
+            // Уже активирован → сразу на курс
+            console.log('[Auth] Student already activated, redirecting to course');
+            navigate('/student/lessons');
+          } else {
+            // Не активирован → на страницу оплаты
+            console.log('[Auth] Student not activated, redirecting to payment');
+            navigate(`/student/payment?accessToken=${startParam}`);
+          }
+          
         } catch (error: any) {
-          console.error('[Auth] Student activation error:', error);
+          console.error('[Auth] Token check error:', error);
           setActivationError(
             error.response?.data?.message || 
-            'Не удалось активировать приглашение. Возможно, ссылка недействительна.'
+            'Недействительная ссылка приглашения.'
           );
           
           // Fallback - показываем как студента без курса
