@@ -50,6 +50,7 @@ export class LessonSchedule {
    * Открыт ли урок (устанавливается cron'ом)
    */
   @Column({ type: 'boolean', default: false })
+  @Index() // Индекс для быстрого поиска нераскрытых уроков
   isOpened: boolean;
 
   /**
