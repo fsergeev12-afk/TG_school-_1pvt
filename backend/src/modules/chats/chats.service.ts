@@ -41,6 +41,12 @@ export class ChatsService {
       relations: ['student', 'stream'],
     });
 
+    // Пытаемся найти студента по telegram_id
+    const student = await this.studentRepository.findOne({
+      where: { telegramId: telegramChatId },
+      relations: ['stream'],
+    });
+
     if (!conversation) {
       // Создаём новый диалог
       conversation = this.conversationRepository.create({
@@ -52,18 +58,20 @@ export class ChatsService {
         unreadCount: 0,
       });
 
-      // Пытаемся найти студента по telegram_id
-      const student = await this.studentRepository.findOne({
-        where: { telegramId: telegramChatId },
-        relations: ['stream'],
-      });
-
       if (student && student.stream?.creatorId === creatorId) {
         conversation.studentId = student.id;
         conversation.streamId = student.streamId;
       }
 
       await this.conversationRepository.save(conversation);
+    } else {
+      // Обновляем streamId если он не установлен или изменился
+      if (student && student.stream?.creatorId === creatorId) {
+        if (!conversation.streamId || conversation.streamId !== student.streamId) {
+          conversation.streamId = student.streamId;
+          await this.conversationRepository.save(conversation);
+        }
+      }
     }
 
     return conversation;

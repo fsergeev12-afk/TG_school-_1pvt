@@ -235,9 +235,9 @@ export default function StreamDetailPage() {
               <div className="grid grid-cols-3 gap-2">
                 <Card className="text-center py-3">
                   <div className="text-xl font-bold text-[var(--tg-theme-text-color)]">
-                    {students?.filter(s => s.invitationStatus === 'invited').length || 0}
+                    {students?.length || 0}
                   </div>
-                  <div className="text-xs text-[var(--tg-theme-hint-color)]">Приглашено</div>
+                  <div className="text-xs text-[var(--tg-theme-hint-color)]">Всего</div>
                 </Card>
                 <Card className="text-center py-3">
                   <div className="text-xl font-bold text-green-600">
