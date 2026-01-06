@@ -22,6 +22,7 @@ import { AuthModule } from '../auth/auth.module';
 import { CoursesModule } from '../courses/courses.module';
 import { UsersModule } from '../users/users.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { PromoCodesModule } from '../promo-codes/promo-codes.module';
 
 // Related entities (для связей)
 import { Course } from '../courses/entities/course.entity';
@@ -41,6 +42,7 @@ import { Lesson } from '../courses/entities/lesson.entity';
     forwardRef(() => CoursesModule),
     forwardRef(() => UsersModule),
     forwardRef(() => NotificationsModule),
+    forwardRef(() => PromoCodesModule),
   ],
   controllers: [
     StreamsController,
