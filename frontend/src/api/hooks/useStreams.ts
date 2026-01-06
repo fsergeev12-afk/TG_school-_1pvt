@@ -141,12 +141,13 @@ export const useStreamStudents = (streamId: string) => {
 
 export const useStudentStats = (streamId: string) => {
   return useQuery({
-    queryKey: ['stream', streamId, 'students', 'stats'],
+    queryKey: ['stream', streamId, 'stats'],
     queryFn: async () => {
-      const { data } = await apiClient.get<StudentStats>(`/streams/${streamId}/students/stats`);
+      const { data } = await apiClient.get<StudentStats>(`/streams/${streamId}/stats`);
       return data;
     },
     enabled: !!streamId,
+    staleTime: 30000, // Данные актуальны 30 секунд
   });
 };
 

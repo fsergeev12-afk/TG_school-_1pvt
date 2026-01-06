@@ -163,7 +163,7 @@ export class StreamsService {
   }
 
   /**
-   * Получить статистику потока
+   * Получить статистику потока (оптимизировано через SQL агрегацию)
    */
   async getStats(id: string, creatorId: string): Promise<{
     totalStudents: number;
@@ -171,13 +171,33 @@ export class StreamsService {
     paidStudents: number;
     revenue: number;
   }> {
-    const stream = await this.findOneByCreator(id, creatorId);
+    // Проверяем доступ (без загрузки students)
+    const stream = await this.streamRepository.findOne({
+      where: { id, creatorId },
+    });
 
-    const students = stream.students || [];
+    if (!stream) {
+      throw new NotFoundException('Поток не найден');
+    }
 
-    const totalStudents = students.length;
-    const activatedStudents = students.filter(s => s.invitationStatus === 'activated').length;
-    const paidStudents = students.filter(s => s.paymentStatus === 'paid').length;
+    // SQL агрегация вместо загрузки всех студентов
+    const result = await this.streamStudentRepository
+      .createQueryBuilder('student')
+      .select('COUNT(*)', 'totalStudents')
+      .addSelect(
+        `COUNT(CASE WHEN student.invitationStatus = 'activated' THEN 1 END)`,
+        'activatedStudents'
+      )
+      .addSelect(
+        `COUNT(CASE WHEN student.paymentStatus = 'paid' THEN 1 END)`,
+        'paidStudents'
+      )
+      .where('student.streamId = :streamId', { streamId: id })
+      .getRawOne();
+
+    const totalStudents = parseInt(result.totalStudents) || 0;
+    const activatedStudents = parseInt(result.activatedStudents) || 0;
+    const paidStudents = parseInt(result.paidStudents) || 0;
     const revenue = paidStudents * (stream.price || 0);
 
     return {
