@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { StreamStudentsService } from './stream-students.service';
@@ -145,13 +146,63 @@ export class StudentActivationController {
    */
   private readonly activationLogger = new Logger('StudentActivation');
 
+  /**
+   * Проверить accessToken (без активации)
+   * GET /api/students/check/:accessToken
+   * 
+   * Возвращает информацию о студенте, потоке и курсе
+   * Используется для показа страницы оплаты
+   */
+  @Get('check/:accessToken')
+  async checkAccessToken(@Param('accessToken') accessToken: string) {
+    this.activationLogger.log(`[checkAccessToken] token=${accessToken}`);
+    
+    // Пробуем сначала как индивидуальный токен студента
+    let student = await this.studentsService.findByAccessToken(accessToken);
+    
+    if (student) {
+      this.activationLogger.log(`[checkAccessToken] Найден по accessToken студента: studentId=${student.id}`);
+      return {
+        student: {
+          id: student.id,
+          invitationStatus: student.invitationStatus,
+          paymentStatus: student.paymentStatus,
+          stream: {
+            id: student.stream.id,
+            name: student.stream.name,
+            price: student.stream.price,
+            course: student.stream.course,
+          },
+        },
+      };
+    }
+    
+    // Пробуем как inviteToken потока
+    const stream = await this.studentsService.findStreamByInviteToken(accessToken);
+    
+    if (stream) {
+      this.activationLogger.log(`[checkAccessToken] Найден по inviteToken потока: streamId=${stream.id}`);
+      return {
+        stream: {
+          id: stream.id,
+          name: stream.name,
+          price: stream.price,
+          course: stream.course,
+        },
+      };
+    }
+    
+    throw new NotFoundException('Недействительная ссылка приглашения');
+  }
+
   @Post('activate')
   @UseGuards(TelegramAuthGuard)
   async activate(
     @CurrentUser() user: User,
     @Body('accessToken') accessToken: string,
+    @Body('promoCode') promoCode?: string,
   ) {
-    this.activationLogger.log(`[activate] token=${accessToken}, userId=${user.id}, telegramId=${user.telegramId}`);
+    this.activationLogger.log(`[activate] token=${accessToken}, userId=${user.id}, telegramId=${user.telegramId}, promoCode=${promoCode}`);
     
     // Пробуем сначала как индивидуальный токен студента
     let student = await this.studentsService.findByAccessToken(accessToken);
@@ -163,6 +214,7 @@ export class StudentActivationController {
         accessToken,
         user.telegramId,
         user.id,
+        promoCode, // Передаем промокод
       );
     } else {
       this.activationLogger.log(`[activate] Не найден по accessToken, пробуем как inviteToken потока`);
@@ -174,6 +226,7 @@ export class StudentActivationController {
         user.firstName,
         user.lastName,
         user.telegramUsername,
+        promoCode, // Передаем промокод
       );
     }
 

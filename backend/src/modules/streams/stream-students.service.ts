@@ -1,18 +1,23 @@
-import { Injectable, NotFoundException, ForbiddenException, ConflictException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, ConflictException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { StreamStudent } from './entities/stream-student.entity';
 import { Stream } from './entities/stream.entity';
 import { AddStudentDto, BulkAddStudentsDto } from './dto';
+import { PromoCodesService } from '../promo-codes/promo-codes.service';
 
 @Injectable()
 export class StreamStudentsService {
+  private readonly logger = new Logger(StreamStudentsService.name);
+
   constructor(
     @InjectRepository(StreamStudent)
     private readonly studentRepository: Repository<StreamStudent>,
     @InjectRepository(Stream)
     private readonly streamRepository: Repository<Stream>,
+    @Inject(forwardRef(() => PromoCodesService))
+    private readonly promoCodesService: PromoCodesService,
   ) {}
 
   /**
@@ -144,8 +149,8 @@ export class StreamStudentsService {
   /**
    * Активировать по invite token потока (создаёт студента если его нет)
    */
-  async activateByStreamToken(inviteToken: string, telegramId: number, userId?: string, firstName?: string, lastName?: string, username?: string): Promise<StreamStudent> {
-    this.logger.log(`[activateByStreamToken] inviteToken=${inviteToken}, telegramId=${telegramId}, userId=${userId}`);
+  async activateByStreamToken(inviteToken: string, telegramId: number, userId?: string, firstName?: string, lastName?: string, username?: string, promoCode?: string): Promise<StreamStudent> {
+    this.logger.log(`[activateByStreamToken] inviteToken=${inviteToken}, telegramId=${telegramId}, userId=${userId}, promoCode=${promoCode}`);
     
     // Ищем поток по токену
     const stream = await this.findStreamByInviteToken(inviteToken);
@@ -165,6 +170,24 @@ export class StreamStudentsService {
 
     if (student) {
       this.logger.log(`[activateByStreamToken] Студент УЖЕ ЕСТЬ в потоке: studentId=${student.id}`);
+      
+      // Применяем промокод если есть и студент еще не активирован
+      if (promoCode && student.invitationStatus !== 'activated') {
+        this.logger.log(`[activateByStreamToken] Применяем промокод: ${promoCode}`);
+        const promoResult = await this.promoCodesService.apply(
+          promoCode,
+          stream.id,
+          student.id,
+        );
+
+        // Если бесплатный - помечаем как оплаченный
+        if (promoResult.isFree) {
+          student.paymentStatus = 'paid';
+          student.paidAt = new Date();
+          this.logger.log(`[activateByStreamToken] Промокод дает бесплатный доступ`);
+        }
+      }
+      
       // Студент уже есть - активируем если ещё не активирован
       if (student.invitationStatus !== 'activated') {
         student.invitationStatus = 'activated';
@@ -177,19 +200,52 @@ export class StreamStudentsService {
 
     this.logger.log(`[activateByStreamToken] Создаём НОВОГО студента в потоке ${stream.id}`);
 
-    // Создаём нового студента
+    // Определяем начальный payment status
+    let initialPaymentStatus = stream.price > 0 ? 'unpaid' : 'paid';
+    let paidAt = stream.price === 0 ? new Date() : null;
+
+    // Создаём нового студента (НЕ активированного, чтобы применить промокод)
     student = this.studentRepository.create({
       streamId: stream.id,
       telegramId,
       telegramFirstName: firstName || 'Ученик',
       telegramLastName: lastName,
       telegramUsername: username,
-      invitationStatus: 'activated',
-      activatedAt: new Date(),
-      paymentStatus: stream.price > 0 ? 'unpaid' : 'paid', // paid = бесплатный курс
+      invitationStatus: 'invited', // Сначала invited
+      paymentStatus: initialPaymentStatus,
+      paidAt,
       userId,
       accessToken: uuidv4(), // Генерируем уникальный токен
     });
+
+    const savedStudent = await this.studentRepository.save(student);
+
+    // Применяем промокод если есть
+    if (promoCode) {
+      this.logger.log(`[activateByStreamToken] Применяем промокод: ${promoCode} для нового студента ${savedStudent.id}`);
+      try {
+        const promoResult = await this.promoCodesService.apply(
+          promoCode,
+          stream.id,
+          savedStudent.id,
+        );
+
+        // Если бесплатный - помечаем как оплаченный
+        if (promoResult.isFree) {
+          savedStudent.paymentStatus = 'paid';
+          savedStudent.paidAt = new Date();
+          this.logger.log(`[activateByStreamToken] Промокод дает бесплатный доступ`);
+        }
+      } catch (error) {
+        this.logger.error(`[activateByStreamToken] Ошибка применения промокода: ${error.message}`);
+        // Продолжаем без промокода
+      }
+    }
+
+    // Теперь активируем студента
+    savedStudent.invitationStatus = 'activated';
+    savedStudent.activatedAt = new Date();
+    await this.studentRepository.save(savedStudent);
 
     const savedStudent = await this.studentRepository.save(student);
     
@@ -221,7 +277,7 @@ export class StreamStudentsService {
   /**
    * Активировать ученика (после перехода по ссылке)
    */
-  async activate(accessToken: string, telegramId: number, userId?: string): Promise<StreamStudent> {
+  async activate(accessToken: string, telegramId: number, userId?: string, promoCode?: string): Promise<StreamStudent> {
     const student = await this.findByAccessToken(accessToken);
 
     if (!student) {
@@ -236,6 +292,23 @@ export class StreamStudentsService {
     // Уже активирован?
     if (student.invitationStatus === 'activated') {
       return student;
+    }
+
+    // Применяем промокод если есть
+    if (promoCode) {
+      this.logger.log(`[activate] Применяем промокод: ${promoCode} для студента ${student.id}`);
+      const promoResult = await this.promoCodesService.apply(
+        promoCode,
+        student.streamId,
+        student.id,
+      );
+
+      // Если бесплатный - сразу помечаем как оплаченный
+      if (promoResult.isFree) {
+        student.paymentStatus = 'paid';
+        student.paidAt = new Date();
+        this.logger.log(`[activate] Промокод дает бесплатный доступ, помечаем как оплаченный`);
+      }
     }
 
     student.invitationStatus = 'activated';
