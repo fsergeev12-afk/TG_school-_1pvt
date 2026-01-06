@@ -130,12 +130,12 @@ export const useStreamStudents = (streamId: string) => {
       return data;
     },
     enabled: !!streamId,
-    // Автоматическое обновление каждые 10 секунд
-    refetchInterval: 10000,
+    // Автоматическое обновление каждую минуту
+    refetchInterval: 60000,
     // Обновлять при возвращении на вкладку
     refetchOnWindowFocus: true,
-    // Данные считаются актуальными 5 секунд
-    staleTime: 5000,
+    // Данные считаются актуальными 30 секунд
+    staleTime: 30000,
   });
 };
 
