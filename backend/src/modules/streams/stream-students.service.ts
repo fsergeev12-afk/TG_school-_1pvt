@@ -144,8 +144,6 @@ export class StreamStudentsService {
     });
   }
 
-  private readonly logger = new Logger(StreamStudentsService.name);
-
   /**
    * Активировать по invite token потока (создаёт студента если его нет)
    */
@@ -246,8 +244,6 @@ export class StreamStudentsService {
     savedStudent.invitationStatus = 'activated';
     savedStudent.activatedAt = new Date();
     await this.studentRepository.save(savedStudent);
-
-    const savedStudent = await this.studentRepository.save(student);
     
     this.logger.log(`[activateByStreamToken] Студент СОЗДАН: id=${savedStudent.id}, streamId=${savedStudent.streamId}, accessToken=${savedStudent.accessToken}`);
     
