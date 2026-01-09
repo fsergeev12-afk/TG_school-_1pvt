@@ -8,7 +8,6 @@ import { apiClient } from './api/client';
 // Layouts
 import CreatorLayout from './pages/creator/CreatorLayout';
 import StudentLayout from './pages/student/StudentLayout';
-import PaymentPage from './pages/student/PaymentPage';
 
 // Pages
 import LoadingScreen from './components/shared/LoadingScreen';
@@ -26,7 +25,7 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { webApp, user: tgUser } = useTelegram();
-  const { setUser, user, isLoading, setRole } = useAuthStore();
+  const { setUser, user, isLoading } = useAuthStore();
   const [isActivating, setIsActivating] = useState(false);
   const [activationError, setActivationError] = useState<string | null>(null);
   const [shouldRedirect, setShouldRedirect] = useState<string | null>(null);
@@ -117,7 +116,6 @@ function AppContent() {
             role: 'student',
             createdAt: new Date().toISOString(),
           });
-          setRole('student');
           
           // Проверяем, активирован ли студент
           if (data.student?.invitationStatus === 'activated') {
@@ -147,7 +145,6 @@ function AppContent() {
             role: 'student',
             createdAt: new Date().toISOString(),
           });
-          setRole('student');
         } finally {
           setIsActivating(false);
         }
