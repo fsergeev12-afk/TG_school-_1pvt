@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTelegram } from '../../hooks/useTelegram';
 import { PageHeader } from '../../components/layout';
 import { Card, Button, Input } from '../../components/ui';
 import { useValidatePromoCode } from '../../api/hooks';
@@ -10,6 +11,7 @@ import { useUIStore } from '../../store';
 export default function PaymentPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user: tgUser } = useTelegram();
   const [searchParams] = useSearchParams();
   const accessToken = searchParams.get('accessToken') || '';
   const { showToast } = useUIStore();
@@ -32,7 +34,9 @@ export default function PaymentPage() {
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
-        const { data } = await apiClient.get(`/students/check/${accessToken}`);
+        const { data } = await apiClient.get(`/students/check/${accessToken}`, {
+          params: { telegramId: tgUser?.id },
+        });
         console.log('[PaymentPage] Course data:', data);
         setCourseData(data);
       } catch (error: any) {

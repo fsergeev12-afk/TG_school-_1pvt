@@ -5,6 +5,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   Logger,
   NotFoundException,
@@ -156,9 +157,9 @@ export class StudentActivationController {
   @Get('check/:accessToken')
   async checkAccessToken(
     @Param('accessToken') accessToken: string,
-    @CurrentUser() user?: User, // Опционально - если пользователь авторизован
+    @Query('telegramId') telegramId?: string, // Передаем из фронтенда
   ) {
-    this.activationLogger.log(`[checkAccessToken] token=${accessToken}, userId=${user?.id}, telegramId=${user?.telegramId}`);
+    this.activationLogger.log(`[checkAccessToken] token=${accessToken}, telegramId=${telegramId}`);
     
     // Пробуем сначала как индивидуальный токен студента
     let student = await this.studentsService.findByAccessToken(accessToken);
@@ -186,11 +187,11 @@ export class StudentActivationController {
     if (stream) {
       this.activationLogger.log(`[checkAccessToken] Найден по inviteToken потока: streamId=${stream.id}`);
       
-      // ВАЖНО: Если пользователь уже авторизован, проверяем есть ли он в этом потоке
-      if (user?.telegramId) {
+      // ВАЖНО: Если передан telegramId, проверяем есть ли студент в этом потоке
+      if (telegramId) {
         const existingStudent = await this.studentsService.findByStreamAndTelegram(
           stream.id,
-          user.telegramId,
+          parseInt(telegramId),
         );
         
         if (existingStudent) {

@@ -134,11 +134,13 @@ export function useActivateAccess() {
 /**
  * Проверить токен доступа (без активации)
  */
-export function useCheckAccessToken(accessToken: string | null) {
+export function useCheckAccessToken(accessToken: string | null, telegramId?: number) {
   return useQuery({
-    queryKey: ['checkAccessToken', accessToken],
+    queryKey: ['checkAccessToken', accessToken, telegramId],
     queryFn: async () => {
-      const response = await apiClient.get(`/students/check/${accessToken}`);
+      const response = await apiClient.get(`/students/check/${accessToken}`, {
+        params: { telegramId },
+      });
       return response.data;
     },
     enabled: !!accessToken,
