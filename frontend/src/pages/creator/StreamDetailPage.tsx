@@ -484,9 +484,12 @@ export default function StreamDetailPage() {
               </Card>
               <Card className="text-center">
                 <div className="text-2xl font-bold text-[var(--tg-theme-button-color)]">
-                  {(paidCount * (stream.price || 3000)).toLocaleString()} ₽
+                  0 ₽
                 </div>
                 <div className="text-xs text-[var(--tg-theme-hint-color)]">Выручка</div>
+                <div className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
+                  (платежи не подключены)
+                </div>
               </Card>
             </div>
 
@@ -495,7 +498,7 @@ export default function StreamDetailPage() {
             </h4>
             {paidCount === 0 ? (
               <p className="text-sm text-[var(--tg-theme-hint-color)] text-center py-4">
-                Пока нет платежей
+                Пока нет оплат
               </p>
             ) : (
               <div className="space-y-2">
@@ -505,8 +508,8 @@ export default function StreamDetailPage() {
                       <span className="text-[var(--tg-theme-text-color)]">
                         {student.firstName} {student.lastName}
                       </span>
-                      <span className="text-sm text-[var(--tg-theme-hint-color)]">
-                        {(stream.price || 3000).toLocaleString()} ₽
+                      <span className="text-sm text-green-600">
+                        🎟️ Промокод
                       </span>
                     </div>
                   </Card>
@@ -541,7 +544,7 @@ export default function StreamDetailPage() {
                 <Input
                   label="Цена проекта"
                   type="number"
-                  value={stream.price || 3000}
+                  value={stream.price || 0}
                   disabled
                 />
                 <span className="text-[var(--tg-theme-text-color)] mt-6">₽</span>
