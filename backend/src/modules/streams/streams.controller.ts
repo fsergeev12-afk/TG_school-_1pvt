@@ -115,7 +115,6 @@ export class StreamsController {
       inviteLink,
       inviteToken: stream.inviteToken,
       streamName: stream.name,
-      courseName: stream.course?.title,
     };
   }
 

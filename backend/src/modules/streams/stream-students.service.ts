@@ -232,7 +232,11 @@ export class StreamStudentsService {
 
     const savedStudent = await this.studentRepository.save(student);
 
-    // Применяем промокод если есть
+    // Активируем студента
+    savedStudent.invitationStatus = 'activated';
+    savedStudent.activatedAt = new Date();
+
+    // Применяем промокод если есть (ДО финального save!)
     if (promoCode) {
       this.logger.log(`[activateByStreamToken] Применяем промокод: ${promoCode} для нового студента ${savedStudent.id}`);
       try {
@@ -254,9 +258,7 @@ export class StreamStudentsService {
       }
     }
 
-    // Теперь активируем студента
-    savedStudent.invitationStatus = 'activated';
-    savedStudent.activatedAt = new Date();
+    // Сохраняем ВСЕ изменения (activation + payment status)
     await this.studentRepository.save(savedStudent);
     
     this.logger.log(`[activateByStreamToken] Студент СОЗДАН: id=${savedStudent.id}, streamId=${savedStudent.streamId}, accessToken=${savedStudent.accessToken}`);

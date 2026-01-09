@@ -660,7 +660,7 @@ export default function StreamDetailPage() {
               variant="secondary"
               fullWidth
               onClick={() => {
-                const text = encodeURIComponent(`Приглашаю в проект "${stream?.course?.title}"\n${inviteLink}`);
+                const text = encodeURIComponent(`Приглашаю в проект "${stream?.name}"\n${inviteLink}`);
                 window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`, '_blank');
               }}
             >

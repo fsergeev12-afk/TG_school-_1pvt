@@ -136,10 +136,10 @@ export default function PaymentPage() {
       <PageHeader title="💳 Оплата проекта" showBack />
 
       <div className="p-4 space-y-4">
-        {/* Карточка курса БЕЗ обложки */}
+        {/* Карточка проекта БЕЗ обложки */}
         <Card>
           <h2 className="font-semibold text-lg text-[var(--tg-theme-text-color)] break-words mb-2">
-            {course?.title || 'Без названия'}
+            {stream?.name || 'Без названия'}
           </h2>
           <p className="text-[var(--tg-theme-hint-color)] mb-1">
             От {course?.creator?.firstName || 'Неизвестный автор'}
