@@ -64,13 +64,8 @@ export default function StudentHomePage() {
                 )}
                 <div>
                   <h3 className="font-semibold text-lg text-[var(--tg-theme-text-color)] break-words">
-                    {course.title}
+                    {course.streamName || course.title}
                   </h3>
-                  {course.streamName && (
-                    <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                      Поток: {course.streamName}
-                    </p>
-                  )}
                 </div>
               </div>
               

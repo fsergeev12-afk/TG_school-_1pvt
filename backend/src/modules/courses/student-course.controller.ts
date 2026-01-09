@@ -60,7 +60,7 @@ export class StudentCourseController {
     this.logger.log(`[getMyCourses] Найдено ${students.length} записей StreamStudent`);
     
     students.forEach((s, i) => {
-      this.logger.log(`[getMyCourses] [${i}] studentId=${s.id}, streamId=${s.streamId}, streamName=${s.stream?.name}, courseId=${s.stream?.courseId}`);
+      this.logger.log(`[getMyCourses] [${i}] studentId=${s.id}, streamId=${s.streamId}, streamName=${s.stream?.name}, courseId=${s.stream?.courseId}, paymentStatus=${s.paymentStatus}, invitationStatus=${s.invitationStatus}`);
     });
 
     if (!students || students.length === 0) {

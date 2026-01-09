@@ -86,24 +86,54 @@ export class StreamsService {
   /**
    * Получить все потоки создателя
    */
-  async findAllByCreator(creatorId: string): Promise<Stream[]> {
-    return this.streamRepository.find({
+  async findAllByCreator(creatorId: string): Promise<any[]> {
+    const streams = await this.streamRepository.find({
       where: { creatorId },
       relations: ['course', 'students'],
       order: { createdAt: 'DESC' },
+    });
+
+    // Добавляем счетчики для каждого потока
+    return streams.map(stream => {
+      const students = stream.students || [];
+      const studentsCount = students.length;
+      const activatedCount = students.filter(s => s.invitationStatus === 'activated').length;
+      const paidCount = students.filter(s => s.paymentStatus === 'paid').length;
+
+      return {
+        ...stream,
+        studentsCount,
+        activatedCount,
+        paidCount,
+      };
     });
   }
 
   /**
    * Получить потоки курса
    */
-  async findByCourse(courseId: string, creatorId: string): Promise<Stream[]> {
+  async findByCourse(courseId: string, creatorId: string): Promise<any[]> {
     await this.checkCourseOwnership(courseId, creatorId);
 
-    return this.streamRepository.find({
+    const streams = await this.streamRepository.find({
       where: { courseId },
       relations: ['students'],
       order: { createdAt: 'DESC' },
+    });
+
+    // Добавляем счетчики для каждого потока
+    return streams.map(stream => {
+      const students = stream.students || [];
+      const studentsCount = students.length;
+      const activatedCount = students.filter(s => s.invitationStatus === 'activated').length;
+      const paidCount = students.filter(s => s.paymentStatus === 'paid').length;
+
+      return {
+        ...stream,
+        studentsCount,
+        activatedCount,
+        paidCount,
+      };
     });
   }
 
