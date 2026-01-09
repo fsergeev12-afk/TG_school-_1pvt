@@ -29,6 +29,30 @@ export class UsersService {
   }
 
   /**
+   * Найти или создать пользователя по Telegram ID
+   */
+  async findOrCreateByTelegram(
+    telegramId: number,
+    firstName: string,
+    lastName?: string,
+    username?: string,
+  ): Promise<User> {
+    let user = await this.findByTelegramId(telegramId);
+    
+    if (!user) {
+      user = await this.create({
+        telegramId,
+        firstName,
+        lastName,
+        telegramUsername: username,
+        role: 'student', // По умолчанию студент
+      });
+    }
+    
+    return user;
+  }
+
+  /**
    * Найти пользователя по ID
    */
   async findOne(id: string): Promise<User> {

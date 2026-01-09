@@ -35,7 +35,12 @@ export default function PaymentPage() {
     const fetchCourseData = async () => {
       try {
         const { data } = await apiClient.get(`/students/check/${accessToken}`, {
-          params: { telegramId: tgUser?.id },
+          params: { 
+            telegramId: tgUser?.id,
+            firstName: tgUser?.first_name,
+            lastName: tgUser?.last_name,
+            username: tgUser?.username,
+          },
         });
         console.log('[PaymentPage] Course data:', data);
         setCourseData(data);

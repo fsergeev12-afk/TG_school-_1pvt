@@ -6,6 +6,7 @@ import { StreamStudent } from './entities/stream-student.entity';
 import { Stream } from './entities/stream.entity';
 import { AddStudentDto, BulkAddStudentsDto } from './dto';
 import { PromoCodesService } from '../promo-codes/promo-codes.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class StreamStudentsService {
@@ -18,6 +19,8 @@ export class StreamStudentsService {
     private readonly streamRepository: Repository<Stream>,
     @Inject(forwardRef(() => PromoCodesService))
     private readonly promoCodesService: PromoCodesService,
+    @Inject(forwardRef(() => UsersService))
+    private readonly usersService: UsersService,
   ) {}
 
   /**
@@ -393,6 +396,77 @@ export class StreamStudentsService {
       paid: students.filter(s => s.paymentStatus === 'paid').length,
       unpaid: students.filter(s => s.paymentStatus === 'unpaid').length,
     };
+  }
+
+  /**
+   * Получить или создать студента со статусом 'invited'
+   * Используется при переходе по invite-ссылке
+   */
+  async getOrCreateInvitedStudent(
+    streamId: string,
+    telegramId: number,
+    firstName?: string,
+    lastName?: string,
+    username?: string,
+  ): Promise<StreamStudent> {
+    this.logger.log(`[getOrCreateInvitedStudent] streamId=${streamId}, telegramId=${telegramId}`);
+    
+    // Проверяем, есть ли уже студент в этом потоке
+    let student = await this.studentRepository.findOne({
+      where: { streamId, telegramId },
+      relations: ['stream', 'stream.course', 'user'],
+    });
+    
+    if (student) {
+      this.logger.log(`[getOrCreateInvitedStudent] Студент уже существует: studentId=${student.id}, status=${student.invitationStatus}`);
+      return student;
+    }
+    
+    // Получаем или создаём пользователя
+    const user = await this.usersService.findOrCreateByTelegram(
+      telegramId,
+      firstName || 'Ученик',
+      lastName,
+      username,
+    );
+    
+    // Получаем информацию о потоке
+    const stream = await this.streamRepository.findOne({
+      where: { id: streamId },
+      relations: ['course'],
+    });
+    
+    if (!stream) {
+      throw new NotFoundException('Поток не найден');
+    }
+    
+    // Создаём нового студента со статусом 'invited'
+    const initialPaymentStatus = stream.price > 0 ? 'unpaid' : 'paid';
+    
+    student = this.studentRepository.create({
+      streamId,
+      telegramId,
+      telegramFirstName: firstName || 'Ученик',
+      telegramLastName: lastName,
+      telegramUsername: username,
+      invitationStatus: 'invited', // Только invited, не activated
+      paymentStatus: initialPaymentStatus,
+      paidAt: stream.price === 0 ? new Date() : null,
+      userId: user.id,
+      accessToken: uuidv4(),
+    });
+    
+    const savedStudent = await this.studentRepository.save(student);
+    
+    // Загружаем с relations для возврата
+    const fullStudent = await this.studentRepository.findOne({
+      where: { id: savedStudent.id },
+      relations: ['stream', 'stream.course', 'user'],
+    });
+    
+    this.logger.log(`[getOrCreateInvitedStudent] Создан новый студент: studentId=${fullStudent.id}`);
+    
+    return fullStudent;
   }
 
   /**

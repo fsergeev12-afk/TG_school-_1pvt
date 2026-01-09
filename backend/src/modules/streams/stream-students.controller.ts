@@ -157,7 +157,10 @@ export class StudentActivationController {
   @Get('check/:accessToken')
   async checkAccessToken(
     @Param('accessToken') accessToken: string,
-    @Query('telegramId') telegramId?: string, // Передаем из фронтенда
+    @Query('telegramId') telegramId?: string,
+    @Query('firstName') firstName?: string,
+    @Query('lastName') lastName?: string,
+    @Query('username') username?: string,
   ) {
     this.activationLogger.log(`[checkAccessToken] token=${accessToken}, telegramId=${telegramId}`);
     
@@ -187,31 +190,34 @@ export class StudentActivationController {
     if (stream) {
       this.activationLogger.log(`[checkAccessToken] Найден по inviteToken потока: streamId=${stream.id}`);
       
-      // ВАЖНО: Если передан telegramId, проверяем есть ли студент в этом потоке
+      // НОВАЯ ЛОГИКА: Если передан telegramId, создаём студента со статусом 'invited'
       if (telegramId) {
-        const existingStudent = await this.studentsService.findByStreamAndTelegram(
+        const invitedStudent = await this.studentsService.getOrCreateInvitedStudent(
           stream.id,
           parseInt(telegramId),
+          firstName,
+          lastName,
+          username,
         );
         
-        if (existingStudent) {
-          this.activationLogger.log(`[checkAccessToken] Студент УЖЕ есть в потоке: studentId=${existingStudent.id}, status=${existingStudent.invitationStatus}`);
-          return {
-            student: {
-              id: existingStudent.id,
-              invitationStatus: existingStudent.invitationStatus,
-              paymentStatus: existingStudent.paymentStatus,
-              stream: {
-                id: stream.id,
-                name: stream.name,
-                price: stream.price,
-                course: stream.course,
-              },
+        this.activationLogger.log(`[checkAccessToken] Студент создан/найден: studentId=${invitedStudent.id}, status=${invitedStudent.invitationStatus}`);
+        
+        return {
+          student: {
+            id: invitedStudent.id,
+            invitationStatus: invitedStudent.invitationStatus,
+            paymentStatus: invitedStudent.paymentStatus,
+            stream: {
+              id: stream.id,
+              name: stream.name,
+              price: stream.price,
+              course: stream.course,
             },
-          };
-        }
+          },
+        };
       }
       
+      // Если telegramId не передан (старый код, для обратной совместимости)
       return {
         stream: {
           id: stream.id,

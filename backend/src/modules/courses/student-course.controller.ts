@@ -47,14 +47,14 @@ export class StudentCourseController {
   async getMyCourses(@CurrentUser() user: User) {
     this.logger.log(`[getMyCourses] userId=${user.id}, telegramId=${user.telegramId}`);
     
-    // Найти все активные подписки студента
+    // Найти ВСЕ подписки студента (включая invited)
     const students = await this.studentRepository.find({
       where: { 
         userId: user.id,
-        invitationStatus: 'activated',
+        // ИЗМЕНЕНО: Убрали фильтр по invitationStatus, показываем ВСЕ потоки
       },
       relations: ['stream', 'stream.course', 'stream.course.creator'],
-      order: { activatedAt: 'DESC' },
+      order: { createdAt: 'DESC' }, // Сортировка по дате создания
     });
 
     this.logger.log(`[getMyCourses] Найдено ${students.length} записей StreamStudent`);
@@ -73,6 +73,7 @@ export class StudentCourseController {
       
       const requiresPayment = (stream.price || 0) > 0;
       const isPaid = student.paymentStatus === 'paid';
+      const isActivated = student.invitationStatus === 'activated';
 
       return {
         id: course.id,
@@ -85,6 +86,8 @@ export class StudentCourseController {
         price: stream.price,
         requiresPayment,
         isPaid,
+        isActivated, // НОВОЕ: Передаём статус активации
+        invitationStatus: student.invitationStatus, // НОВОЕ: Для отладки
         accessToken: student.accessToken,
       };
     });

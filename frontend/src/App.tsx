@@ -121,9 +121,14 @@ function AppContent() {
         setIsActivating(true);
         
         try {
-          // Проверяем токен (без активации), передаем telegramId для проверки существующего студента
+          // Проверяем токен и создаём студента со статусом 'invited'
           const { data } = await apiClient.get(`/students/check/${startParam}`, {
-            params: { telegramId: tgUser?.id },
+            params: { 
+              telegramId: tgUser?.id,
+              firstName: tgUser?.first_name,
+              lastName: tgUser?.last_name,
+              username: tgUser?.username,
+            },
           });
           
           console.log('[Auth] Token check result:', data);

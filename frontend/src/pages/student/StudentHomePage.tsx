@@ -47,60 +47,86 @@ export default function StudentHomePage() {
           Мои проекты ({courses.length})
         </h2>
 
-        {courses.map((course) => (
-          <Card key={course.id} className="overflow-hidden">
-            {/* Иконка проекта */}
-            <div className="py-6 flex items-center justify-center bg-[var(--tg-theme-button-color)]/10">
-              <span className="text-4xl">📚</span>
-            </div>
-
-            {/* Информация о проекте */}
-            <div className="space-y-3 pt-4">
-              <div className="flex items-start gap-2">
-                {course.isPaid ? (
-                  <span className="text-green-500 text-xl flex-shrink-0">✅</span>
-                ) : (
-                  <span className="text-orange-500 text-xl flex-shrink-0">⏳</span>
-                )}
-                <div>
-                  <h3 className="font-semibold text-lg text-[var(--tg-theme-text-color)] break-words">
-                    {course.streamName || course.title}
-                  </h3>
-                </div>
+        {courses.map((course) => {
+          // Определяем, доступен ли курс для просмотра
+          const isAccessible = course.isActivated && (!course.requiresPayment || course.isPaid);
+          const needsActivation = !course.isActivated; // Только приглашен, но не активирован
+          const needsPayment = course.isActivated && course.requiresPayment && !course.isPaid;
+          
+          return (
+            <div 
+              key={course.id}
+              style={{ 
+                opacity: isAccessible ? 1 : 0.7, // Неактивированные/неоплаченные бледнее
+              }}
+            >
+              <Card 
+                className={`overflow-hidden ${!isAccessible ? 'border border-dashed border-[var(--tg-theme-hint-color)]' : ''}`}
+              >
+              {/* Иконка проекта */}
+              <div className="py-6 flex items-center justify-center bg-[var(--tg-theme-button-color)]/10">
+                <span className="text-4xl">📚</span>
               </div>
-              
-              <p className="text-[var(--tg-theme-hint-color)] text-sm">
-                От {course.creatorName}
-              </p>
 
-              {course.requiresPayment && !course.isPaid ? (
-                <>
-                  <p className="text-xl font-bold text-[var(--tg-theme-text-color)]">
-                    {((course.price || 0) / 100).toLocaleString('ru-RU')} ₽
-                  </p>
+              {/* Информация о проекте */}
+              <div className="space-y-3 pt-4">
+                <div className="flex items-start gap-2">
+                  {isAccessible ? (
+                    <span className="text-green-500 text-xl flex-shrink-0">✅</span>
+                  ) : needsActivation ? (
+                    <span className="text-gray-400 text-xl flex-shrink-0">📩</span>
+                  ) : (
+                    <span className="text-orange-500 text-xl flex-shrink-0">⏳</span>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-lg text-[var(--tg-theme-text-color)] break-words">
+                      {course.streamName || course.title}
+                    </h3>
+                    {needsActivation && (
+                      <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
+                        Требуется активация
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                <p className="text-[var(--tg-theme-hint-color)] text-sm">
+                  От {course.creatorName}
+                </p>
+
+                {/* Кнопки действий */}
+                {needsActivation || needsPayment ? (
+                  <>
+                    {course.price && course.price > 0 && (
+                      <p className="text-xl font-bold text-[var(--tg-theme-text-color)]">
+                        {((course.price || 0) / 100).toLocaleString('ru-RU')} ₽
+                      </p>
+                    )}
+                    <Button 
+                      fullWidth 
+                      onClick={() => navigate(`/student/payment?accessToken=${course.accessToken}`)}
+                    >
+                      {needsActivation ? 'Активировать' : 'Оплатить'}
+                    </Button>
+                  </>
+                ) : (
                   <Button 
                     fullWidth 
-                    onClick={() => navigate(`/student/payment?streamId=${course.streamId}`)}
+                    onClick={() => {
+                      // Сохраняем accessToken в localStorage для навигации
+                      localStorage.setItem('currentCourseToken', course.accessToken);
+                      navigate('/student/lessons');
+                    }}
+                    className="mt-2"
                   >
-                    Оплатить
+                    Перейти к проекту
                   </Button>
-                </>
-              ) : (
-                <Button 
-                  fullWidth 
-                  onClick={() => {
-                    // Сохраняем accessToken в localStorage для навигации
-                    localStorage.setItem('currentCourseToken', course.accessToken);
-                    navigate('/student/lessons');
-                  }}
-                  className="mt-2"
-                >
-                  Перейти к проекту
-                </Button>
-              )}
+                )}
+              </div>
+            </Card>
             </div>
-          </Card>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

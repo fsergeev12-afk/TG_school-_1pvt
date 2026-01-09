@@ -46,6 +46,8 @@ export interface StudentCourseListItem {
   price?: number;
   requiresPayment: boolean;
   isPaid: boolean;
+  isActivated: boolean; // НОВОЕ: Статус активации
+  invitationStatus?: string; // НОВОЕ: Для отладки
   accessToken: string;
 }
 
@@ -134,12 +136,23 @@ export function useActivateAccess() {
 /**
  * Проверить токен доступа (без активации)
  */
-export function useCheckAccessToken(accessToken: string | null, telegramId?: number) {
+export function useCheckAccessToken(
+  accessToken: string | null, 
+  telegramId?: number,
+  firstName?: string,
+  lastName?: string,
+  username?: string,
+) {
   return useQuery({
     queryKey: ['checkAccessToken', accessToken, telegramId],
     queryFn: async () => {
       const response = await apiClient.get(`/students/check/${accessToken}`, {
-        params: { telegramId },
+        params: { 
+          telegramId,
+          firstName,
+          lastName,
+          username,
+        },
       });
       return response.data;
     },
