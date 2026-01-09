@@ -63,6 +63,12 @@ function AppContent() {
 
   // Аутентификация и определение роли
   useEffect(() => {
+    // Если уже есть пользователь, не повторяем аутентификацию
+    if (user) {
+      console.log('[Auth] User already exists, skipping authentication');
+      return;
+    }
+
     const authenticate = async () => {
       // URL параметр для тестирования (приоритет над всем)
       const urlParams = new URLSearchParams(window.location.search);
@@ -130,14 +136,20 @@ function AppContent() {
             createdAt: new Date().toISOString(),
           });
           
-          // Проверяем, активирован ли студент
-          if (data.student?.invitationStatus === 'activated') {
-            // Уже активирован → сразу на курс
-            console.log('[Auth] Student already activated, redirecting to course');
+          // Проверяем статус студента
+          const studentActivated = data.student?.invitationStatus === 'activated';
+          const studentPaid = data.student?.paymentStatus === 'paid';
+          const requiresPayment = (data.student?.stream?.price || data.stream?.price || 0) > 0;
+          
+          console.log('[Auth] Student status:', { studentActivated, studentPaid, requiresPayment });
+          
+          if (studentActivated && (!requiresPayment || studentPaid)) {
+            // Уже активирован И (бесплатный ИЛИ оплачен) → сразу на курс
+            console.log('[Auth] Student has access, redirecting to course');
             setShouldRedirect('/student/lessons');
           } else {
-            // Не активирован → на страницу оплаты
-            console.log('[Auth] Student not activated, redirecting to payment');
+            // Не активирован ИЛИ не оплачен → на страницу оплаты
+            console.log('[Auth] Student needs payment, redirecting to payment page');
             setShouldRedirect(`/student/payment?accessToken=${startParam}`);
           }
           
@@ -218,7 +230,7 @@ function AppContent() {
     if (webApp) {
       authenticate();
     }
-  }, [webApp, tgUser, startParam, setUser]);
+  }, [webApp, tgUser, startParam]); // убрали setUser из dependencies
 
   // Загрузка WebApp
   if (!webApp) {
