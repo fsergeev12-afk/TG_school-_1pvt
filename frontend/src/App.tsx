@@ -8,6 +8,7 @@ import { apiClient } from './api/client';
 // Layouts
 import CreatorLayout from './pages/creator/CreatorLayout';
 import StudentLayout from './pages/student/StudentLayout';
+import PaymentPage from './pages/student/PaymentPage';
 
 // Pages
 import LoadingScreen from './components/shared/LoadingScreen';
@@ -25,9 +26,10 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   const { webApp, user: tgUser } = useTelegram();
-  const { setUser, user, isLoading } = useAuthStore();
+  const { setUser, user, isLoading, setRole } = useAuthStore();
   const [isActivating, setIsActivating] = useState(false);
   const [activationError, setActivationError] = useState<string | null>(null);
+  const [shouldRedirect, setShouldRedirect] = useState<string | null>(null);
 
   // Получаем start_param из нескольких источников:
   // 1. URL параметр ?startapp=TOKEN (Direct Link формат: t.me/bot/app?startapp=TOKEN)
@@ -115,16 +117,17 @@ function AppContent() {
             role: 'student',
             createdAt: new Date().toISOString(),
           });
+          setRole('student');
           
           // Проверяем, активирован ли студент
           if (data.student?.invitationStatus === 'activated') {
             // Уже активирован → сразу на курс
             console.log('[Auth] Student already activated, redirecting to course');
-            navigate('/student/lessons');
+            setShouldRedirect('/student/lessons');
           } else {
             // Не активирован → на страницу оплаты
             console.log('[Auth] Student not activated, redirecting to payment');
-            navigate(`/student/payment?accessToken=${startParam}`);
+            setShouldRedirect(`/student/payment?accessToken=${startParam}`);
           }
           
         } catch (error: any) {
@@ -144,6 +147,7 @@ function AppContent() {
             role: 'student',
             createdAt: new Date().toISOString(),
           });
+          setRole('student');
         } finally {
           setIsActivating(false);
         }
@@ -236,6 +240,17 @@ function AppContent() {
     }
     return '/student';
   };
+
+  // Если есть редирект - выполняем его
+  if (shouldRedirect) {
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="*" element={<Navigate to={shouldRedirect} replace />} />
+        </Routes>
+      </BrowserRouter>
+    );
+  }
 
   return (
     <BrowserRouter>
