@@ -173,7 +173,7 @@ ${messageText}
     await this.sendMessageWithWebApp(
       telegramId,
       message,
-      `Открыть "${courseName}"`,
+      `Открыть "${streamName}"`,
       accessToken,
     );
     this.logger.log(`Broadcast сообщение отправлено пользователю ${telegramId}`);
