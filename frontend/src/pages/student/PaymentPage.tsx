@@ -93,7 +93,7 @@ export default function PaymentPage() {
 
   const handleAskQuestion = () => {
     // Открываем бота без параметров для создания диалога
-    const botUsername = import.meta.env.VITE_BOT_USERNAME || 'Bllocklyyy_bot';
+    const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'Bllocklyyy_bot';
     window.open(`https://t.me/${botUsername}`, '_blank');
   };
 
