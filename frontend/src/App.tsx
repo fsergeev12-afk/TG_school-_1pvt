@@ -232,22 +232,15 @@ function AppContent() {
 
   // Определяем маршрут по роли
   const getDefaultRoute = () => {
+    // Если есть редирект (студент по invite-ссылке) - используем его
+    if (shouldRedirect) {
+      return shouldRedirect;
+    }
     if (user?.role === 'creator' || user?.role === 'admin') {
       return '/creator';
     }
     return '/student';
   };
-
-  // Если есть редирект - выполняем его
-  if (shouldRedirect) {
-    return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="*" element={<Navigate to={shouldRedirect} replace />} />
-        </Routes>
-      </BrowserRouter>
-    );
-  }
 
   return (
     <BrowserRouter>
