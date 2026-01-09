@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { useTelegram } from './hooks/useTelegram';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from './store';
@@ -26,6 +26,7 @@ const queryClient = new QueryClient({
 function AppContent() {
   const { webApp, user: tgUser } = useTelegram();
   const { setUser, user, isLoading } = useAuthStore();
+  const queryClient = useQueryClient();
   const [isActivating, setIsActivating] = useState(false);
   const [activationError, setActivationError] = useState<string | null>(null);
   const [shouldRedirect, setShouldRedirect] = useState<string | null>(null);
@@ -146,6 +147,10 @@ function AppContent() {
           if (studentActivated && (!requiresPayment || studentPaid)) {
             // Уже активирован И (бесплатный ИЛИ оплачен) → сразу на курс
             console.log('[Auth] Student has access, redirecting to course');
+            
+            // ВАЖНО: Инвалидируем кэш чтобы обновить список курсов при переходе
+            queryClient.invalidateQueries({ queryKey: ['student', 'courses'] });
+            
             setShouldRedirect('/student/lessons');
           } else {
             // Не активирован ИЛИ не оплачен → на страницу оплаты

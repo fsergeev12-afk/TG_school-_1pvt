@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '../../components/layout';
 import { Card, Button, Input } from '../../components/ui';
 import { useValidatePromoCode } from '../../api/hooks';
@@ -8,6 +9,7 @@ import { useUIStore } from '../../store';
 
 export default function PaymentPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const accessToken = searchParams.get('accessToken') || '';
   const { showToast } = useUIStore();
@@ -81,6 +83,9 @@ export default function PaymentPage() {
         accessToken,
         promoCode: promoApplied?.valid ? promoCode.trim() : undefined,
       });
+
+      // ВАЖНО: Инвалидируем кэш чтобы обновить список курсов
+      queryClient.invalidateQueries({ queryKey: ['student', 'courses'] });
 
       setShowSuccessModal(true);
     } catch (error: any) {
