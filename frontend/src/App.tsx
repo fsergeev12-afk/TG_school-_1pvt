@@ -95,9 +95,22 @@ function AppContent() {
       //    Показываем интерфейс создателя
       // ============================================
 
+      // ШАГ 1: Всегда сначала получаем данные пользователя с сервера
+      let serverUser = null;
+      if (webApp?.initData) {
+        try {
+          const { data } = await apiClient.get('/auth/me');
+          serverUser = data;
+          console.log('[Auth] Server user data:', serverUser);
+        } catch (error) {
+          console.log('[Auth] No existing user on server, will create new');
+        }
+      }
+
       if (startParam) {
-        // СТУДЕНТ - перешёл по invite-ссылке
-        console.log('[Auth] Student mode - checking token:', startParam);
+        // РЕЖИМ INVITE-ССЫЛКИ
+        // Пользователь перешёл по ссылке-приглашению от преподавателя
+        console.log('[Auth] Invite link mode - checking token:', startParam);
         setIsActivating(true);
         
         try {
@@ -108,7 +121,7 @@ function AppContent() {
           
           // Устанавливаем пользователя как студента
           setUser({
-            id: data.student?.userId || 'student-id',
+            id: serverUser?.id || data.student?.userId || 'student-id',
             telegramId: tgUser?.id || 0,
             firstName: tgUser?.first_name || 'Ученик',
             lastName: tgUser?.last_name,
@@ -149,14 +162,28 @@ function AppContent() {
           setIsActivating(false);
         }
         
-      } else {
-        // ПРЕПОДАВАТЕЛЬ - открыл бота напрямую
-        console.log('[Auth] Creator mode - direct bot access');
+      } else if (serverUser) {
+        // РЕЖИМ СУЩЕСТВУЮЩЕГО ПОЛЬЗОВАТЕЛЯ
+        // Используем роль с сервера (не меняем автоматически!)
+        console.log('[Auth] Existing user mode - using server role:', serverUser.role);
         
-        // Пробуем получить данные с сервера и стать создателем
+        setUser({
+          id: serverUser.id,
+          telegramId: serverUser.telegramId,
+          firstName: serverUser.firstName,
+          lastName: serverUser.lastName,
+          telegramUsername: serverUser.telegramUsername,
+          role: serverUser.role,
+          createdAt: serverUser.createdAt,
+        });
+        
+      } else {
+        // РЕЖИМ НОВОГО ПОЛЬЗОВАТЕЛЯ (без invite-ссылки)
+        // Новый пользователь открыл бота напрямую → становится создателем
+        console.log('[Auth] New user mode - becoming creator');
+        
         if (webApp?.initData) {
           try {
-            // Вызываем become-creator чтобы обновить роль на creator
             const { data } = await apiClient.post('/auth/become-creator');
             console.log('[Auth] User became creator:', data);
             
@@ -171,7 +198,7 @@ function AppContent() {
             });
             return;
           } catch (error) {
-            console.error('[Auth] API error, using mock creator:', error);
+            console.error('[Auth] API error, using fallback creator:', error);
           }
         }
         
