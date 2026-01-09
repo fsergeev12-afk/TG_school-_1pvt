@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/layout';
 import { Card, Button } from '../../components/ui';
@@ -48,12 +48,20 @@ export default function LessonsPage() {
     scheduledAt: null,
   });
 
+  // ЗАЩИТА: Если курс требует оплату и не оплачен - редирект на оплату
+  useEffect(() => {
+    if (course && course.requiresPayment && !course.isPaid) {
+      console.log('[LessonsPage] ⚠️ Доступ заблокирован: курс требует оплаты');
+      navigate(`/student/payment?streamId=${course.streamId}`, { replace: true });
+    }
+  }, [course, navigate]);
+
   // Раскрыть первый блок по умолчанию при загрузке
-  useState(() => {
-    if (course?.blocks?.[0]) {
+  useEffect(() => {
+    if (course?.blocks?.[0] && Object.keys(expandedBlocks).length === 0) {
       setExpandedBlocks({ [course.blocks[0].id]: true });
     }
-  });
+  }, [course?.blocks]);
 
   const toggleBlock = (blockId: string) => {
     setExpandedBlocks(prev => ({
