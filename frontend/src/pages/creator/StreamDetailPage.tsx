@@ -99,9 +99,11 @@ export default function StreamDetailPage() {
   const handleEditSchedule = (scheduleId: string, lessonId: string, lessonTitle: string, currentDate: string | null) => {
     setEditingSchedule({ scheduleId, lessonId, lessonTitle, currentDate: currentDate || '' });
     // Форматируем дату для input type="datetime-local" (YYYY-MM-DDTHH:mm)
+    // Конвертируем UTC -> MSK для отображения
     if (currentDate) {
-      const date = new Date(currentDate);
-      const formatted = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+      const utcDate = new Date(currentDate);
+      const mskDate = new Date(utcDate.getTime() + 3 * 60 * 60 * 1000); // UTC -> MSK (+3 часа)
+      const formatted = new Date(mskDate.getTime() - mskDate.getTimezoneOffset() * 60000)
         .toISOString()
         .slice(0, 16);
       setNewScheduleDate(formatted);
@@ -114,10 +116,21 @@ export default function StreamDetailPage() {
   const handleSaveSchedule = async () => {
     if (!editingSchedule || !id || !newScheduleDate) return;
     try {
+      // Конвертируем дату из MSK в UTC
+      // newScheduleDate - это строка "2026-01-09T16:03" в MSK
+      // Нужно интерпретировать её как MSK и конвертировать в UTC
+      const [datePart, timePart] = newScheduleDate.split('T');
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes] = timePart.split(':').map(Number);
+      
+      // Создаём дату как UTC, но вычитаем 3 часа (т.к. пользователь ввёл MSK)
+      const mskDate = new Date(Date.UTC(year, month - 1, day, hours, minutes, 0));
+      const utcDate = new Date(mskDate.getTime() - 3 * 60 * 60 * 1000); // MSK -> UTC (-3 часа)
+      
       await updateSchedule.mutateAsync({
         streamId: id,
         scheduleId: editingSchedule.scheduleId,
-        scheduledOpenAt: new Date(newScheduleDate).toISOString(),
+        scheduledOpenAt: utcDate.toISOString(),
       });
       showToast('Расписание обновлено', 'success');
       setEditScheduleModalOpen(false);
