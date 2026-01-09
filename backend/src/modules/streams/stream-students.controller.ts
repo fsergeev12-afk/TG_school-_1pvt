@@ -154,8 +154,11 @@ export class StudentActivationController {
    * Используется для показа страницы оплаты
    */
   @Get('check/:accessToken')
-  async checkAccessToken(@Param('accessToken') accessToken: string) {
-    this.activationLogger.log(`[checkAccessToken] token=${accessToken}`);
+  async checkAccessToken(
+    @Param('accessToken') accessToken: string,
+    @CurrentUser() user?: User, // Опционально - если пользователь авторизован
+  ) {
+    this.activationLogger.log(`[checkAccessToken] token=${accessToken}, userId=${user?.id}, telegramId=${user?.telegramId}`);
     
     // Пробуем сначала как индивидуальный токен студента
     let student = await this.studentsService.findByAccessToken(accessToken);
@@ -182,6 +185,32 @@ export class StudentActivationController {
     
     if (stream) {
       this.activationLogger.log(`[checkAccessToken] Найден по inviteToken потока: streamId=${stream.id}`);
+      
+      // ВАЖНО: Если пользователь уже авторизован, проверяем есть ли он в этом потоке
+      if (user?.telegramId) {
+        const existingStudent = await this.studentsService.findByStreamAndTelegram(
+          stream.id,
+          user.telegramId,
+        );
+        
+        if (existingStudent) {
+          this.activationLogger.log(`[checkAccessToken] Студент УЖЕ есть в потоке: studentId=${existingStudent.id}, status=${existingStudent.invitationStatus}`);
+          return {
+            student: {
+              id: existingStudent.id,
+              invitationStatus: existingStudent.invitationStatus,
+              paymentStatus: existingStudent.paymentStatus,
+              stream: {
+                id: stream.id,
+                name: stream.name,
+                price: stream.price,
+                course: stream.course,
+              },
+            },
+          };
+        }
+      }
+      
       return {
         stream: {
           id: stream.id,

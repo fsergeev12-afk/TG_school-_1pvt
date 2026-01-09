@@ -145,6 +145,16 @@ export class StreamStudentsService {
   }
 
   /**
+   * Найти студента по потоку и telegramId
+   */
+  async findByStreamAndTelegram(streamId: string, telegramId: number): Promise<StreamStudent | null> {
+    return this.studentRepository.findOne({
+      where: { streamId, telegramId },
+      relations: ['stream', 'stream.course'],
+    });
+  }
+
+  /**
    * Активировать по invite token потока (создаёт студента если его нет)
    */
   async activateByStreamToken(inviteToken: string, telegramId: number, userId?: string, firstName?: string, lastName?: string, username?: string, promoCode?: string): Promise<StreamStudent> {
