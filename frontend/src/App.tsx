@@ -266,7 +266,8 @@ function AppContent() {
     if (user?.role === 'creator' || user?.role === 'admin') {
       return '/creator';
     }
-    return '/student';
+    // Студенты по умолчанию попадают на страницу материалов (не на главную с оплатой)
+    return '/student/lessons';
   };
 
   return (
