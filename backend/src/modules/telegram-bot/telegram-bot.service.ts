@@ -110,11 +110,11 @@ export class TelegramBotService implements OnModuleInit {
   async sendWelcomeMessage(
     telegramId: number,
     creatorName: string,
-    courseName: string,
+    streamName: string,
     accessToken: string,
   ): Promise<void> {
     const message = `
-🎓 Привет! <b>${creatorName}</b> приглашает тебя на проект "<b>${courseName}</b>"!
+🎓 Привет! <b>${creatorName}</b> приглашает тебя на проект "<b>${streamName}</b>"!
 
 Нажми кнопку ниже, чтобы начать обучение.
     `.trim();
@@ -122,7 +122,7 @@ export class TelegramBotService implements OnModuleInit {
     await this.sendMessageWithWebApp(
       telegramId,
       message,
-      `Открыть "${courseName}"`,
+      `Открыть "${streamName}"`,
       accessToken,
     );
     this.logger.log(`Welcome сообщение отправлено пользователю ${telegramId}`);
@@ -134,21 +134,21 @@ export class TelegramBotService implements OnModuleInit {
   async sendLessonNotification(
     telegramId: number,
     creatorName: string,
-    courseName: string,
+    streamName: string,
     lessonTitle: string,
     accessToken: string,
   ): Promise<void> {
     const message = `
 📚 <b>Новый материал доступен!</b>
 
-От <b>${creatorName}</b> в проекте "<b>${courseName}</b>":
+От <b>${creatorName}</b> в проекте "<b>${streamName}</b>":
 Материал "${lessonTitle}" открыт для просмотра.
     `.trim();
 
     await this.sendMessageWithWebApp(
       telegramId,
       message,
-      `Открыть "${courseName}"`,
+      `Открыть "${streamName}"`,
       accessToken,
     );
     this.logger.log(`Уведомление о материале отправлено пользователю ${telegramId}`);
@@ -160,7 +160,7 @@ export class TelegramBotService implements OnModuleInit {
   async sendBroadcastMessage(
     telegramId: number,
     creatorName: string,
-    courseName: string,
+    streamName: string,
     messageText: string,
     accessToken: string,
   ): Promise<void> {

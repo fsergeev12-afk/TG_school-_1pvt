@@ -92,7 +92,7 @@ export class NotificationsService {
       throw new ForbiddenException('Нет доступа к этому потоку');
     }
 
-    const courseName = stream.course?.title || 'Проект';
+    const streamName = stream.name || 'Проект';
 
     // Фильтруем учеников
     let students = stream.students || [];
@@ -127,7 +127,7 @@ export class NotificationsService {
         await this.telegramBotService.sendBroadcastMessage(
           student.telegramId,
           stream.creator?.firstName || 'Создатель',
-          courseName,
+          streamName,
           dto.message,
           student.accessToken,
         );
@@ -157,7 +157,7 @@ export class NotificationsService {
     student: StreamStudent,
     lessonTitle: string,
     creatorName: string,
-    courseName: string,
+    streamName: string,
   ): Promise<void> {
     try {
       const notification = await this.create(
@@ -171,7 +171,7 @@ export class NotificationsService {
       await this.telegramBotService.sendLessonNotification(
         student.telegramId,
         creatorName,
-        courseName,
+        streamName,
         lessonTitle,
         student.accessToken,
       );
@@ -190,14 +190,14 @@ export class NotificationsService {
    */
   async sendAllLessonsOpenedNotification(
     student: StreamStudent,
-    courseName: string,
+    streamName: string,
   ): Promise<void> {
     try {
       const notification = await this.create(
         student.id,
         'all_lessons_opened',
         '🎉 Все материалы доступны!',
-        `Все материалы проекта "${courseName}" теперь открыты для просмотра.`,
+        `Все материалы проекта "${streamName}" теперь открыты для просмотра.`,
         student.streamId,
       );
 
@@ -223,21 +223,21 @@ export class NotificationsService {
   async sendWelcomeNotification(
     student: StreamStudent,
     creatorName: string,
-    courseName: string,
+    streamName: string,
   ): Promise<void> {
     try {
       const notification = await this.create(
         student.id,
         'welcome',
         '🎓 Добро пожаловать!',
-        `Вы успешно присоединились к проекту "${courseName}".`,
+        `Вы успешно присоединились к проекту "${streamName}".`,
         student.streamId,
       );
 
       await this.telegramBotService.sendWelcomeMessage(
         student.telegramId,
         creatorName,
-        courseName,
+        streamName,
         student.accessToken,
       );
 

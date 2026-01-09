@@ -273,14 +273,13 @@ export class StreamsService {
     });
 
     if (students.length > 0 && stream.notifyOnLessonOpen) {
-      const course = await this.courseRepository.findOne({ where: { id: stream.courseId } });
-      const courseName = course?.title || 'Проект';
+      const streamName = stream.name || 'Проект';
 
       for (const student of students) {
         try {
           await this.notificationsService.sendAllLessonsOpenedNotification(
             student,
-            courseName,
+            streamName,
           );
           await this.delay(100); // Rate limiting
         } catch (error) {

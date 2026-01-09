@@ -169,20 +169,28 @@ export class StreamStudentsService {
     if (student) {
       this.logger.log(`[activateByStreamToken] Студент УЖЕ ЕСТЬ в потоке: studentId=${student.id}`);
       
-      // Применяем промокод если есть и студент еще не активирован
-      if (promoCode && student.invitationStatus !== 'activated') {
-        this.logger.log(`[activateByStreamToken] Применяем промокод: ${promoCode}`);
-        const promoResult = await this.promoCodesService.apply(
-          promoCode,
-          stream.id,
-          student.id,
-        );
+      let needsSave = false;
 
-        // Если бесплатный - помечаем как оплаченный
-        if (promoResult.isFree) {
-          student.paymentStatus = 'paid';
-          student.paidAt = new Date();
-          this.logger.log(`[activateByStreamToken] Промокод дает бесплатный доступ`);
+      // Применяем промокод если есть
+      if (promoCode) {
+        this.logger.log(`[activateByStreamToken] Применяем промокод: ${promoCode}`);
+        try {
+          const promoResult = await this.promoCodesService.apply(
+            promoCode,
+            stream.id,
+            student.id,
+          );
+
+          // Если бесплатный - помечаем как оплаченный
+          if (promoResult.isFree) {
+            student.paymentStatus = 'paid';
+            student.paidAt = new Date();
+            needsSave = true;
+            this.logger.log(`[activateByStreamToken] Промокод дает бесплатный доступ`);
+          }
+        } catch (error) {
+          this.logger.error(`[activateByStreamToken] Ошибка применения промокода: ${error.message}`);
+          // Продолжаем активацию даже если промокод не применился
         }
       }
       
@@ -191,8 +199,14 @@ export class StreamStudentsService {
         student.invitationStatus = 'activated';
         student.activatedAt = new Date();
         if (userId) student.userId = userId;
+        needsSave = true;
+      }
+
+      // Сохраняем если были изменения
+      if (needsSave) {
         await this.studentRepository.save(student);
       }
+
       return student;
     }
 

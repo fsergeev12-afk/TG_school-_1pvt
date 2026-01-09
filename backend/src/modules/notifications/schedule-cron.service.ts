@@ -76,14 +76,14 @@ export class ScheduleCronService {
 
           const creatorName = schedule.stream.creator?.firstName || 'Создатель';
           const lessonTitle = schedule.lesson?.title || 'Новый урок';
-          const courseName = schedule.stream.course?.title || 'Проект';
+          const streamName = schedule.stream.name || 'Проект';
 
           for (const student of students) {
             await this.notificationsService.sendLessonOpenedNotification(
               student,
               lessonTitle,
               creatorName,
-              courseName,
+              streamName,
             );
 
             // Rate limiting
