@@ -93,7 +93,7 @@ export default function PaymentPage() {
 
   const handleAskQuestion = () => {
     // Открываем бота без параметров для создания диалога
-    const botUsername = process.env.REACT_APP_BOT_USERNAME || 'Bllocklyyy_bot';
+    const botUsername = import.meta.env.VITE_BOT_USERNAME || 'Bllocklyyy_bot';
     window.open(`https://t.me/${botUsername}`, '_blank');
   };
 
@@ -123,7 +123,7 @@ export default function PaymentPage() {
   const finalPrice = promoApplied?.valid 
     ? promoApplied.finalPrice || 0 
     : originalPrice;
-  const hasDiscount = promoApplied?.valid && promoApplied.discountAmount > 0;
+  const hasDiscount = promoApplied?.valid && (promoApplied.discountAmount ?? 0) > 0;
 
   // Подсчет уроков и блоков
   const blocksCount = course?.blocks?.length || 0;
@@ -168,7 +168,7 @@ export default function PaymentPage() {
                 </p>
                 {hasDiscount && (
                   <p className="text-green-600 text-sm mb-4">
-                    Скидка: -{formatMoney(promoApplied.discountAmount)}
+                    Скидка: -{formatMoney(promoApplied?.discountAmount ?? 0)}
                   </p>
                 )}
               </>
