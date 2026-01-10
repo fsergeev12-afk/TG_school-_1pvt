@@ -131,7 +131,7 @@ export class StreamStudentsService {
   async findByAccessToken(accessToken: string): Promise<StreamStudent | null> {
     return this.studentRepository.findOne({
       where: { accessToken },
-      relations: ['stream', 'stream.course', 'user'],
+      relations: ['stream', 'stream.course', 'stream.course.creator', 'user'],
     });
   }
 
@@ -143,7 +143,7 @@ export class StreamStudentsService {
   async findStreamByInviteToken(inviteToken: string): Promise<Stream | null> {
     return this.streamRepository.findOne({
       where: { inviteToken },
-      relations: ['course'],
+      relations: ['course', 'course.creator'],
     });
   }
 
@@ -414,7 +414,7 @@ export class StreamStudentsService {
     // Проверяем, есть ли уже студент в этом потоке
     let student = await this.studentRepository.findOne({
       where: { streamId, telegramId },
-      relations: ['stream', 'stream.course', 'user'],
+      relations: ['stream', 'stream.course', 'stream.course.creator', 'user'],
     });
     
     if (student) {
@@ -433,7 +433,7 @@ export class StreamStudentsService {
     // Получаем информацию о потоке
     const stream = await this.streamRepository.findOne({
       where: { id: streamId },
-      relations: ['course'],
+      relations: ['course', 'course.creator'],
     });
     
     if (!stream) {
@@ -461,7 +461,7 @@ export class StreamStudentsService {
     // Загружаем с relations для возврата
     const fullStudent = await this.studentRepository.findOne({
       where: { id: savedStudent.id },
-      relations: ['stream', 'stream.course', 'user'],
+      relations: ['stream', 'stream.course', 'stream.course.creator', 'user'],
     });
     
     this.logger.log(`[getOrCreateInvitedStudent] Создан новый студент: studentId=${fullStudent.id}`);
