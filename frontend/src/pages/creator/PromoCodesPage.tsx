@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePromoCodes, useCreatePromoCode, useDeletePromoCode, useStream } from '../../api/hooks';
-import { PageHeader } from '../../components/layout';
+import { PageContainer, PageContent, PageHeader } from '../../components/layout';
 import { Button, Card, Input } from '../../components/ui';
 import { useUIStore } from '../../store';
 
@@ -86,15 +86,15 @@ export default function PromoCodesPage() {
   };
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader
-        title="🎟️ Промокоды"
+        title="Промокоды"
         subtitle={stream?.name}
         showBack
         onBack={() => navigate(`/creator/streams/${streamId}`)}
       />
 
-      <div className="p-4 space-y-3">
+      <PageContent className="space-y-4">
         {/* Кнопка создания */}
         {!isCreating && (
           <Button fullWidth onClick={() => setIsCreating(true)}>
@@ -297,8 +297,8 @@ export default function PromoCodesPage() {
             )}
           </Card>
         ))}
-      </div>
-    </div>
+      </PageContent>
+    </PageContainer>
   );
 }
 

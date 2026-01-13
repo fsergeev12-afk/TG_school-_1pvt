@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useConversation, useMessages, useSendMessage, useMarkAsRead } from '../../api/hooks';
-import { PageHeader } from '../../components/layout';
-import { Button, Input } from '../../components/ui';
+import { PageContainer, PageHeader } from '../../components/layout';
+import { Button, Input, Icons, Avatar } from '../../components/ui';
 
 export default function ChatDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,7 +49,7 @@ export default function ChatDetailPage() {
     `Chat ${conversation?.telegramChatId}`;
 
   return (
-    <div className="flex flex-col h-screen">
+    <PageContainer className="flex flex-col h-screen">
       <PageHeader
         title={displayName}
         subtitle={conversation?.stream?.name}
@@ -57,30 +57,42 @@ export default function ChatDetailPage() {
       />
 
       {/* Сообщения */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages?.slice().reverse().map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.senderType === 'creator' ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-2 ${msg.senderType === 'creator' ? 'justify-end' : 'justify-start'}`}
           >
+            {msg.senderType === 'student' && (
+              <Avatar 
+                firstName={conversation?.telegramFirstName}
+                lastName={conversation?.telegramLastName}
+                variant="neutral"
+                size="sm"
+                className="flex-shrink-0 mt-1"
+              />
+            )}
             <div
               className={`
-                max-w-[80%] px-4 py-2 rounded-2xl
+                max-w-[75%] px-4 py-2.5 rounded-2xl shadow-soft
                 ${msg.senderType === 'creator'
-                  ? 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] rounded-br-md'
-                  : 'bg-[var(--tg-theme-secondary-bg-color)] text-[var(--tg-theme-text-color)] rounded-bl-md'
+                  ? 'bg-[var(--gradient-cta)] text-white rounded-br-md'
+                  : 'bg-white/80 backdrop-blur-soft text-dark rounded-bl-md'
                 }
               `}
             >
-              <p className="whitespace-pre-wrap break-words">{msg.text}</p>
+              <p className="text-[15px] whitespace-pre-wrap break-words leading-relaxed">{msg.text}</p>
               <p className={`
-                text-xs mt-1
-                ${msg.senderType === 'creator' ? 'text-white/70' : 'text-[var(--tg-theme-hint-color)]'}
+                text-[11px] mt-1.5
+                ${msg.senderType === 'creator' ? 'text-white/70' : 'text-secondary'}
               `}>
                 {new Date(msg.createdAt).toLocaleTimeString('ru-RU', { 
                   hour: '2-digit', 
                   minute: '2-digit' 
                 })}
+                {msg.senderType === 'creator' && (
+                  <Icons.DoubleCheck className="inline-block ml-1 w-3 h-3" />
+                )}
               </p>
             </div>
           </div>
@@ -89,7 +101,7 @@ export default function ChatDetailPage() {
       </div>
 
       {/* Поле ввода */}
-      <div className="p-4 border-t border-[var(--tg-theme-hint-color)]/20 safe-area-pb">
+      <div className="p-4 border-t border-[var(--purple-main)]/10 bg-white/40 backdrop-blur-soft safe-area-pb">
         <div className="flex gap-2">
           <Input
             value={text}
@@ -102,14 +114,14 @@ export default function ChatDetailPage() {
             onClick={handleSend}
             loading={sendMessage.isPending}
             disabled={!text.trim()}
+            size="md"
+            className="w-12 h-12 !p-0"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-            </svg>
+            <Icons.Telegram className="w-5 h-5" />
           </Button>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

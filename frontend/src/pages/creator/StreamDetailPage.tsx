@@ -12,7 +12,7 @@ import {
   useOpenAllLessons,
   useUpdateSchedule
 } from '../../api/hooks';
-import { PageHeader } from '../../components/layout';
+import { PageContainer, PageContent, PageHeader } from '../../components/layout';
 import { Button, Card, Input, Modal } from '../../components/ui';
 import { useUIStore } from '../../store';
 import { generateInviteLink } from '../../config';
@@ -200,7 +200,7 @@ export default function StreamDetailPage() {
   };
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         title={stream.name}
         subtitle={stream.course?.title}
@@ -208,15 +208,15 @@ export default function StreamDetailPage() {
       />
 
       {/* Табы */}
-      <div className="flex border-b border-[var(--tg-theme-hint-color)]/20 px-4 overflow-x-auto">
+      <div className="flex border-b border-[var(--purple-main)]/10 px-4 overflow-x-auto bg-white/40 backdrop-blur-soft">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+            className={`px-4 py-3 text-[14px] font-semibold whitespace-nowrap border-b-3 transition-all ${
               activeTab === tab.id
-                ? 'border-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-color)]'
-                : 'border-transparent text-[var(--tg-theme-hint-color)]'
+                ? 'border-[var(--terracotta-main)] text-dark'
+                : 'border-transparent text-secondary'
             }`}
           >
             {tab.label}
@@ -224,7 +224,7 @@ export default function StreamDetailPage() {
         ))}
       </div>
 
-      <div className="p-4">
+      <PageContent>
         {/* Вкладка "Ученики" */}
         {activeTab === 'students' && (
           <div className="space-y-3">
@@ -604,7 +604,7 @@ export default function StreamDetailPage() {
             </Card>
           </div>
         )}
-      </div>
+      </PageContent>
 
       {/* Add Students Modal */}
       <Modal
@@ -786,6 +786,6 @@ export default function StreamDetailPage() {
           </div>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
