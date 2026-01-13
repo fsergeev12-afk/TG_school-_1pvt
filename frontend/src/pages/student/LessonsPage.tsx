@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PageHeader } from '../../components/layout';
-import { Card, Button } from '../../components/ui';
+import { PageContainer, PageContent, PageHeader } from '../../components/layout';
+import { Card, Button, Icons } from '../../components/ui';
 import { useStudentCourse } from '../../api/hooks';
 import { TELEGRAM_BOT_USERNAME } from '../../config';
 
@@ -16,24 +16,32 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, onClose, schedule
   if (!isOpen) return null;
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
       <div 
-        className="bg-[var(--tg-theme-bg-color)] rounded-2xl p-6 max-w-sm w-full text-center"
-        onClick={e => e.stopPropagation()}
+        className="max-w-sm w-full"
+        onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
-        <div className="text-4xl mb-4">⏳</div>
-        <h3 className="font-semibold text-lg text-[var(--tg-theme-text-color)] mb-2">
+      <Card 
+        variant="active"
+        className="text-center p-6"
+      >
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--warning)]/10 flex items-center justify-center">
+          <Icons.Clock className="w-10 h-10 text-[var(--warning)]" />
+        </div>
+        <h3 className="font-semibold text-[20px] text-dark mb-2">
           Материал откроется
         </h3>
-        <p className="text-[var(--tg-theme-text-color)] mb-4">
+        <p className="text-[16px] text-dark mb-3">
           {scheduledAt}
         </p>
-        <p className="text-sm text-[var(--tg-theme-hint-color)] mb-4">
+        <p className="text-[13px] text-secondary mb-5 flex items-center justify-center gap-1">
+          <Icons.Bell className="w-4 h-4" />
           Вы получите уведомление в Telegram
         </p>
-        <Button fullWidth onClick={onClose}>
+        <Button fullWidth size="lg" onClick={onClose}>
           Понятно
         </Button>
+      </Card>
       </div>
     </div>
   );
@@ -86,129 +94,135 @@ export default function LessonsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-[var(--tg-theme-hint-color)]">Загрузка...</div>
-      </div>
+      <PageContainer>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-secondary text-[15px]">Загрузка...</div>
+        </div>
+      </PageContainer>
     );
   }
 
   if (!course) {
     return (
-      <div className="min-h-screen">
+      <PageContainer>
         <PageHeader title="Проект" showBack />
-        <div className="p-4">
-          <Card className="text-center py-8">
-            <p className="text-[var(--tg-theme-hint-color)]">Проект не найден</p>
+        <PageContent>
+          <Card variant="normal" className="text-center py-8">
+            <p className="text-secondary">Проект не найден</p>
           </Card>
-        </div>
-      </div>
+        </PageContent>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="min-h-screen">
+    <PageContainer>
       <PageHeader title="Назад" showBack />
 
-      <div className="p-4 space-y-4">
+      <PageContent>
         {/* Заголовок проекта */}
-        <div>
-          <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)] break-words">
+        <div className="mb-4">
+          <h1 className="text-[24px] font-bold text-dark break-words">
             {course.title}
           </h1>
-          <p className="text-[var(--tg-theme-hint-color)]">
+          <p className="text-[14px] text-secondary mt-1">
             {course.totalLessons} материалов в {course.blocks.length} разделах
           </p>
         </div>
 
         {/* Секция "Задать вопрос" */}
-        <Card className="border border-[var(--tg-theme-hint-color)]/20">
-          <div className="text-center">
-            <p className="text-[var(--tg-theme-text-color)] mb-1">
-              💬 Есть вопросы по проекту?
-            </p>
-            <p className="text-sm text-[var(--tg-theme-hint-color)] mb-3">
-              Напишите преподавателю
-            </p>
-            <Button 
-              variant="secondary" 
-              onClick={handleAskQuestion}
-              className="min-w-[160px]"
-            >
-              Задать вопрос
-            </Button>
-          </div>
+        <Card variant="normal" className="text-center mb-4">
+          <Icons.Chat className="w-10 h-10 mx-auto mb-2 text-[var(--purple-main)]" />
+          <p className="text-[15px] text-dark font-medium mb-1">
+            Есть вопросы по проекту?
+          </p>
+          <p className="text-[13px] text-secondary mb-3">
+            Напишите преподавателю
+          </p>
+          <Button 
+            variant="secondary"
+            size="md"
+            onClick={handleAskQuestion}
+          >
+            <Icons.Telegram className="w-4 h-4" />
+            Задать вопрос
+          </Button>
         </Card>
 
         {/* Разделы с материалами (Accordion) */}
-        <div className="space-y-2">
+        <div className="space-y-3">
           {course.blocks.map((block) => (
-            <div key={block.id} className="bg-[var(--tg-theme-secondary-bg-color)] rounded-xl overflow-hidden">
+            <Card key={block.id} variant="active" className="overflow-hidden p-0">
               {/* Заголовок раздела */}
               <button
                 onClick={() => toggleBlock(block.id)}
-                className="w-full flex items-center justify-between p-4 text-left"
+                className="w-full flex items-center justify-between p-4 text-left active:opacity-80 transition-opacity"
               >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <span className="text-lg flex-shrink-0">📂</span>
-                  <span className="font-semibold text-[var(--tg-theme-text-color)] break-words">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--terracotta-main)]/10 flex items-center justify-center flex-shrink-0">
+                    <Icons.Book className="w-4 h-4 text-[var(--terracotta-main)]" />
+                  </div>
+                  <span className="font-semibold text-[16px] text-dark break-words">
                     {block.title}
                   </span>
                 </div>
-                <svg 
-                  className={`w-5 h-5 text-[var(--tg-theme-hint-color)] transition-transform ${
-                    expandedBlocks[block.id] ? 'rotate-180' : ''
+                <Icons.ArrowRight 
+                  className={`w-5 h-5 text-secondary transition-transform flex-shrink-0 ${
+                    expandedBlocks[block.id] ? 'rotate-90' : ''
                   }`}
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                />
               </button>
 
               {/* Материалы раздела */}
               {expandedBlocks[block.id] && (
-                <div className="border-t border-[var(--tg-theme-hint-color)]/10">
+                <div className="border-t border-[var(--purple-main)]/10">
                   {block.lessons.map((lesson) => (
                     <button
                       key={lesson.id}
                       onClick={() => handleLessonClick(lesson)}
                       className={`
-                        w-full flex items-center gap-3 p-4 text-left border-b border-[var(--tg-theme-hint-color)]/10 last:border-b-0
-                        ${lesson.available ? 'active:bg-[var(--tg-theme-hint-color)]/10' : 'opacity-50'}
+                        w-full flex items-center gap-3 p-4 text-left border-b border-[var(--purple-main)]/10 last:border-b-0
+                        ${lesson.available ? 'active:bg-[var(--purple-main)]/5' : 'opacity-60'}
                       `}
                     >
                       {/* Иконка статуса */}
-                      <span className="text-lg flex-shrink-0">
-                        {lesson.available ? '▸' : '🔒'}
-                      </span>
+                      <div className="flex-shrink-0">
+                        {lesson.available ? (
+                          <div className="w-6 h-6 rounded-full bg-[var(--success)]/10 flex items-center justify-center">
+                            <Icons.Play className="w-3 h-3 text-[var(--success)]" />
+                          </div>
+                        ) : (
+                          <div className="w-6 h-6 rounded-full bg-[var(--text-muted)]/10 flex items-center justify-center">
+                            <Icons.Lock className="w-3 h-3 text-muted" />
+                          </div>
+                        )}
+                      </div>
                       
                       {/* Название материала */}
-                      <div className="flex-1">
-                        <p className={`text-[var(--tg-theme-text-color)] break-words ${lesson.available ? '' : 'text-[var(--tg-theme-hint-color)]'}`}>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-[15px] break-words ${lesson.available ? 'text-dark' : 'text-muted'}`}>
                           {lesson.title}
                         </p>
                         {!lesson.available && lesson.scheduledAt && (
-                          <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                            Откроется: {lesson.scheduledAt}
+                          <p className="text-[12px] text-muted mt-0.5 flex items-center gap-1">
+                            <Icons.Clock className="w-3 h-3" />
+                            {lesson.scheduledAt}
                           </p>
                         )}
                       </div>
 
                       {/* Стрелка для доступных */}
                       {lesson.available && (
-                        <svg className="w-5 h-5 text-[var(--tg-theme-hint-color)] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
+                        <Icons.ArrowRight className="w-5 h-5 text-secondary flex-shrink-0" />
                       )}
                     </button>
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
           ))}
         </div>
-      </div>
+      </PageContent>
 
       {/* Модалка расписания */}
       <ScheduleModal 
@@ -216,6 +230,6 @@ export default function LessonsPage() {
         onClose={() => setScheduleModal({ isOpen: false, scheduledAt: null })}
         scheduledAt={scheduleModal.scheduledAt}
       />
-    </div>
+    </PageContainer>
   );
 }

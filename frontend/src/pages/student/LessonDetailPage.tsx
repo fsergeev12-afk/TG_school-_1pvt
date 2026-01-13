@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PageHeader } from '../../components/layout';
-import { Card, Button } from '../../components/ui';
+import { PageContainer, PageContent, PageHeader } from '../../components/layout';
+import { Card, Button, Icons } from '../../components/ui';
 import { useStudentLesson, useGetFileUrl } from '../../api/hooks';
 
 export default function LessonDetailPage() {
@@ -61,167 +61,175 @@ export default function LessonDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-[var(--tg-theme-hint-color)]">Загрузка...</div>
-      </div>
+      <PageContainer>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-secondary text-[15px]">Загрузка...</div>
+        </div>
+      </PageContainer>
     );
   }
 
   if (!lesson) {
     return (
-      <div className="min-h-screen">
+      <PageContainer>
         <PageHeader title="Материал" showBack />
-        <div className="p-4">
-          <Card className="text-center py-8">
-            <p className="text-[var(--tg-theme-hint-color)]">Материал не найден</p>
+        <PageContent>
+          <Card variant="normal" className="text-center py-8">
+            <p className="text-secondary">Материал не найден</p>
           </Card>
-        </div>
-      </div>
+        </PageContent>
+      </PageContainer>
     );
   }
 
   return (
-    <div className="min-h-screen pb-24">
+    <PageContainer>
       <PageHeader
         title="Назад к проекту"
         showBack
         onBack={() => navigate('/student/lessons')}
       />
 
-      <div className="p-4 space-y-4">
+      <PageContent className="pb-28">
         {/* Название блока */}
         {lesson.blockTitle && (
-          <div className="flex items-center gap-2 text-sm text-[var(--tg-theme-hint-color)]">
-            <span className="flex-shrink-0">📂</span>
-            <span className="break-words">{lesson.blockTitle}</span>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-6 h-6 rounded-lg bg-[var(--terracotta-main)]/10 flex items-center justify-center">
+              <Icons.Book className="w-3 h-3 text-[var(--terracotta-main)]" />
+            </div>
+            <span className="text-[13px] text-secondary break-words">{lesson.blockTitle}</span>
           </div>
         )}
         
         {/* Заголовок урока */}
-        <h1 className="text-xl font-bold text-[var(--tg-theme-text-color)] break-words">
+        <h1 className="text-[24px] font-bold text-dark break-words mb-4">
           {lesson.title}
         </h1>
 
         {/* Превью видео */}
         {lesson.videoType && (
-          <Card className="aspect-video flex items-center justify-center bg-[var(--tg-theme-secondary-bg-color)]">
+          <Card variant="active" className="aspect-video overflow-hidden p-0 mb-4">
             {lesson.videoType === 'external' && lesson.videoExternalUrl ? (
               <iframe
                 src={lesson.videoExternalUrl}
-                className="w-full h-full rounded-xl"
+                className="w-full h-full"
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               />
             ) : (
-              <span className="text-[var(--tg-theme-hint-color)]">[Превью видео]</span>
+              <div className="w-full h-full flex items-center justify-center bg-[var(--purple-main)]/5">
+                <Icons.Video className="w-12 h-12 text-[var(--purple-main)]" />
+              </div>
             )}
           </Card>
         )}
 
         {/* Описание */}
         {lesson.description && (
-          <p className="text-[var(--tg-theme-text-color)]">
-            {lesson.description}
-          </p>
+          <Card variant="normal" className="mb-4">
+            <p className="text-[15px] text-dark whitespace-pre-wrap">
+              {lesson.description}
+            </p>
+          </Card>
         )}
 
         {/* Кнопка "Открыть" */}
         {lesson.videoType && (
           <Button 
             fullWidth 
+            size="lg"
             onClick={handleOpenVideo}
-            className="flex items-center justify-center gap-2"
+            className="mb-4"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-            Открыть
+            <Icons.Play className="w-5 h-5" />
+            Открыть видео
           </Button>
         )}
 
         {/* Материалы */}
         {lesson.materials && lesson.materials.length > 0 && (
-          <div>
+          <Card variant="active" className="p-0 overflow-hidden">
             <button
               onClick={() => setMaterialsExpanded(!materialsExpanded)}
-              className="flex items-center gap-2 text-[var(--tg-theme-link-color)] py-2"
+              className="w-full flex items-center justify-between p-4 text-left active:opacity-80 transition-opacity"
             >
-              <span>📎</span>
-              <span>Открыть файлы ({lesson.materials.length})</span>
-              <svg 
-                className={`w-4 h-4 transition-transform ${materialsExpanded ? 'rotate-180' : ''}`}
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+              <div className="flex items-center gap-2">
+                <Icons.Paperclip className="w-5 h-5 text-[var(--purple-main)]" />
+                <span className="text-[16px] font-semibold text-dark">
+                  Файлы ({lesson.materials.length})
+                </span>
+              </div>
+              <Icons.ArrowRight 
+                className={`w-5 h-5 text-secondary transition-transform ${materialsExpanded ? 'rotate-90' : ''}`}
+              />
             </button>
 
             {materialsExpanded && (
-              <div className="mt-2 space-y-2">
+              <div className="border-t border-[var(--purple-main)]/10">
                 {lesson.materials.map((material) => (
                   <div
                     key={material.id}
-                    className="flex items-center gap-3 p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl"
+                    className="flex items-center gap-3 p-4 border-b border-[var(--purple-main)]/10 last:border-b-0"
                   >
-                    <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-red-600 text-xs font-bold">
-                        {material.fileType.toUpperCase()}
-                      </span>
+                    <div className="w-10 h-10 rounded-xl bg-[var(--error)]/10 flex items-center justify-center flex-shrink-0">
+                      <Icons.Document className="w-5 h-5 text-[var(--error)]" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[var(--tg-theme-text-color)] text-sm break-words">
+                      <p className="text-[14px] text-dark break-words">
                         {material.fileName}
                       </p>
-                      <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                        {(material.fileSizeBytes / 1024 / 1024).toFixed(1)} MB
+                      <p className="text-[12px] text-secondary">
+                        {material.fileType.toUpperCase()} · {(material.fileSizeBytes / 1024 / 1024).toFixed(1)} MB
                       </p>
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-2">
                       <button
                         onClick={() => handleViewMaterial(material.telegramFileId, material.fileName)}
-                        className="p-2 text-[var(--tg-theme-link-color)]"
+                        className="p-2 rounded-lg bg-[var(--purple-main)]/10 text-[var(--purple-main)] active:opacity-70"
                         title="Посмотреть"
                       >
-                        👁️
+                        <Icons.Search className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDownloadMaterial(material.telegramFileId, material.fileName)}
-                        className="p-2 text-[var(--tg-theme-link-color)]"
+                        className="p-2 rounded-lg bg-[var(--purple-main)]/10 text-[var(--purple-main)] active:opacity-70"
                         title="Скачать"
                       >
-                        ⬇️
+                        <Icons.Download className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         )}
-      </div>
+      </PageContent>
 
       {/* Навигация внизу */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-[var(--tg-theme-bg-color)] border-t border-[var(--tg-theme-hint-color)]/20">
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-desert-sunset border-t border-[var(--purple-main)]/10 z-40">
         <div className="flex gap-3">
           <Button 
-            variant="secondary" 
+            variant="secondary"
+            size="md"
             onClick={() => lesson.prevLessonId ? navigate(`/student/lessons/${lesson.prevLessonId}`) : navigate('/student/lessons')}
             className="flex-1"
             disabled={!lesson.prevLessonId}
           >
-            ← Предыдущий
+            <Icons.ArrowLeft className="w-4 h-4" />
+            Предыдущий
           </Button>
-          <Button 
+          <Button
+            size="md"
             onClick={() => lesson.nextLessonId ? navigate(`/student/lessons/${lesson.nextLessonId}`) : navigate('/student/lessons')}
             className="flex-1"
             disabled={!lesson.nextLessonId}
           >
-            Следующий →
+            Следующий
+            <Icons.ArrowRight className="w-4 h-4" />
           </Button>
         </div>
       </div>
-    </div>
+    </PageContainer>
   );
 }
