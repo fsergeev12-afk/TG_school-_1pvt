@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConversations } from '../../api/hooks';
-import { PageHeader } from '../../components/layout';
-import { Card, Badge, Input } from '../../components/ui';
+import { PageContainer, PageContent, PageHeader } from '../../components/layout';
+import { Card, Badge, Input, Icons, Avatar } from '../../components/ui';
 
 export default function ChatsPage() {
   const navigate = useNavigate();
@@ -42,23 +42,26 @@ export default function ChatsPage() {
   };
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader title="Чаты" />
 
-      <div className="p-4 space-y-4">
+      <PageContent>
         {/* Поиск */}
         {conversations && conversations.length > 0 && (
-          <div className="relative">
+          <div className="relative mb-4">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <Icons.Search className="w-4 h-4 text-secondary" />
+            </div>
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="🔍 Поиск по имени или потоку..."
-              className="w-full"
+              placeholder="Поиск по имени или потоку..."
+              className="pl-10"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-dark"
               >
                 ✕
               </button>
@@ -67,18 +70,18 @@ export default function ChatsPage() {
         )}
 
         {isLoading && (
-          <div className="text-center py-8 text-[var(--tg-theme-hint-color)]">
+          <div className="text-center py-8 text-secondary text-[15px]">
             Загрузка...
           </div>
         )}
 
         {!isLoading && conversations?.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-4xl mb-3">💬</div>
-            <p className="text-[var(--tg-theme-hint-color)]">
+            <Icons.Chat className="w-16 h-16 mx-auto mb-4 text-[var(--purple-main)]" />
+            <p className="text-[15px] text-dark mb-1">
               Пока нет сообщений
             </p>
-            <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
+            <p className="text-[13px] text-secondary">
               Сообщения от учеников появятся здесь
             </p>
           </div>
@@ -86,39 +89,44 @@ export default function ChatsPage() {
 
         {!isLoading && conversations && conversations.length > 0 && filteredConversations.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-4xl mb-3">🔍</div>
-            <p className="text-[var(--tg-theme-hint-color)]">
+            <Icons.Search className="w-16 h-16 mx-auto mb-4 text-[var(--purple-main)]" />
+            <p className="text-[15px] text-dark mb-1">
               Ничего не найдено
             </p>
-            <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
+            <p className="text-[13px] text-secondary">
               Попробуйте изменить запрос
             </p>
           </div>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {filteredConversations?.map((conv) => (
             <Card
               key={conv.id}
+              variant={conv.unreadCount > 0 ? 'active' : 'normal'}
+              accentLine={conv.unreadCount > 0}
               onClick={() => navigate(`/creator/chats/${conv.id}`)}
-              padding="sm"
-              className="active:scale-[0.98] transition-transform"
+              className="active:opacity-90 transition-opacity cursor-pointer"
             >
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-[var(--tg-theme-button-color)]/10 flex items-center justify-center text-xl">
-                  👤
-                </div>
+                <Avatar 
+                  firstName={conv.telegramFirstName}
+                  lastName={conv.telegramLastName}
+                  variant="accent"
+                  size="md"
+                />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="font-semibold text-[16px] text-dark truncate">
                       {conv.telegramFirstName || conv.telegramUsername || `Chat ${conv.telegramChatId}`}
                     </span>
-                    <span className="text-xs text-[var(--tg-theme-hint-color)]">
+                    <span className="text-[11px] text-muted">
                       {formatTime(conv.lastMessageAt)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between gap-2 mt-0.5">
-                    <p className="text-sm text-[var(--tg-theme-hint-color)] truncate">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[13px] text-secondary truncate flex items-center gap-1">
+                      <Icons.Users className="w-3 h-3" />
                       {conv.stream?.name || 'Без потока'}
                     </p>
                     {conv.unreadCount > 0 && (
@@ -132,8 +140,8 @@ export default function ChatsPage() {
             </Card>
           ))}
         </div>
-      </div>
-    </div>
+      </PageContent>
+    </PageContainer>
   );
 }
 
