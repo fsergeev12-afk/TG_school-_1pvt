@@ -5,6 +5,8 @@ interface CardProps {
   className?: string;
   onClick?: () => void;
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  variant?: 'active' | 'normal' | 'inactive';
+  accentLine?: boolean;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -12,25 +14,35 @@ export const Card: React.FC<CardProps> = ({
   className = '',
   onClick,
   padding = 'md',
+  variant = 'normal',
+  accentLine = false,
 }) => {
   const paddings = {
     none: '',
     sm: 'p-3',
     md: 'p-4',
-    lg: 'p-6',
+    lg: 'p-5',
+  };
+
+  const variants = {
+    active: 'card-active shadow-card',
+    normal: 'card-normal shadow-soft',
+    inactive: 'card-inactive shadow-soft',
   };
 
   return (
     <div
       className={`
-        bg-[var(--tg-theme-secondary-bg-color,#f5f5f5)]
+        ${variants[variant]}
         rounded-2xl
         ${paddings[padding]}
-        ${onClick ? 'cursor-pointer active:opacity-80 transition-opacity' : ''}
+        ${onClick ? 'cursor-pointer active:opacity-90 transition-opacity' : ''}
+        ${accentLine ? 'relative overflow-hidden' : ''}
         ${className}
       `}
       onClick={onClick}
     >
+      {accentLine && <div className="card-accent-line" />}
       {children}
     </div>
   );
@@ -50,9 +62,9 @@ export const CardHeader: React.FC<CardHeaderProps> = ({
   return (
     <div className="flex items-start justify-between mb-3">
       <div>
-        <h3 className="font-semibold text-[var(--tg-theme-text-color)]">{title}</h3>
+        <h3 className="font-semibold text-[16px] text-dark">{title}</h3>
         {subtitle && (
-          <p className="text-sm text-[var(--tg-theme-hint-color)] mt-0.5">{subtitle}</p>
+          <p className="text-[13px] text-secondary mt-0.5">{subtitle}</p>
         )}
       </div>
       {action}

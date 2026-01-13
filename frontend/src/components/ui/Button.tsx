@@ -18,24 +18,24 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseStyles = `
-    font-medium rounded-xl transition-all duration-200 
+    font-semibold rounded-2xl transition-opacity duration-150 
     flex items-center justify-center gap-2
     touch-manipulation select-none
-    active:scale-[0.98]
+    active:opacity-85 shadow-card
   `;
   
   const variants = {
-    primary: 'bg-[var(--tg-theme-button-color)] text-[var(--tg-theme-button-text-color)] active:opacity-90',
-    secondary: 'bg-[var(--tg-theme-secondary-bg-color,#f0f0f0)] text-[var(--tg-theme-text-color)] active:opacity-90',
-    danger: 'bg-red-500 text-white active:bg-red-600',
-    ghost: 'bg-transparent text-[var(--tg-theme-link-color)] active:bg-black/5',
+    primary: 'btn-cta text-white text-[15px]',
+    secondary: 'btn-nav text-white text-[13px]',
+    danger: 'bg-[var(--error)] text-white active:opacity-85',
+    ghost: 'bg-transparent text-[var(--purple-main)] active:bg-black/5 shadow-none',
   };
   
-  // Мобильно-адаптированные размеры (минимум 44px высота для touch)
+  // Desert Sunset размеры (мобильно-адаптированные)
   const sizes = {
-    sm: 'px-4 py-2 text-sm min-h-[40px]',
-    md: 'px-5 py-3 text-base min-h-[48px]',
-    lg: 'px-6 py-4 text-lg min-h-[52px]',
+    sm: 'px-4 h-10',       // 40px - мелкие кнопки, back
+    md: 'px-5 h-12',       // 48px - вторичные кнопки
+    lg: 'px-6 h-14',       // 56px - CTA кнопки
   };
   
   return (

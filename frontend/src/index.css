@@ -2,15 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Telegram WebApp Theme Variables */
+/* Desert Sunset Theme Variables */
 :root {
-  --tg-theme-bg-color: #ffffff;
-  --tg-theme-text-color: #000000;
-  --tg-theme-hint-color: #999999;
-  --tg-theme-link-color: #2481cc;
-  --tg-theme-button-color: #2481cc;
+  /* Фон */
+  --bg-gradient: linear-gradient(180deg, #C9B8D4 0%, #D4C4D4 40%, #E8DCD8 100%);
+  --bg-lavender: #C9B8D4;
+  --bg-powder: #D4C4D4;
+  --bg-sand: #E8DCD8;
+  
+  /* Текст */
+  --text-dark: #3D2E4A;
+  --text-medium: #5B4A6A;
+  --text-secondary: #8B7A9A;
+  --text-muted: #A090B0;
+  
+  /* Акценты */
+  --purple-main: #6B5A7A;
+  --purple-light: #B8A8C8;
+  --terracotta-main: #D4956A;
+  --terracotta-dark: #C4855A;
+  
+  /* Градиенты */
+  --gradient-cta: linear-gradient(135deg, #D4956A, #C4855A);
+  --gradient-nav: linear-gradient(135deg, #6B5A7A, #5B4A6A);
+  --gradient-nav-bg: linear-gradient(to top, #E8DCD8 60%, transparent 100%);
+  
+  /* Аватары */
+  --avatar-neutral: linear-gradient(145deg, #E8DCD8, #D4C4D4);
+  --avatar-accent: linear-gradient(145deg, #C9B8D4, #B8A8C8);
+  --avatar-dark: linear-gradient(145deg, #5B4A6A, #4A3D5A);
+  
+  /* Карточки */
+  --card-active: rgba(255, 255, 255, 0.8);
+  --card-normal: rgba(255, 255, 255, 0.6);
+  --card-inactive: rgba(255, 255, 255, 0.4);
+  --card-line: linear-gradient(90deg, #C9B8D4, #D4956A, #C9B8D4);
+  
+  /* Семантика */
+  --success: #10B981;
+  --error: #EF4444;
+  --warning: #F59E0B;
+  
+  /* Тени */
+  --shadow-soft: 0 2px 8px rgba(107, 91, 122, 0.1);
+  --shadow-card: 0 4px 20px rgba(107, 91, 122, 0.15);
+  
+  /* Обратная совместимость с Telegram */
+  --tg-theme-bg-color: #E8DCD8;
+  --tg-theme-text-color: #3D2E4A;
+  --tg-theme-hint-color: #8B7A9A;
+  --tg-theme-link-color: #6B5A7A;
+  --tg-theme-button-color: #D4956A;
   --tg-theme-button-text-color: #ffffff;
-  --tg-theme-secondary-bg-color: #f0f0f0;
+  --tg-theme-secondary-bg-color: #D4C4D4;
 }
 
 * {
@@ -160,5 +204,111 @@ input, select, textarea {
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
+/* =============================================
+   DESERT SUNSET THEME UTILITIES
+   ============================================= */
 
+/* Градиентный фон */
+.bg-desert-sunset {
+  background: var(--bg-gradient);
+}
 
+/* Тени */
+.shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+/* Кнопки CTA */
+.btn-cta {
+  background: var(--gradient-cta);
+  color: white;
+  font-weight: 600;
+  transition: opacity 0.15s ease;
+}
+
+.btn-cta:active {
+  opacity: 0.85;
+}
+
+/* Кнопки навигации */
+.btn-nav {
+  background: var(--gradient-nav);
+  color: white;
+}
+
+/* Карточки */
+.card-active {
+  background: var(--card-active);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.card-normal {
+  background: var(--card-normal);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.card-inactive {
+  background: var(--card-inactive);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Accent line для активных карточек */
+.card-accent-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--card-line);
+}
+
+/* Аватары */
+.avatar-neutral {
+  background: var(--avatar-neutral);
+  color: var(--purple-main);
+}
+
+.avatar-accent {
+  background: var(--avatar-accent);
+  color: white;
+}
+
+.avatar-dark {
+  background: var(--avatar-dark);
+  color: var(--bg-powder);
+}
+
+/* Backdrop blur */
+.backdrop-blur-soft {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Навигационный градиент */
+.nav-gradient-bg {
+  background: var(--gradient-nav-bg);
+}
+
+/* Текстовые цвета */
+.text-dark {
+  color: var(--text-dark);
+}
+
+.text-medium {
+  color: var(--text-medium);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}

@@ -16,31 +16,30 @@ export const Input: React.FC<InputProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-1.5">
+        <label className="block text-[11px] font-semibold uppercase tracking-wide mb-2 text-secondary">
           {label}
         </label>
       )}
       <input
         className={`
-          w-full px-4 py-3.5 rounded-xl
-          bg-[var(--tg-theme-secondary-bg-color,#f0f0f0)]
-          text-[var(--tg-theme-text-color)]
-          text-base
-          placeholder:text-[var(--tg-theme-hint-color)]
-          border-2 border-transparent
-          focus:border-[var(--tg-theme-button-color)] focus:outline-none
-          transition-colors duration-200
-          min-h-[48px]
-          ${error ? 'border-red-500' : ''}
+          w-full h-12 px-4 rounded-2xl
+          bg-white/70 backdrop-blur-soft
+          text-dark text-[14px]
+          placeholder:text-muted
+          border-0
+          focus:outline-none focus:ring-2 focus:ring-purple-main/20
+          transition-all duration-200
+          shadow-soft
+          ${error ? 'ring-2 ring-red-500' : ''}
           ${className}
         `}
         {...props}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-500">{error}</p>
+        <p className="mt-1 text-[13px]" style={{ color: 'var(--error)' }}>{error}</p>
       )}
       {hint && !error && (
-        <p className="mt-1 text-sm text-[var(--tg-theme-hint-color)]">{hint}</p>
+        <p className="mt-1 text-[13px] text-secondary">{hint}</p>
       )}
     </div>
   );
@@ -62,29 +61,30 @@ export const Textarea: React.FC<TextareaProps> = ({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-1.5">
+        <label className="block text-[11px] font-semibold uppercase tracking-wide mb-2 text-secondary">
           {label}
         </label>
       )}
       <textarea
         className={`
-          w-full px-4 py-3 rounded-xl resize-none
-          bg-[var(--tg-theme-secondary-bg-color,#f0f0f0)]
-          text-[var(--tg-theme-text-color)]
-          placeholder:text-[var(--tg-theme-hint-color)]
-          border-2 border-transparent
-          focus:border-[var(--tg-theme-button-color)] focus:outline-none
-          transition-colors duration-200
-          ${error ? 'border-red-500' : ''}
+          w-full px-4 py-3 rounded-2xl resize-none
+          bg-white/70 backdrop-blur-soft
+          text-dark text-[14px]
+          placeholder:text-muted
+          border-0
+          focus:outline-none focus:ring-2 focus:ring-purple-main/20
+          transition-all duration-200
+          shadow-soft
+          ${error ? 'ring-2 ring-red-500' : ''}
           ${className}
         `}
         {...props}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-500">{error}</p>
+        <p className="mt-1 text-[13px]" style={{ color: 'var(--error)' }}>{error}</p>
       )}
       {hint && !error && (
-        <p className="mt-1 text-sm text-[var(--tg-theme-hint-color)]">{hint}</p>
+        <p className="mt-1 text-[13px] text-secondary">{hint}</p>
       )}
     </div>
   );

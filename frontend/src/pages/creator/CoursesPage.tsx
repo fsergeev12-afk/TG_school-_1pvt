@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCourses, useDeleteCourse, useCourseStreamsCount } from '../../api/hooks';
-import { PageHeader } from '../../components/layout';
-import { Button, Card, Modal } from '../../components/ui';
+import { PageContainer, PageContent, PageHeader } from '../../components/layout';
+import { Button, Card, Modal, Icons } from '../../components/ui';
 import { useUIStore } from '../../store';
 
 export default function CoursesPage() {
@@ -30,22 +30,21 @@ export default function CoursesPage() {
   };
 
   return (
-    <div>
+    <PageContainer>
       <PageHeader
         title="Modula"
         subtitle={courses ? `${courses.length} проектов` : 'Мои проекты'}
         action={
           <Button size="sm" onClick={() => navigate('/creator/courses/new')}>
-            + Создать
+            <Icons.Plus className="w-4 h-4" />
           </Button>
         }
       />
 
-      <div className="p-4 space-y-3">
-
+      <PageContent>
         {/* Загрузка */}
         {isLoading && (
-          <div className="text-center py-8 text-[var(--tg-theme-hint-color)]">
+          <div className="text-center py-8 text-secondary text-[15px]">
             Загрузка...
           </div>
         )}
@@ -53,58 +52,61 @@ export default function CoursesPage() {
         {/* Пустой список */}
         {!isLoading && courses?.length === 0 && (
           <div className="text-center py-12">
-            <div className="text-4xl mb-3">📚</div>
-            <p className="text-[var(--tg-theme-hint-color)]">
+            <Icons.Book className="w-16 h-16 mx-auto mb-4 text-[var(--terracotta-main)]" />
+            <p className="text-[15px] text-secondary mb-1">
               Пока нет проектов
             </p>
-            <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
+            <p className="text-[13px] text-muted">
               Создайте первый проект для старта
             </p>
-            <Button className="mt-4" onClick={() => navigate('/creator/courses/new')}>
-              + Создать проект
+            <Button className="mt-5" onClick={() => navigate('/creator/courses/new')}>
+              <Icons.Plus className="w-5 h-5" />
+              Создать проект
             </Button>
           </div>
         )}
 
         {/* Список проектов */}
-        {courses?.map((course) => (
-          <Card key={course.id}>
-            <div className="flex items-start gap-3">
-              <div className="w-16 h-16 rounded-xl bg-[var(--tg-theme-button-color)]/10 flex items-center justify-center text-2xl">
-                📚
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
-                  {course.title}
-                </h3>
-                <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
-                  {course.blocks?.length || 0} разделов • {
-                    course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0
-                  } материалов
-                </p>
-                
-                {/* Кнопки по PRD */}
-                <div className="flex gap-2 mt-3">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => navigate(`/creator/courses/${course.id}`)}
-                  >
-                    ✏️ Редактировать
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setDeleteConfirm({ id: course.id, title: course.title })}
-                  >
-                    🗑️ Удалить
-                  </Button>
+        <div className="space-y-3">
+          {courses?.map((course) => (
+            <Card key={course.id} variant="active" accentLine>
+              <div className="flex items-start gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-[var(--terracotta-main)]/10 flex items-center justify-center">
+                  <Icons.Book className="w-6 h-6 text-[var(--terracotta-main)]" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-[17px] text-dark">
+                    {course.title}
+                  </h3>
+                  <p className="text-[13px] text-secondary mt-0.5">
+                    {course.blocks?.length || 0} разделов • {
+                      course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0
+                    } материалов
+                  </p>
+                  
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => navigate(`/creator/courses/${course.id}`)}
+                    >
+                      <Icons.Edit className="w-4 h-4" />
+                      Редактировать
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setDeleteConfirm({ id: course.id, title: course.title })}
+                    >
+                      <Icons.Trash className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      </PageContent>
 
       {/* Delete Confirmation Modal */}
       <Modal
@@ -149,6 +151,6 @@ export default function CoursesPage() {
           </div>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }

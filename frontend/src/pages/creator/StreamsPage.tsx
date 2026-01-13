@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStreams, useCreateStream, useCourses } from '../../api/hooks';
-import { PageHeader } from '../../components/layout';
-import { Button, Card, Input, Modal } from '../../components/ui';
+import { PageContainer, PageContent, PageHeader } from '../../components/layout';
+import { Button, Card, Input, Modal, Icons } from '../../components/ui';
 import { useUIStore } from '../../store';
 import { Lesson } from '../../types';
 
@@ -130,20 +130,20 @@ export default function StreamsPage() {
   };
 
   return (
-    <div className="pb-24">
+    <PageContainer>
       <PageHeader
         title="Modula"
         subtitle={streams ? `${streams.length} потоков` : 'Потоки'}
         action={
           !isCreating ? (
             <Button size="sm" onClick={() => setIsCreating(true)}>
-              + Создать
+              <Icons.Plus className="w-4 h-4" />
             </Button>
           ) : undefined
         }
       />
 
-      <div className="p-4 space-y-3">
+      <PageContent>
         {/* Мастер создания потока - 4 шага */}
         {isCreating && (
           <Card className="space-y-4">
@@ -508,42 +508,50 @@ export default function StreamsPage() {
         )}
 
         {/* Список потоков */}
-        {streams?.map((stream) => (
-          <Card
-            key={stream.id}
-            onClick={() => navigate(`/creator/streams/${stream.id}`)}
-            className="active:scale-[0.98] transition-transform"
-          >
-            <div className="flex items-start gap-3">
-              <div className="w-12 h-12 rounded-xl bg-[var(--tg-theme-button-color)]/10 flex items-center justify-center text-xl">
-                📊
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
-                  {stream.name}
-                </h3>
-                <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                  Проект: {stream.course?.title || 'Не указан'}
-                </p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs">
-                  <span className="text-[var(--tg-theme-hint-color)]">
-                    👥 Приглашено: {stream.studentsCount || 0}
-                  </span>
-                  <span className="text-[var(--tg-theme-hint-color)]">
-                    ✅ Активировано: {stream.activatedCount || 0}
-                  </span>
-                  <span className="text-[var(--tg-theme-hint-color)]">
-                    💳 Оплачено: {stream.paidCount || 0}
-                  </span>
+        <div className="space-y-3">
+          {streams?.map((stream) => (
+            <Card
+              key={stream.id}
+              variant="active"
+              accentLine
+              onClick={() => navigate(`/creator/streams/${stream.id}`)}
+              className="active:opacity-90 transition-opacity cursor-pointer"
+            >
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[var(--purple-main)]/10 flex items-center justify-center flex-shrink-0">
+                  <Icons.Users className="w-5 h-5 text-[var(--purple-main)]" />
                 </div>
-                <p className="text-xs text-[var(--tg-theme-hint-color)] mt-2">
-                  📅 Создан: {formatDate(stream.createdAt)}
-                </p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-[17px] text-dark">
+                    {stream.name}
+                  </h3>
+                  <p className="text-[13px] text-secondary mt-0.5">
+                    Проект: {stream.course?.title || 'Не указан'}
+                  </p>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[12px]">
+                    <span className="text-secondary flex items-center gap-1">
+                      <Icons.Mail className="w-3 h-3" />
+                      {stream.studentsCount || 0}
+                    </span>
+                    <span className="text-secondary flex items-center gap-1">
+                      <Icons.Check className="w-3 h-3" />
+                      {stream.activatedCount || 0}
+                    </span>
+                    <span className="text-secondary flex items-center gap-1">
+                      <Icons.CreditCard className="w-3 h-3" />
+                      {stream.paidCount || 0}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted mt-2 flex items-center gap-1">
+                    <Icons.Calendar className="w-3 h-3" />
+                    {formatDate(stream.createdAt)}
+                  </p>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      </PageContent>
 
       {/* Date Picker Modal */}
       <Modal
@@ -575,6 +583,6 @@ export default function StreamsPage() {
           </Button>
         </div>
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
