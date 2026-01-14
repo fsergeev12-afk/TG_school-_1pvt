@@ -675,17 +675,23 @@ export default function CourseDetailPage() {
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <Icons.Folder className="w-5 h-5 text-[var(--purple-main)] flex-shrink-0" />
                           {editingBlockId === block.id ? (
-                            <input
-                              type="text"
-                              className="flex-1 min-w-0 bg-white/50 border-2 border-[var(--purple-main)] rounded-lg outline-none text-[var(--tg-theme-text-color)] px-3 py-2 text-[15px]"
-                              value={editBlockTitle}
-                              onChange={(e) => setEditBlockTitle(e.target.value)}
-                              onKeyDown={handleEditBlockKeyDown} 
-                              onBlur={handleSaveBlockTitle}
-                              autoFocus
-                              onClick={(e) => e.stopPropagation()}
-                              onTouchStart={(e) => e.stopPropagation()}
-                            />
+                            <div className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="text"
+                                className="w-full bg-white border-2 border-[var(--purple-main)] rounded-xl outline-none text-[var(--tg-theme-text-color)] px-4 py-3 text-[16px] shadow-sm"
+                                value={editBlockTitle}
+                                onChange={(e) => setEditBlockTitle(e.target.value)}
+                                onKeyDown={handleEditBlockKeyDown} 
+                                onBlur={handleSaveBlockTitle}
+                                autoFocus
+                                onTouchStart={(e) => e.stopPropagation()}
+                                onTouchMove={(e) => e.stopPropagation()}
+                                style={{ 
+                                  WebkitUserSelect: 'text',
+                                  userSelect: 'text',
+                                }}
+                              />
+                            </div>
                           ) : (
                             <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
                               {blockIndex + 1}. {block.title}

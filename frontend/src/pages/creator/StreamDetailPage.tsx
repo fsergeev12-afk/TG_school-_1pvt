@@ -210,10 +210,10 @@ export default function StreamDetailPage() {
       />
 
       {/* Табы */}
-      <div className="relative">
+      <div className="relative pb-1">
         <div 
           ref={tabsContainerRef}
-          className="flex border-b border-[var(--purple-main)]/10 px-2 overflow-x-auto bg-white/40 backdrop-blur-soft hide-scrollbar"
+          className="flex px-2 overflow-x-auto bg-white/40 backdrop-blur-soft hide-scrollbar"
           onScroll={(e) => {
             const target = e.target as HTMLDivElement;
             const maxScroll = target.scrollWidth - target.clientWidth;
@@ -233,10 +233,10 @@ export default function StreamDetailPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-4 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-all min-h-[52px] ${
+                className={`flex items-center gap-2 px-4 py-4 text-[13px] font-semibold whitespace-nowrap transition-all min-h-[52px] ${
                   activeTab === tab.id
-                    ? 'border-[var(--terracotta-main)] text-dark'
-                    : 'border-transparent text-secondary'
+                    ? 'text-[var(--terracotta-main)]'
+                    : 'text-secondary'
                 }`}
               >
                 <IconComponent className="w-4 h-4" />
@@ -245,10 +245,10 @@ export default function StreamDetailPage() {
             );
           })}
         </div>
-        {/* Прогресс-бар прокрутки */}
-        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--purple-main)]/20 rounded-full mx-4">
+        {/* Прогресс-бар прокрутки - единственный индикатор */}
+        <div className="h-[3px] bg-[var(--purple-main)]/15 mx-4 rounded-full">
           <div 
-            className="absolute h-full w-[25%] bg-[var(--terracotta-main)] rounded-full transition-transform duration-100"
+            className="h-full w-[25%] bg-[var(--terracotta-main)] rounded-full transition-transform duration-100"
             style={{ transform: `translateX(${scrollProgress * 300}%)` }}
           />
         </div>
