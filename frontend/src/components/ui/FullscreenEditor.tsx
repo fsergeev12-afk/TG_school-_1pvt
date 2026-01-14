@@ -38,9 +38,9 @@ export const FullscreenEditor: React.FC<FullscreenEditorProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-gradient-main flex flex-col">
+    <div className="fixed inset-0 z-[100] flex flex-col animate-slide-in-right" style={{ background: 'linear-gradient(135deg, #E0BBE4 0%, #FFD7BA 100%)' }}>
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between px-4 py-4 header-gradient-bg backdrop-blur-soft border-b border-[var(--purple-main)]/10">
+      <div className="flex-shrink-0 flex items-center justify-between px-4 py-4 safe-area-pt" style={{ background: 'linear-gradient(to bottom, rgba(224, 187, 228, 0.95), rgba(255, 215, 186, 0.95))' }}>
         <button
           onClick={onClose}
           className="flex items-center gap-2 text-[var(--purple-main)] active:opacity-70 font-medium"
@@ -71,17 +71,22 @@ export const FullscreenEditor: React.FC<FullscreenEditorProps> = ({
         @keyframes slide-in-right {
           from {
             transform: translateX(100%);
+            opacity: 0;
           }
           to {
             transform: translateX(0);
+            opacity: 1;
           }
         }
         .animate-slide-in-right {
-          animation: slide-in-right 0.25s ease-out;
+          animation: slide-in-right 0.2s ease-out forwards;
         }
         .overscroll-contain {
           overscroll-behavior: contain;
           -webkit-overflow-scrolling: touch;
+        }
+        .safe-area-pt {
+          padding-top: max(16px, env(safe-area-inset-top));
         }
       `}</style>
     </div>

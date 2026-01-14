@@ -1023,16 +1023,27 @@ export default function CourseDetailPage() {
         </div>
       </Modal>
 
-      {/* Exit Confirmation */}
-      <Modal isOpen={exitConfirmOpen} onClose={() => setExitConfirmOpen(false)} title="Несохранённые изменения" size="sm">
+      {/* Exit Confirmation - сохраняем изменения перед выходом */}
+      <Modal isOpen={exitConfirmOpen} onClose={() => setExitConfirmOpen(false)} title="Сохранить изменения?" size="sm">
         <div className="space-y-4">
           <p className="text-[var(--tg-theme-text-color)]">
-            У вас есть несохранённые изменения. Если вы покинете страницу, они будут потеряны.
+            У вас есть несохранённые изменения. Сохранить их перед выходом?
           </p>
           <div className="flex gap-2">
-            <Button type="button" fullWidth variant="secondary" onClick={() => setExitConfirmOpen(false)}>Остаться</Button>
-            <Button type="button" fullWidth variant="danger" onClick={() => { setExitConfirmOpen(false); navigate('/creator/courses'); }}>
-              Выйти без сохранения
+            <Button type="button" fullWidth variant="secondary" onClick={() => setExitConfirmOpen(false)}>
+              Продолжить редактирование
+            </Button>
+            <Button 
+              type="button" 
+              fullWidth 
+              onClick={async () => { 
+                setExitConfirmOpen(false); 
+                await handleSaveAll(); 
+                navigate('/creator/courses'); 
+              }}
+              loading={isSaving}
+            >
+              Сохранить и выйти
             </Button>
           </div>
         </div>
