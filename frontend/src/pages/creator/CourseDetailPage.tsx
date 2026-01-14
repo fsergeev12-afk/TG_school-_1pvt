@@ -676,13 +676,15 @@ export default function CourseDetailPage() {
                           <Icons.Folder className="w-5 h-5 text-[var(--purple-main)] flex-shrink-0" />
                           {editingBlockId === block.id ? (
                             <input
-                              className="flex-1 min-w-0 bg-transparent border-b-2 border-[var(--purple-main)] outline-none text-[var(--tg-theme-text-color)] py-1"
+                              type="text"
+                              className="flex-1 min-w-0 bg-white/50 border-2 border-[var(--purple-main)] rounded-lg outline-none text-[var(--tg-theme-text-color)] px-3 py-2 text-[15px]"
                               value={editBlockTitle}
                               onChange={(e) => setEditBlockTitle(e.target.value)}
-                              onKeyDown={handleEditBlockKeyDown}
+                              onKeyDown={handleEditBlockKeyDown} 
                               onBlur={handleSaveBlockTitle}
                               autoFocus
                               onClick={(e) => e.stopPropagation()}
+                              onTouchStart={(e) => e.stopPropagation()}
                             />
                           ) : (
                             <span className="font-medium text-[var(--tg-theme-text-color)] truncate">

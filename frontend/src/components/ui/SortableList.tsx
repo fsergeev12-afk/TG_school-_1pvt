@@ -9,8 +9,6 @@ import {
   useSensors,
   DragEndEvent,
   DragStartEvent,
-  DragOverlay,
-  Modifier,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -20,26 +18,14 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
-// Кастомный модификатор для ограничения вертикального движения и снэппинга к пальцу
-const restrictToVerticalAxisAndSnapToFinger: Modifier = ({ transform, activatorEvent }) => {
-  // Ограничиваем только вертикальное движение
-  // Добавляем небольшой offset чтобы элемент был чуть выше пальца
-  const offsetY = activatorEvent instanceof TouchEvent ? -20 : 0;
-  return {
-    ...transform,
-    x: 0,
-    y: transform.y + offsetY,
-  };
-};
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
 
 interface SortableItemProps {
   id: string;
   children: React.ReactNode;
-  isDragOverlay?: boolean;
 }
 
-export const SortableItem: React.FC<SortableItemProps> = ({ id, children, isDragOverlay }) => {
+export const SortableItem: React.FC<SortableItemProps> = ({ id, children }) => {
   const {
     attributes,
     listeners,
@@ -49,34 +35,34 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children, isDrag
     isDragging,
   } = useSortable({ id });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    zIndex: isDragging ? 100 : undefined,
-    opacity: isDragging ? 0.4 : 1,
+    zIndex: isDragging ? 1000 : 'auto',
+    position: 'relative' as const,
   };
-
-  if (isDragOverlay) {
-    return (
-      <div className="relative shadow-2xl scale-[1.02] bg-white/90 backdrop-blur-sm rounded-xl ring-2 ring-[var(--purple-main)]">
-        <div className="pl-12">
-          {children}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      <div className={`relative ${isDragging ? 'opacity-30' : ''} transition-opacity`}>
-        {/* Drag Handle - компактная кнопка */}
+      <div 
+        className={`relative rounded-xl transition-all duration-150 ${
+          isDragging 
+            ? 'shadow-xl scale-[1.02] bg-white ring-2 ring-[var(--purple-main)]' 
+            : ''
+        }`}
+      >
+        {/* Drag Handle */}
         <div
           {...listeners}
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-full flex items-center justify-center cursor-grab active:cursor-grabbing z-10"
+          className="absolute left-0 top-0 bottom-0 w-12 flex items-center justify-center cursor-grab active:cursor-grabbing z-10"
           style={{ touchAction: 'none' }}
         >
-          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/50 active:bg-[var(--purple-main)] active:text-white transition-colors">
-            <svg className="w-5 h-5 text-[var(--tg-theme-hint-color)]" viewBox="0 0 24 24" fill="currentColor">
+          <div className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${
+            isDragging 
+              ? 'bg-[var(--purple-main)] text-white' 
+              : 'bg-[var(--purple-main)]/10 hover:bg-[var(--purple-main)]/20'
+          }`}>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <rect x="4" y="5" width="16" height="2" rx="1" />
               <rect x="4" y="11" width="16" height="2" rx="1" />
               <rect x="4" y="17" width="16" height="2" rx="1" />
@@ -103,19 +89,18 @@ export function SortableList<T extends { id: string }>({
   onReorder,
   renderItem,
 }: SortableListProps<T>) {
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [, setActiveId] = useState<string | null>(null);
   
-  // Настройки для быстрого отклика drag-n-drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3, // Минимальное расстояние для активации
+        distance: 8,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 100, // Маленькая задержка для тач
-        tolerance: 5, // Допустимое смещение
+        delay: 200,
+        tolerance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -123,31 +108,16 @@ export function SortableList<T extends { id: string }>({
     })
   );
 
-  // Блокируем скролл при начале drag (без position: fixed чтобы не ломать layout)
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
     
-    // Мягкая блокировка скролла - только overflow: hidden
-    // НЕ используем position: fixed, чтобы не вызывать "сворачивание" интерфейса
-    document.body.style.overflow = 'hidden';
-    document.body.style.overscrollBehavior = 'none';
-    document.documentElement.style.overflow = 'hidden';
-    document.documentElement.style.overscrollBehavior = 'none';
-    
-    // Вибрация для тактильного фидбека (если поддерживается)
+    // Вибрация
     if (navigator.vibrate) {
       navigator.vibrate(50);
     }
   }, []);
 
-  // Возвращаем scroll после drag
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    // Восстанавливаем скролл
-    document.body.style.overflow = '';
-    document.body.style.overscrollBehavior = '';
-    document.documentElement.style.overflow = '';
-    document.documentElement.style.overscrollBehavior = '';
-    
     setActiveId(null);
     
     const { active, over } = event;
@@ -158,7 +128,6 @@ export function SortableList<T extends { id: string }>({
       const newItems = arrayMove(items, oldIndex, newIndex);
       onReorder(newItems);
       
-      // Вибрация при успешном перемещении
       if (navigator.vibrate) {
         navigator.vibrate(30);
       }
@@ -166,15 +135,8 @@ export function SortableList<T extends { id: string }>({
   }, [items, onReorder]);
 
   const handleDragCancel = useCallback(() => {
-    document.body.style.overflow = '';
-    document.body.style.overscrollBehavior = '';
-    document.documentElement.style.overflow = '';
-    document.documentElement.style.overscrollBehavior = '';
     setActiveId(null);
   }, []);
-
-  const activeItem = activeId ? items.find(item => item.id === activeId) : null;
-  const activeIndex = activeId ? items.findIndex(item => item.id === activeId) : -1;
 
   return (
     <DndContext
@@ -183,7 +145,7 @@ export function SortableList<T extends { id: string }>({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
-      modifiers={[restrictToVerticalAxisAndSnapToFinger]}
+      modifiers={[restrictToVerticalAxis, restrictToParentElement]}
     >
       <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
         <div className="space-y-2">
@@ -194,15 +156,6 @@ export function SortableList<T extends { id: string }>({
           ))}
         </div>
       </SortableContext>
-      
-      {/* Drag Overlay - плавающий элемент при перетаскивании */}
-      <DragOverlay>
-        {activeItem ? (
-          <SortableItem id={activeItem.id} isDragOverlay>
-            {renderItem(activeItem, activeIndex)}
-          </SortableItem>
-        ) : null}
-      </DragOverlay>
     </DndContext>
   );
 }

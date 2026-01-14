@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   useStream, 
@@ -37,6 +37,8 @@ export default function StreamDetailPage() {
   const [activeTab, setActiveTab] = useState<TabType>('students');
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const tabsContainerRef = useRef<HTMLDivElement>(null);
 
   // Add students modal
   const [addStudentsModalOpen, setAddStudentsModalOpen] = useState(false);
@@ -210,13 +212,13 @@ export default function StreamDetailPage() {
       {/* Табы */}
       <div className="relative">
         <div 
+          ref={tabsContainerRef}
           className="flex border-b border-[var(--purple-main)]/10 px-2 overflow-x-auto bg-white/40 backdrop-blur-soft hide-scrollbar"
           onScroll={(e) => {
             const target = e.target as HTMLDivElement;
-            const scrollPercentage = target.scrollLeft / (target.scrollWidth - target.clientWidth);
-            const indicator = target.parentElement?.querySelector('.scroll-indicator') as HTMLDivElement;
-            if (indicator) {
-              indicator.style.left = `${4 + scrollPercentage * 75}%`;
+            const maxScroll = target.scrollWidth - target.clientWidth;
+            if (maxScroll > 0) {
+              setScrollProgress(target.scrollLeft / maxScroll);
             }
           }}
         >
@@ -244,10 +246,10 @@ export default function StreamDetailPage() {
           })}
         </div>
         {/* Прогресс-бар прокрутки */}
-        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--purple-main)]/10">
+        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--purple-main)]/20 rounded-full mx-4">
           <div 
-            className="scroll-indicator absolute h-full w-[20%] bg-[var(--terracotta-main)]/60 rounded-full transition-all duration-150"
-            style={{ left: '4%' }}
+            className="absolute h-full w-[25%] bg-[var(--terracotta-main)] rounded-full transition-transform duration-100"
+            style={{ transform: `translateX(${scrollProgress * 300}%)` }}
           />
         </div>
       </div>
