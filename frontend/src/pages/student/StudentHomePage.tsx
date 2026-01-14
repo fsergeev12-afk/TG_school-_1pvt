@@ -50,7 +50,7 @@ export default function StudentHomePage() {
           Мои проекты ({courses.length})
         </h2>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {courses.map((course) => {
             // Определяем, доступен ли курс для просмотра
             const isAccessible = course.isActivated && (!course.requiresPayment || course.isPaid);
@@ -65,7 +65,7 @@ export default function StudentHomePage() {
                 className="overflow-hidden"
               >
                 {/* Информация о проекте */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     {/* Статус иконка */}
                     {isAccessible ? (

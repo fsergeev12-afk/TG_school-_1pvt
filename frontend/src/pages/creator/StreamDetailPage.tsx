@@ -13,7 +13,7 @@ import {
   useUpdateSchedule
 } from '../../api/hooks';
 import { PageContainer, PageContent, PageHeader } from '../../components/layout';
-import { Button, Card, Input, Modal } from '../../components/ui';
+import { Button, Card, Input, Modal, Icons } from '../../components/ui';
 import { useUIStore } from '../../store';
 import { generateInviteLink } from '../../config';
 
@@ -169,11 +169,11 @@ export default function StreamDetailPage() {
   }
 
   const tabs = [
-    { id: 'students' as TabType, label: 'Участники' },
-    { id: 'schedule' as TabType, label: '📅' },
-    { id: 'broadcast' as TabType, label: 'Рассылка' },
-    { id: 'payments' as TabType, label: 'Оплаты' },
-    { id: 'settings' as TabType, label: '⚙️' },
+    { id: 'students' as TabType, label: 'Участники', icon: 'users' },
+    { id: 'schedule' as TabType, label: 'Расписание', icon: 'calendar' },
+    { id: 'broadcast' as TabType, label: 'Рассылка', icon: 'broadcast' },
+    { id: 'payments' as TabType, label: 'Оплаты', icon: 'money' },
+    { id: 'settings' as TabType, label: 'Настройки', icon: 'settings' },
   ];
 
   const activatedCount = students?.filter(s => s.invitationStatus === 'activated').length || 0;
@@ -208,20 +208,29 @@ export default function StreamDetailPage() {
       />
 
       {/* Табы */}
-      <div className="flex border-b border-[var(--purple-main)]/10 px-4 overflow-x-auto bg-white/40 backdrop-blur-soft">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-3 text-[14px] font-semibold whitespace-nowrap border-b-3 transition-all ${
-              activeTab === tab.id
-                ? 'border-[var(--terracotta-main)] text-dark'
-                : 'border-transparent text-secondary'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="flex border-b border-[var(--purple-main)]/10 px-2 overflow-x-auto bg-white/40 backdrop-blur-soft">
+        {tabs.map((tab) => {
+          const IconComponent = tab.icon === 'users' ? Icons.Users 
+            : tab.icon === 'calendar' ? Icons.Calendar
+            : tab.icon === 'broadcast' ? Icons.Broadcast
+            : tab.icon === 'money' ? Icons.Money
+            : Icons.Settings;
+          
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-4 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-all min-h-[52px] ${
+                activeTab === tab.id
+                  ? 'border-[var(--terracotta-main)] text-dark'
+                  : 'border-transparent text-secondary'
+              }`}
+            >
+              <IconComponent className="w-4 h-4" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <PageContent>

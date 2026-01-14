@@ -70,7 +70,7 @@ export const PageContent: React.FC<PageContentProps> = ({
   withPadding = true,
 }) => {
   return (
-    <div className={`${withPadding ? 'px-4 pb-24' : 'pb-24'} ${className}`}>
+    <div className={`${withPadding ? 'px-4 pt-5 pb-24' : 'pt-5 pb-24'} ${className}`}>
       {children}
     </div>
   );

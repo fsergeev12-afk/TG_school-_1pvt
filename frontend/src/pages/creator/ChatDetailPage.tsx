@@ -76,7 +76,7 @@ export default function ChatDetailPage() {
               className={`
                 max-w-[75%] px-4 py-2.5 rounded-2xl shadow-soft
                 ${msg.senderType === 'creator'
-                  ? 'bg-[var(--gradient-cta)] text-white rounded-br-md'
+                  ? 'bg-[var(--purple-light)] text-dark rounded-br-md'
                   : 'bg-white/80 backdrop-blur-soft text-dark rounded-bl-md'
                 }
               `}
@@ -84,7 +84,7 @@ export default function ChatDetailPage() {
               <p className="text-[15px] whitespace-pre-wrap break-words leading-relaxed">{msg.text}</p>
               <p className={`
                 text-[11px] mt-1.5
-                ${msg.senderType === 'creator' ? 'text-white/70' : 'text-secondary'}
+                ${msg.senderType === 'creator' ? 'text-[var(--text-medium)]' : 'text-secondary'}
               `}>
                 {new Date(msg.createdAt).toLocaleTimeString('ru-RU', { 
                   hour: '2-digit', 

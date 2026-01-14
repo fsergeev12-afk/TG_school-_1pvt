@@ -384,7 +384,7 @@ export default function StreamsPage() {
                   🔔 Уведомления участникам
                 </p>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <label className="flex items-start gap-3 p-3 rounded-xl bg-[var(--tg-theme-secondary-bg-color)] cursor-pointer opacity-70">
                     <input
                       type="checkbox"
@@ -508,7 +508,7 @@ export default function StreamsPage() {
         )}
 
         {/* Список потоков */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           {streams?.map((stream) => (
             <Card
               key={stream.id}

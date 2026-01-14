@@ -99,7 +99,7 @@ export default function ChatsPage() {
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {filteredConversations?.map((conv) => (
             <Card
               key={conv.id}
