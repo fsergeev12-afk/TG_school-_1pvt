@@ -30,8 +30,8 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-gradient-to-b from-[var(--bg-lavender)] to-[var(--bg-powder)] px-4 py-4 safe-area-pt border-b border-[var(--purple-main)]/10 backdrop-blur-soft">
-      <div className="flex items-center justify-between min-h-[44px]">
+    <header className="sticky top-0 z-10 bg-gradient-to-b from-[var(--bg-lavender)] to-[var(--bg-powder)] px-4 py-6 safe-area-pt border-b border-[var(--purple-main)]/10 backdrop-blur-soft">
+      <div className="flex items-center justify-between min-h-[48px]">
         <div className="flex items-center gap-3">
           {showBack && (
             <button
@@ -44,9 +44,9 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
             </button>
           )}
           <div className="min-w-0">
-            <h1 className="text-[20px] font-bold text-dark truncate">{title}</h1>
+            <h1 className="text-[22px] font-bold text-dark truncate">{title}</h1>
             {subtitle && (
-              <p className="text-[13px] text-secondary truncate mt-0.5">{subtitle}</p>
+              <p className="text-[14px] text-secondary truncate mt-1">{subtitle}</p>
             )}
           </div>
         </div>

@@ -67,7 +67,7 @@ export default function CoursesPage() {
         )}
 
         {/* Список проектов */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           {courses?.map((course) => (
             <Card key={course.id} variant="active" accentLine>
               <div className="flex items-start gap-3">

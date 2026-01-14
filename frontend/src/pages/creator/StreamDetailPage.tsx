@@ -208,29 +208,33 @@ export default function StreamDetailPage() {
       />
 
       {/* Табы */}
-      <div className="flex border-b border-[var(--purple-main)]/10 px-2 overflow-x-auto bg-white/40 backdrop-blur-soft">
-        {tabs.map((tab) => {
-          const IconComponent = tab.icon === 'users' ? Icons.Users 
-            : tab.icon === 'calendar' ? Icons.Calendar
-            : tab.icon === 'broadcast' ? Icons.Broadcast
-            : tab.icon === 'money' ? Icons.Money
-            : Icons.Settings;
-          
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-4 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-all min-h-[52px] ${
-                activeTab === tab.id
-                  ? 'border-[var(--terracotta-main)] text-dark'
-                  : 'border-transparent text-secondary'
-              }`}
-            >
-              <IconComponent className="w-4 h-4" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
+      <div className="relative">
+        <div className="flex border-b border-[var(--purple-main)]/10 px-2 overflow-x-auto bg-white/40 backdrop-blur-soft hide-scrollbar">
+          {tabs.map((tab) => {
+            const IconComponent = tab.icon === 'users' ? Icons.Users 
+              : tab.icon === 'calendar' ? Icons.Calendar
+              : tab.icon === 'broadcast' ? Icons.Broadcast
+              : tab.icon === 'money' ? Icons.Money
+              : Icons.Settings;
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-4 text-[13px] font-semibold whitespace-nowrap border-b-2 transition-all min-h-[52px] ${
+                  activeTab === tab.id
+                    ? 'border-[var(--terracotta-main)] text-dark'
+                    : 'border-transparent text-secondary'
+                }`}
+              >
+                <IconComponent className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+        {/* Индикатор горизонтальной прокрутки */}
+        <div className="absolute bottom-0 right-4 h-1 w-12 bg-[var(--purple-main)]/20 rounded-full pointer-events-none" />
       </div>
 
       <PageContent>

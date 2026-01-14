@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modula v4 — Desert Sunset UI Kit</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        .phone { width: 340px; height: 700px; border-radius: 36px; overflow: hidden; box-shadow: 0 25px 80px rgba(107,91,122,0.3); position: relative; }
+        .shadow-soft { box-shadow: 0 2px 8px rgba(107,91,122,0.1); }
+        .shadow-card { box-shadow: 0 4px 20px rgba(107,91,122,0.15); }
+        .bg-page { background: linear-gradient(180deg, #C9B8D4 0%, #D4C4D4 40%, #E8DCD8 100%); }
+        .btn-cta { background: linear-gradient(135deg, #D4956A, #C4855A); }
+        .btn-nav { background: linear-gradient(135deg, #6B5A7A, #5B4A6A); }
+        .avatar-neutral { background: linear-gradient(145deg, #E8DCD8, #D4C4D4); color: #6B5A7A; }
+        .avatar-accent { background: linear-gradient(145deg, #C9B8D4, #B8A8C8); color: white; }
+        .avatar-dark { background: linear-gradient(145deg, #5B4A6A, #4A3D5A); color: #D4C4D4; }
+        .card-line { background: linear-gradient(90deg, #C9B8D4, #D4956A, #C9B8D4); }
+        .nav-gradient { background: linear-gradient(to top, #E8DCD8 60%, transparent 100%); }
+    </style>
+</head>
+<body class="p-6" style="background: #D4C4D4;">
+
+<h1 class="text-2xl font-bold text-center mb-1" style="color: #3D2E4A;">Modula v4 — UI Kit</h1>
+<p class="text-center mb-8" style="color: #8B7A9A;">Desert Sunset · 8 экранов · PRD v4</p>
+
+<div class="flex flex-wrap justify-center gap-6">
+
+<!-- ========== 1. ПРОЕКТЫ (Создатель) ========== -->
+<div class="phone bg-page">
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-semibold" style="background: #6B5A7A; color: white;">1. Проекты</div>
+    <div class="h-full p-5 pt-14 pb-28 overflow-auto">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <p class="text-[13px] mb-0.5" style="color: #8B7A9A;">Добрый день</p>
+                <h1 class="text-[26px] font-bold tracking-tight" style="color: #3D2E4A;">Проекты</h1>
+            </div>
+            <div class="w-12 h-12 rounded-2xl avatar-dark flex items-center justify-center text-sm font-semibold shadow-card">ФС</div>
+        </div>
+        <div class="flex gap-2.5 mb-6">
+            <div class="flex-1 bg-white/70 backdrop-blur rounded-2xl p-3.5 text-center shadow-soft">
+                <p class="text-[11px] font-medium uppercase tracking-wide mb-0.5" style="color: #8B7A9A;">Активных</p>
+                <p class="text-[22px] font-bold" style="color: #3D2E4A;">2</p>
+            </div>
+            <div class="flex-1 bg-white/70 backdrop-blur rounded-2xl p-3.5 text-center shadow-soft">
+                <p class="text-[11px] font-medium uppercase tracking-wide mb-0.5" style="color: #8B7A9A;">Студентов</p>
+                <p class="text-[22px] font-bold" style="color: #3D2E4A;">24</p>
+            </div>
+            <div class="flex-1 rounded-2xl p-3.5 text-center shadow-card" style="background: linear-gradient(145deg, #5B4A6A, #4A3D5A);">
+                <p class="text-[11px] font-semibold uppercase tracking-wide mb-0.5" style="color: #B8A8C8;">Доход</p>
+                <p class="text-[22px] font-bold text-white">48K</p>
+            </div>
+        </div>
+        <button class="w-full h-14 rounded-2xl btn-cta font-semibold text-[15px] flex items-center justify-center gap-2 mb-6 shadow-card text-white">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Создать проект
+        </button>
+        <div class="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-card relative overflow-hidden mb-3">
+            <div class="absolute top-0 left-0 right-0 h-1 card-line"></div>
+            <div class="flex gap-4 pt-1">
+                <div class="w-14 h-14 rounded-2xl btn-nav flex items-center justify-center shadow-soft">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                        <h3 class="text-[16px] font-semibold" style="color: #3D2E4A;">Основы тайм-менеджмента</h3>
+                        <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full flex-shrink-0" style="background: rgba(16,185,129,0.1);"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-[10px] font-semibold uppercase text-emerald-700">Live</span></span>
+                    </div>
+                    <p class="text-[13px] mb-2" style="color: #8B7A9A;">9 материалов · 3 раздела</p>
+                    <div class="flex items-center gap-3">
+                        <div class="flex -space-x-2">
+                            <div class="w-7 h-7 rounded-lg border-2 border-white avatar-neutral flex items-center justify-center text-[9px] font-semibold">А</div>
+                            <div class="w-7 h-7 rounded-lg border-2 border-white avatar-neutral flex items-center justify-center text-[9px] font-semibold">М</div>
+                        </div>
+                        <span class="text-[12px]" style="color: #8B7A9A;">+21</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0 px-5 pb-6 pt-4 nav-gradient">
+        <div class="flex justify-around bg-white/90 backdrop-blur rounded-2xl p-1.5 shadow-card">
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl btn-nav text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg><span class="text-[10px] mt-1 font-semibold">Проекты</span></button>
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl" style="color: #A090B0;"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] mt-1">Потоки</span></button>
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl relative" style="color: #A090B0;"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span class="text-[10px] mt-1">Чаты</span><span class="absolute top-1 right-2 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center text-white" style="background: #D4956A;">3</span></button>
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl" style="color: #A090B0;"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] mt-1">Ещё</span></button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 2. ПОТОКИ ========== -->
+<div class="phone bg-page">
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-semibold" style="background: #6B5A7A; color: white;">2. Потоки</div>
+    <div class="h-full p-5 pt-14 pb-28 overflow-auto">
+        <h1 class="text-[26px] font-bold tracking-tight mb-6" style="color: #3D2E4A;">Потоки</h1>
+        <button class="w-full h-14 rounded-2xl btn-cta font-semibold text-[15px] flex items-center justify-center gap-2 mb-5 shadow-card text-white">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Создать поток
+        </button>
+        <div class="bg-white/80 backdrop-blur rounded-2xl p-4 shadow-card mb-3">
+            <div class="flex items-start justify-between mb-2">
+                <div>
+                    <h3 class="text-[16px] font-semibold" style="color: #3D2E4A;">Тестовое 7</h3>
+                    <p class="text-[12px]" style="color: #8B7A9A;">Керлинг</p>
+                </div>
+                <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style="background: rgba(16,185,129,0.1);"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-[10px] font-semibold uppercase text-emerald-700">Активен</span></span>
+            </div>
+            <div class="flex gap-4 text-[13px] mb-3" style="color: #6B5A7A;">
+                <span>💰 3000 ₽</span>
+                <span>📅 15 янв</span>
+            </div>
+            <div class="flex gap-2 text-[12px]" style="color: #8B7A9A;">
+                <span class="px-2 py-1 rounded-lg bg-white/60">👥 5</span>
+                <span class="px-2 py-1 rounded-lg bg-white/60">✅ 3</span>
+                <span class="px-2 py-1 rounded-lg bg-white/60">💳 2</span>
+            </div>
+        </div>
+        <div class="bg-white/60 backdrop-blur rounded-2xl p-4 shadow-soft mb-3 opacity-70">
+            <div class="flex items-start justify-between mb-2">
+                <div>
+                    <h3 class="text-[16px] font-semibold" style="color: #5B4A6A;">Поток №6</h3>
+                    <p class="text-[12px]" style="color: #A090B0;">Керлинг</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase" style="background: #E8DCD8; color: #8B7A9A;">Неактивен</span>
+            </div>
+            <div class="flex gap-4 text-[13px]" style="color: #A090B0;">
+                <span>💰 Бесплатно</span>
+                <span>📅 10 янв</span>
+            </div>
+        </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0 px-5 pb-6 pt-4 nav-gradient">
+        <div class="flex justify-around bg-white/90 backdrop-blur rounded-2xl p-1.5 shadow-card">
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl" style="color: #A090B0;"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg><span class="text-[10px] mt-1">Проекты</span></button>
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl btn-nav text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] mt-1 font-semibold">Потоки</span></button>
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl" style="color: #A090B0;"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span class="text-[10px] mt-1">Чаты</span></button>
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl" style="color: #A090B0;"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] mt-1">Ещё</span></button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 3. ДЕТАЛИ ПОТОКА ========== -->
+<div class="phone bg-page">
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-semibold" style="background: #6B5A7A; color: white;">3. Поток</div>
+    <div class="h-full p-5 pt-14 pb-6 overflow-auto">
+        <div class="flex items-center gap-3 mb-5">
+            <button class="w-10 h-10 rounded-xl bg-white/70 backdrop-blur shadow-soft flex items-center justify-center" style="color: #6B5A7A;"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+            <div class="flex-1">
+                <h1 class="text-[18px] font-bold" style="color: #3D2E4A;">Тестовое 7</h1>
+                <p class="text-[12px]" style="color: #8B7A9A;">Основы тайм-менеджмента</p>
+            </div>
+        </div>
+        <div class="flex gap-1 bg-white/50 backdrop-blur rounded-2xl p-1.5 mb-5">
+            <button class="flex-1 h-10 rounded-xl btn-nav text-white text-[13px] font-semibold">Описание</button>
+            <button class="flex-1 h-10 rounded-xl text-[13px]" style="color: #8B7A9A;">Ученики</button>
+            <button class="flex-1 h-10 rounded-xl text-[13px]" style="color: #8B7A9A;">Расписание</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5 mb-5">
+            <div class="bg-white/70 backdrop-blur rounded-2xl p-4 text-center shadow-soft">
+                <p class="text-[24px] font-bold" style="color: #3D2E4A;">24</p>
+                <p class="text-[11px] font-medium uppercase" style="color: #8B7A9A;">Всего</p>
+            </div>
+            <div class="rounded-2xl p-4 text-center" style="background: rgba(16,185,129,0.1);">
+                <p class="text-[24px] font-bold text-emerald-600">18</p>
+                <p class="text-[11px] font-medium uppercase text-emerald-600/70">Оплачено</p>
+            </div>
+        </div>
+        <div class="bg-white/80 backdrop-blur rounded-2xl p-4 shadow-card mb-4">
+            <p class="text-[11px] font-semibold uppercase tracking-wide mb-3" style="color: #8B7A9A;">Ссылка-приглашение</p>
+            <div class="flex gap-2">
+                <div class="flex-1 h-12 px-4 rounded-xl flex items-center text-[13px] truncate" style="background: #F0E8EC; color: #5B4A6A;">t.me/bot?start=abc123</div>
+                <button class="h-12 px-5 rounded-xl btn-cta text-white font-semibold shadow-card">📋</button>
+            </div>
+        </div>
+        <div class="bg-white/70 backdrop-blur rounded-2xl p-4 shadow-soft">
+            <p class="text-[11px] font-semibold uppercase tracking-wide mb-3" style="color: #8B7A9A;">Информация</p>
+            <div class="space-y-2.5 text-[14px]">
+                <div class="flex justify-between"><span style="color: #6B5A7A;">Цена</span><span class="font-semibold" style="color: #3D2E4A;">3 000 ₽</span></div>
+                <div class="flex justify-between"><span style="color: #6B5A7A;">Дата старта</span><span class="font-semibold" style="color: #3D2E4A;">15 янв 2026</span></div>
+                <div class="flex justify-between"><span style="color: #6B5A7A;">Статус</span><span class="flex items-center gap-1.5 font-semibold text-emerald-600"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Активен</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 4. ЧАТЫ ========== -->
+<div class="phone bg-page">
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-semibold" style="background: #6B5A7A; color: white;">4. Чаты</div>
+    <div class="h-full p-5 pt-14 pb-28 overflow-auto">
+        <div class="flex items-center justify-between mb-5">
+            <h1 class="text-[26px] font-bold tracking-tight" style="color: #3D2E4A;">Чаты</h1>
+            <span class="px-3 py-1.5 rounded-full text-[12px] font-semibold" style="background: rgba(212,149,106,0.2); color: #B87A4A;">3 новых</span>
+        </div>
+        <div class="relative mb-5">
+            <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style="color: #A090B0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" placeholder="Поиск" class="w-full h-12 pl-12 pr-4 rounded-2xl bg-white/70 backdrop-blur text-[14px] shadow-soft" style="color: #3D2E4A;">
+        </div>
+        <div class="bg-white/80 backdrop-blur rounded-2xl p-4 shadow-card mb-3 relative overflow-hidden">
+            <div class="absolute left-0 top-0 bottom-0 w-1 rounded-r-full" style="background: #D4956A;"></div>
+            <div class="flex items-center gap-4 pl-2">
+                <div class="relative">
+                    <div class="w-12 h-12 rounded-2xl avatar-accent flex items-center justify-center text-[14px] font-semibold">АК</div>
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 rounded-full border-2 border-white"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-[15px] font-semibold" style="color: #3D2E4A;">Анна Козлова</p>
+                        <span class="text-[12px] font-medium" style="color: #D4956A;">12:34</span>
+                    </div>
+                    <p class="text-[14px] truncate" style="color: #5B4A6A;">Здравствуйте! Подскажите...</p>
+                </div>
+                <div class="w-6 h-6 rounded-full flex items-center justify-center text-white text-[11px] font-bold" style="background: #D4956A;">2</div>
+            </div>
+        </div>
+        <div class="bg-white/60 backdrop-blur rounded-2xl p-4 shadow-soft mb-3">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl avatar-neutral flex items-center justify-center text-[14px] font-semibold">ИП</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-[15px] font-medium" style="color: #3D2E4A;">Игорь Петров</p>
+                        <span class="text-[12px]" style="color: #A090B0;">Вчера</span>
+                    </div>
+                    <p class="text-[14px] truncate" style="color: #8B7A9A;">Понял, спасибо!</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white/60 backdrop-blur rounded-2xl p-4 shadow-soft">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl avatar-neutral flex items-center justify-center text-[14px] font-semibold">МС</div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="text-[15px] font-medium" style="color: #3D2E4A;">Мария Смирнова</p>
+                        <span class="text-[12px]" style="color: #A090B0;">Пн</span>
+                    </div>
+                    <p class="text-[14px] truncate" style="color: #8B7A9A;">Хорошо, до связи!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="absolute bottom-0 left-0 right-0 px-5 pb-6 pt-4 nav-gradient">
+        <div class="flex justify-around bg-white/90 backdrop-blur rounded-2xl p-1.5 shadow-card">
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl" style="color: #A090B0;"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg><span class="text-[10px] mt-1">Проекты</span></button>
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl" style="color: #A090B0;"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] mt-1">Потоки</span></button>
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl btn-nav text-white"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg><span class="text-[10px] mt-1 font-semibold">Чаты</span></button>
+            <button class="flex flex-col items-center min-w-[68px] py-2.5 px-3 rounded-xl" style="color: #A090B0;"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg><span class="text-[10px] mt-1">Ещё</span></button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 5. ДИАЛОГ ========== -->
+<div class="phone" style="background: #E8DCD8;">
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-semibold" style="background: #6B5A7A; color: white;">5. Диалог</div>
+    <div class="h-full flex flex-col pt-14">
+        <header class="flex items-center gap-3 px-5 py-3 bg-white/80 backdrop-blur border-b" style="border-color: #D4C4D4;">
+            <button class="w-10 h-10 rounded-xl bg-white shadow-soft flex items-center justify-center" style="color: #6B5A7A;"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+            <div class="w-10 h-10 rounded-2xl avatar-neutral flex items-center justify-center text-[13px] font-semibold">АК</div>
+            <div class="flex-1">
+                <p class="text-[15px] font-semibold" style="color: #3D2E4A;">Анна Козлова</p>
+                <p class="text-[11px] text-emerald-500 font-medium">онлайн</p>
+            </div>
+        </header>
+        <div class="flex-1 overflow-auto px-5 py-4 space-y-4">
+            <div class="flex gap-3 max-w-[85%]">
+                <div class="w-8 h-8 rounded-xl avatar-neutral flex-shrink-0 flex items-center justify-center text-[10px] font-semibold">А</div>
+                <div>
+                    <div class="bg-white rounded-2xl rounded-tl-lg px-4 py-3 shadow-soft">
+                        <p class="text-[14px]" style="color: #3D2E4A;">Здравствуйте! Подскажите, как получить доступ?</p>
+                    </div>
+                    <p class="text-[10px] mt-1.5 ml-1" style="color: #A090B0;">12:34</p>
+                </div>
+            </div>
+            <div class="flex gap-3 max-w-[85%] ml-auto flex-row-reverse">
+                <div>
+                    <div class="btn-cta rounded-2xl rounded-tr-lg px-4 py-3 shadow-card">
+                        <p class="text-[14px] text-white">Здравствуйте! Введите промокод WELCOME</p>
+                    </div>
+                    <p class="text-[10px] mt-1.5 mr-1 text-right" style="color: #A090B0;">12:36</p>
+                </div>
+            </div>
+        </div>
+        <div class="px-5 py-4 bg-white/80 backdrop-blur border-t" style="border-color: #D4C4D4;">
+            <div class="flex items-center gap-2">
+                <input type="text" placeholder="Сообщение..." class="flex-1 h-12 px-4 rounded-xl bg-white text-[14px] shadow-soft" style="color: #3D2E4A;">
+                <button class="w-12 h-12 rounded-xl btn-cta shadow-card flex items-center justify-center text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 6. СТУДЕНТ — ГЛАВНАЯ ========== -->
+<div class="phone bg-page">
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-semibold" style="background: #D4956A; color: white;">6. Студент</div>
+    <div class="h-full p-5 pt-14 pb-6 overflow-auto">
+        <p class="text-[13px] mb-0.5" style="color: #8B7A9A;">Привет, Анна! 👋</p>
+        <h1 class="text-[26px] font-bold tracking-tight mb-6" style="color: #3D2E4A;">Мои проекты</h1>
+        
+        <!-- Активный -->
+        <div class="bg-white/80 backdrop-blur rounded-2xl p-4 shadow-card mb-3">
+            <div class="flex gap-4">
+                <div class="w-14 h-14 rounded-2xl btn-nav flex items-center justify-center"><svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-emerald-600">✅</span>
+                        <h3 class="text-[16px] font-semibold" style="color: #3D2E4A;">Керлинг</h3>
+                    </div>
+                    <p class="text-[13px] mb-3" style="color: #8B7A9A;">Поток: Тестовое 7</p>
+                    <button class="h-10 px-4 rounded-xl btn-nav text-white text-[13px] font-semibold">Перейти →</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Приглашён -->
+        <div class="rounded-2xl p-4 shadow-soft mb-3 border-2 border-dashed opacity-70" style="background: rgba(255,255,255,0.4); border-color: #C9B8D4;">
+            <div class="flex gap-4">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: #E8DCD8;"><svg class="w-7 h-7" style="color: #8B7A9A;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span style="color: #8B7A9A;">📩</span>
+                        <h3 class="text-[16px] font-semibold" style="color: #5B4A6A;">Поток 13</h3>
+                    </div>
+                    <p class="text-[13px] mb-3" style="color: #A090B0;">Требуется активация</p>
+                    <button class="h-10 px-4 rounded-xl text-[13px] font-semibold" style="background: #E8DCD8; color: #6B5A7A;">Активировать</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ожидает оплаты -->
+        <div class="rounded-2xl p-4 shadow-soft border-2 border-dashed opacity-70" style="background: rgba(255,255,255,0.4); border-color: #C9B8D4;">
+            <div class="flex gap-4">
+                <div class="w-14 h-14 rounded-2xl flex items-center justify-center" style="background: #E8DCD8;"><svg class="w-7 h-7" style="color: #8B7A9A;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span style="color: #D4956A;">⏳</span>
+                        <h3 class="text-[16px] font-semibold" style="color: #5B4A6A;">Поток 14</h3>
+                    </div>
+                    <p class="text-[13px] mb-1" style="color: #A090B0;">Керлинг · 3000 ₽</p>
+                    <button class="h-10 px-4 rounded-xl btn-cta text-white text-[13px] font-semibold">Оплатить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 7. ОПЛАТА ========== -->
+<div class="phone bg-page">
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-semibold" style="background: #D4956A; color: white;">7. Оплата</div>
+    <div class="h-full p-5 pt-14 pb-6 overflow-auto">
+        <div class="flex items-center gap-3 mb-6">
+            <button class="w-10 h-10 rounded-xl bg-white/70 backdrop-blur shadow-soft flex items-center justify-center" style="color: #6B5A7A;"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+            <h1 class="text-[18px] font-bold" style="color: #3D2E4A;">Оплата</h1>
+        </div>
+        
+        <div class="bg-white/80 backdrop-blur rounded-2xl p-5 shadow-card mb-4 text-center">
+            <h2 class="text-[18px] font-bold mb-1" style="color: #3D2E4A;">Тестовое 7</h2>
+            <p class="text-[13px] mb-4" style="color: #8B7A9A;">От Федор · 12 материалов</p>
+            <p class="text-[32px] font-bold mb-1" style="color: #3D2E4A;">3 000 ₽</p>
+            <button class="w-full h-14 rounded-2xl btn-cta text-white font-semibold text-[15px] shadow-card mt-4">Оплатить</button>
+        </div>
+        
+        <div class="bg-white/70 backdrop-blur rounded-2xl p-4 shadow-soft mb-4">
+            <p class="text-[11px] font-semibold uppercase tracking-wide mb-3" style="color: #8B7A9A;">Есть промокод?</p>
+            <div class="flex gap-2">
+                <input type="text" placeholder="ПРОМОКОД" class="flex-1 h-12 px-4 rounded-xl bg-white text-[14px] uppercase shadow-soft" style="color: #3D2E4A;">
+                <button class="h-12 px-5 rounded-xl btn-nav text-white font-semibold">Применить</button>
+            </div>
+        </div>
+        
+        <div class="bg-white/60 backdrop-blur rounded-2xl p-4 shadow-soft">
+            <p class="text-[13px] mb-2" style="color: #6B5A7A;">❓ Остались вопросы?</p>
+            <button class="h-10 px-4 rounded-xl text-[13px] font-medium" style="background: #E8DCD8; color: #6B5A7A;">💬 Задать вопрос</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 8. МАТЕРИАЛЫ ========== -->
+<div class="phone bg-page">
+    <div class="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full text-[11px] font-semibold" style="background: #D4956A; color: white;">8. Материалы</div>
+    <div class="h-full p-5 pt-14 pb-6 overflow-auto">
+        <div class="flex items-center gap-3 mb-5">
+            <button class="w-10 h-10 rounded-xl bg-white/70 backdrop-blur shadow-soft flex items-center justify-center" style="color: #6B5A7A;"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg></button>
+            <div>
+                <h1 class="text-[18px] font-bold" style="color: #3D2E4A;">Керлинг</h1>
+                <p class="text-[12px]" style="color: #8B7A9A;">12 материалов · 3 раздела</p>
+            </div>
+        </div>
+        
+        <!-- Раздел 1 -->
+        <div class="mb-4">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 rounded-lg btn-nav flex items-center justify-center"><span class="text-[12px] font-bold text-white">1</span></div>
+                <h2 class="text-[15px] font-semibold" style="color: #3D2E4A;">Основы</h2>
+            </div>
+            <div class="space-y-2 ml-10">
+                <div class="bg-white/80 backdrop-blur rounded-xl p-3 shadow-soft flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <p class="text-[14px] flex-1" style="color: #3D2E4A;">Урок 1: Введение</p>
+                    <svg class="w-5 h-5" style="color: #A090B0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </div>
+                <div class="bg-white/80 backdrop-blur rounded-xl p-3 shadow-soft flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <p class="text-[14px] flex-1" style="color: #3D2E4A;">Урок 2: Правила</p>
+                    <svg class="w-5 h-5" style="color: #A090B0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Раздел 2 -->
+        <div>
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: #E8DCD8;"><span class="text-[12px] font-bold" style="color: #6B5A7A;">2</span></div>
+                <h2 class="text-[15px] font-semibold" style="color: #3D2E4A;">Продвинутый</h2>
+            </div>
+            <div class="space-y-2 ml-10">
+                <div class="bg-white/50 backdrop-blur rounded-xl p-3 shadow-soft flex items-center gap-3 opacity-60">
+                    <span class="w-2 h-2 rounded-full bg-rose-400"></span>
+                    <div class="flex-1">
+                        <p class="text-[14px]" style="color: #5B4A6A;">Урок 3: Техника</p>
+                        <p class="text-[11px]" style="color: #A090B0;">⏳ 15 янв, 10:00</p>
+                    </div>
+                    <svg class="w-5 h-5" style="color: #D4C4D4;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m0 0v2m0-2h2m-2 0H10m10-6a8 8 0 11-16 0 8 8 0 0116 0z"/></svg>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<!-- Palette Reference -->
+<div class="max-w-4xl mx-auto mt-10 bg-white/80 backdrop-blur rounded-2xl p-6 shadow-lg">
+    <h3 class="font-bold text-lg mb-4" style="color: #3D2E4A;">🎨 Desert Sunset Palette</h3>
+    <div class="flex flex-wrap gap-3">
+        <div class="text-center"><div class="w-12 h-12 rounded-xl shadow-md" style="background: #C9B8D4;"></div><p class="text-[10px] mt-1" style="color: #6B5A7A;">Lavender</p></div>
+        <div class="text-center"><div class="w-12 h-12 rounded-xl shadow-md" style="background: #D4C4D4;"></div><p class="text-[10px] mt-1" style="color: #6B5A7A;">Powder</p></div>
+        <div class="text-center"><div class="w-12 h-12 rounded-xl shadow-md" style="background: #E8DCD8;"></div><p class="text-[10px] mt-1" style="color: #6B5A7A;">Sand</p></div>
+        <div class="text-center"><div class="w-12 h-12 rounded-xl shadow-md" style="background: #6B5A7A;"></div><p class="text-[10px] mt-1" style="color: #6B5A7A;">Purple</p></div>
+        <div class="text-center"><div class="w-12 h-12 rounded-xl shadow-md" style="background: #3D2E4A;"></div><p class="text-[10px] mt-1" style="color: #6B5A7A;">Dark</p></div>
+        <div class="text-center"><div class="w-12 h-12 rounded-xl shadow-md" style="background: #D4956A;"></div><p class="text-[10px] mt-1" style="color: #6B5A7A;">Terracotta</p></div>
+    </div>
+</div>
+
+</body>
+</html>

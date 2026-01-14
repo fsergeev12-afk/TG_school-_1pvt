@@ -9,7 +9,7 @@ export default function SettingsPage() {
     <PageContainer>
       <PageHeader title="Настройки" />
 
-      <PageContent>
+      <PageContent className="space-y-5">
         {/* Профиль */}
         <Card variant="active" accentLine>
           <div className="flex items-center gap-3 mb-4">

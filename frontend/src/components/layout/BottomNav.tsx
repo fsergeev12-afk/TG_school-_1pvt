@@ -15,8 +15,8 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, badge }) => {
     <NavLink
       to={to}
       className={({ isActive }) => `
-        flex flex-col items-center justify-center py-2 px-4 relative
-        min-h-[60px] min-w-[64px]
+        flex flex-col items-center justify-center py-3 px-4 relative
+        min-h-[68px] min-w-[72px]
         active:opacity-70 transition-colors
         ${isActive 
           ? 'text-[var(--purple-main)]' 
@@ -25,7 +25,9 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, badge }) => {
       `}
     >
       <div className="relative">
-        {icon}
+        <div className="w-7 h-7 flex items-center justify-center">
+          {icon}
+        </div>
         {badge !== undefined && badge > 0 && (
           <span 
             className="absolute -top-1 -right-1 bg-[var(--error)] text-white text-[10px] font-semibold min-w-[16px] h-4 rounded-full flex items-center justify-center px-1"
@@ -34,7 +36,7 @@ const NavItem: React.FC<NavItemProps> = ({ to, icon, label, badge }) => {
           </span>
         )}
       </div>
-      <span className="text-[10px] mt-1 font-medium">{label}</span>
+      <span className="text-[11px] mt-1.5 font-medium">{label}</span>
     </NavLink>
   );
 };
@@ -45,10 +47,10 @@ export const CreatorBottomNav: React.FC = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 nav-gradient-bg backdrop-blur-soft border-t border-[var(--purple-main)]/10 safe-area-pb z-50">
       <div className="flex justify-around">
-        <NavItem to="/creator/courses" icon={<Icons.Book />} label="Проекты" />
-        <NavItem to="/creator/streams" icon={<Icons.Users />} label="Потоки" />
-        <NavItem to="/creator/chats" icon={<Icons.Chat />} label="Чаты" badge={unreadCount} />
-        <NavItem to="/creator/settings" icon={<Icons.Settings />} label="Ещё" />
+        <NavItem to="/creator/courses" icon={<Icons.Book className="w-6 h-6" />} label="Проекты" />
+        <NavItem to="/creator/streams" icon={<Icons.Users className="w-6 h-6" />} label="Потоки" />
+        <NavItem to="/creator/chats" icon={<Icons.Chat className="w-6 h-6" />} label="Чаты" badge={unreadCount} />
+        <NavItem to="/creator/settings" icon={<Icons.Settings className="w-6 h-6" />} label="Ещё" />
       </div>
     </nav>
   );
@@ -58,7 +60,7 @@ export const StudentBottomNav: React.FC = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 nav-gradient-bg backdrop-blur-soft border-t border-[var(--purple-main)]/10 safe-area-pb z-50">
       <div className="flex justify-around">
-        <NavItem to="/student" icon={<Icons.Home />} label="Главная" />
+        <NavItem to="/student" icon={<Icons.Home className="w-6 h-6" />} label="Главная" />
         {/* Материалы убраны - доступ только через "Перейти к проекту" */}
       </div>
     </nav>

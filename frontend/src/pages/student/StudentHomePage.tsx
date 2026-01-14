@@ -50,7 +50,7 @@ export default function StudentHomePage() {
           Мои проекты ({courses.length})
         </h2>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           {courses.map((course) => {
             // Определяем, доступен ли курс для просмотра
             const isAccessible = course.isActivated && (!course.requiresPayment || course.isPaid);

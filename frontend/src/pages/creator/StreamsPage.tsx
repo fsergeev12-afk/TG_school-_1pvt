@@ -178,17 +178,22 @@ export default function StreamsPage() {
                   {courses?.map((course) => (
                     <div
                       key={course.id}
-                      onClick={() => setSelectedCourseId(course.id)}
+                      onClick={() => {
+                        setSelectedCourseId(course.id);
+                        // Очищаем расписание при выборе курса для нового потока
+                        setLessonSchedules([]);
+                        setScheduleEnabled(false);
+                      }}
                       className={`p-3 rounded-xl border-2 cursor-pointer transition-colors flex items-center gap-3 ${
                         selectedCourseId === course.id
-                          ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/5'
+                          ? 'border-[var(--terracotta-main)] bg-[var(--terracotta-main)]/10'
                           : 'border-transparent bg-[var(--tg-theme-secondary-bg-color)]'
                       }`}
                     >
                       {/* Круглый чекбокс */}
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                         selectedCourseId === course.id
-                          ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]'
+                          ? 'border-[var(--terracotta-main)] bg-[var(--terracotta-main)]'
                           : 'border-[var(--tg-theme-hint-color)]/50'
                       }`}>
                         {selectedCourseId === course.id && (
@@ -508,7 +513,7 @@ export default function StreamsPage() {
         )}
 
         {/* Список потоков */}
-        <div className="space-y-4">
+        <div className="space-y-5">
           {streams?.map((stream) => (
             <Card
               key={stream.id}

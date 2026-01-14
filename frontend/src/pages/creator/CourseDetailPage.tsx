@@ -17,7 +17,7 @@ import {
   LessonMaterial,
 } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Card, Button, Input, Modal, SortableList, FullscreenEditor } from '../../components/ui';
+import { Card, Button, Input, Modal, SortableList, FullscreenEditor, Icons } from '../../components/ui';
 import { useUIStore } from '../../store';
 
 type VideoType = 'telegram' | 'external' | null;
@@ -583,12 +583,12 @@ export default function CourseDetailPage() {
         }}
       />
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-5">
         {/* Информация о проекте */}
         <Card>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-xl bg-[var(--tg-theme-button-color)]/10 flex items-center justify-center text-3xl">
-              📚
+            <div className="w-16 h-16 rounded-xl bg-[var(--terracotta-main)]/10 flex items-center justify-center">
+              <Icons.Book className="w-8 h-8 text-[var(--terracotta-main)]" />
             </div>
             <div className="flex-1">
               <p className="text-sm text-[var(--tg-theme-hint-color)]">
@@ -655,13 +655,13 @@ export default function CourseDetailPage() {
                           onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}
                           className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
                         >
-                          ✏️
+                          <Icons.Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); confirmDeleteBlock(block); }}
                           className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                         >
-                          🗑️
+                          <Icons.Trash className="w-4 h-4" />
                         </button>
                         {/* Accordion стрелка - крупная и понятная */}
                         <div className={`w-6 h-6 flex items-center justify-center transition-transform duration-200 ${expandedBlocks.has(block.id) ? 'rotate-180' : ''}`}>
@@ -697,7 +697,7 @@ export default function CourseDetailPage() {
                                   onClick={(e) => { e.stopPropagation(); confirmDeleteLesson(block.id, lesson); }}
                                   className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
                                 >
-                                  🗑️
+                                  <Icons.Trash className="w-4 h-4" />
                                 </button>
                               </div>
                             )}
@@ -711,7 +711,8 @@ export default function CourseDetailPage() {
                           className="w-full mt-2"
                           onClick={(e) => { e.stopPropagation(); openCreateLesson(block.id); }}
                         >
-                          + Добавить материал
+                          <Icons.Plus className="w-4 h-4" />
+                          Добавить материал
                         </Button>
                       </div>
                     )}
@@ -725,7 +726,7 @@ export default function CourseDetailPage() {
             onClick={openAddBlockModal}
             className="w-full mt-4 p-4 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-button-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:bg-[var(--tg-theme-button-color)]/5 transition-colors"
           >
-            <span className="text-xl">+</span>
+            <Icons.Plus className="w-6 h-6" />
             <span className="font-medium">Добавить раздел</span>
           </button>
         </div>
@@ -875,7 +876,7 @@ export default function CourseDetailPage() {
                         onClick={(e) => { e.stopPropagation(); handleDeleteMaterial(material); }}
                         className="p-2 text-red-500"
                       >
-                        🗑️
+                        <Icons.Trash className="w-4 h-4" />
                       </button>
                     </div>
                   ))}
