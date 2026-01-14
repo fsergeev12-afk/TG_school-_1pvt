@@ -254,55 +254,98 @@ export default function CourseDetailPage() {
     setLessonModalOpen(true);
   };
 
-  const handleSaveLesson = () => {
+  const handleSaveLesson = async () => {
     if (!lessonForm.title.trim() || !lessonBlockId) {
       showToast('Введите название материала', 'error');
       return;
     }
 
+    const block = localBlocks.find(b => b.id === lessonBlockId);
+    const isExistingBlock = block && !block.isNew;
+
     if (editingLessonId) {
       // Update existing lesson
-      setLocalBlocks(localBlocks.map(block => 
-        block.id === lessonBlockId
-          ? {
-              ...block,
-              lessons: block.lessons.map(l => 
-                l.id === editingLessonId
-                  ? {
-                      ...l,
-                      title: lessonForm.title.trim(),
-                      description: lessonForm.description.trim() || undefined,
-                      videoType: lessonForm.videoType,
-                      videoUrl: lessonForm.videoUrl.trim() || undefined,
-                      isModified: !l.isNew,
-                    }
-                  : l
-              ),
-            }
-          : block
-      ));
-      showToast('Материал обновлён', 'success');
+      const lesson = block?.lessons.find(l => l.id === editingLessonId);
+      const isExistingLesson = lesson && !lesson.isNew;
+
+      if (isExistingBlock && isExistingLesson) {
+        // Сохраняем сразу на сервер для существующего урока
+        try {
+          await updateLessonMutation.mutateAsync({
+            id: editingLessonId,
+            title: lessonForm.title.trim(),
+            description: lessonForm.description.trim() || undefined,
+            videoType: lessonForm.videoType || undefined,
+            videoUrl: lessonForm.videoUrl.trim() || undefined,
+          });
+          await refetch();
+          showToast('Материал сохранён!', 'success');
+        } catch {
+          showToast('Ошибка сохранения', 'error');
+        }
+      } else {
+        // Локальное обновление для нового урока
+        setLocalBlocks(localBlocks.map(b => 
+          b.id === lessonBlockId
+            ? {
+                ...b,
+                lessons: b.lessons.map(l => 
+                  l.id === editingLessonId
+                    ? {
+                        ...l,
+                        title: lessonForm.title.trim(),
+                        description: lessonForm.description.trim() || undefined,
+                        videoType: lessonForm.videoType,
+                        videoUrl: lessonForm.videoUrl.trim() || undefined,
+                        isModified: !l.isNew,
+                      }
+                    : l
+                ),
+              }
+            : b
+        ));
+        markChanged();
+        showToast('Материал обновлён', 'success');
+      }
     } else {
       // Create new lesson
-      const newLesson: LessonDraft = {
-        id: `new-${Date.now()}`,
-        title: lessonForm.title.trim(),
-        description: lessonForm.description.trim() || undefined,
-        videoType: lessonForm.videoType,
-        videoUrl: lessonForm.videoUrl.trim() || undefined,
-        isNew: true,
-      };
-      
-      setLocalBlocks(localBlocks.map(block => 
-        block.id === lessonBlockId
-          ? { ...block, lessons: [...block.lessons, newLesson] }
-          : block
-      ));
-      showToast('Материал добавлен', 'success');
+      if (isExistingBlock) {
+        // Создаём сразу на сервере для существующего блока
+        try {
+          await createLessonMutation.mutateAsync({
+            blockId: lessonBlockId,
+            title: lessonForm.title.trim(),
+            description: lessonForm.description.trim() || undefined,
+            videoType: lessonForm.videoType || undefined,
+            videoUrl: lessonForm.videoUrl.trim() || undefined,
+          });
+          await refetch();
+          showToast('Материал создан!', 'success');
+        } catch {
+          showToast('Ошибка создания', 'error');
+        }
+      } else {
+        // Локальное создание для нового блока
+        const newLesson: LessonDraft = {
+          id: `new-${Date.now()}`,
+          title: lessonForm.title.trim(),
+          description: lessonForm.description.trim() || undefined,
+          videoType: lessonForm.videoType,
+          videoUrl: lessonForm.videoUrl.trim() || undefined,
+          isNew: true,
+        };
+        
+        setLocalBlocks(localBlocks.map(b => 
+          b.id === lessonBlockId
+            ? { ...b, lessons: [...b.lessons, newLesson] }
+            : b
+        ));
+        markChanged();
+        showToast('Материал добавлен', 'success');
+      }
     }
 
     setLessonModalOpen(false);
-    markChanged();
   };
 
   const confirmDeleteLesson = (blockId: string, lesson: LessonDraft) => {
