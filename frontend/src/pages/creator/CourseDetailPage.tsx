@@ -726,10 +726,12 @@ export default function CourseDetailPage() {
 
           <button
             onClick={openAddBlockModal}
-            className="w-full mt-4 p-4 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-button-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:bg-[var(--tg-theme-button-color)]/5 transition-colors"
+            className="w-full mt-4 p-5 border-2 border-dashed border-[var(--terracotta-main)]/30 rounded-2xl flex items-center justify-center gap-3 text-[var(--terracotta-main)] hover:border-[var(--terracotta-main)]/60 hover:bg-[var(--terracotta-main)]/5 active:scale-[0.98] transition-all"
           >
-            <Icons.Plus className="w-6 h-6" />
-            <span className="font-medium">Добавить раздел</span>
+            <div className="w-10 h-10 rounded-xl bg-[var(--terracotta-main)]/10 flex items-center justify-center">
+              <Icons.Plus className="w-5 h-5" />
+            </div>
+            <span className="font-semibold text-[15px]">Добавить раздел</span>
           </button>
         </div>
       </div>

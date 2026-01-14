@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCreateCourse, useCreateBlock, useCreateLesson, useUploadMaterial, useAddMaterial } from '../../api/hooks';
 import { PageHeader } from '../../components/layout';
-import { Button, Card, Input, Modal, SortableList, FullscreenEditor } from '../../components/ui';
+import { Button, Card, Input, Modal, SortableList, FullscreenEditor, Icons } from '../../components/ui';
 import { useUIStore } from '../../store';
 
 interface FileDraft {
@@ -532,10 +532,12 @@ export default function CreateCoursePage() {
             {/* Кнопка добавления блока */}
             <button
               onClick={openAddBlockModal}
-              className="w-full p-4 border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl flex items-center justify-center gap-2 text-[var(--tg-theme-button-color)] hover:border-[var(--tg-theme-button-color)]/50 hover:bg-[var(--tg-theme-button-color)]/5 transition-colors"
+              className="w-full p-5 border-2 border-dashed border-[var(--terracotta-main)]/30 rounded-2xl flex items-center justify-center gap-3 text-[var(--terracotta-main)] hover:border-[var(--terracotta-main)]/60 hover:bg-[var(--terracotta-main)]/5 active:scale-[0.98] transition-all"
             >
-              <span className="text-xl">+</span>
-              <span className="font-medium">Добавить раздел</span>
+              <div className="w-10 h-10 rounded-xl bg-[var(--terracotta-main)]/10 flex items-center justify-center">
+                <Icons.Plus className="w-5 h-5" />
+              </div>
+              <span className="font-semibold text-[15px]">Добавить раздел</span>
             </button>
 
             {blocks.length === 0 && (

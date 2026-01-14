@@ -629,67 +629,75 @@ export default function StreamDetailPage() {
         )}
       </PageContent>
 
-      {/* Add Students Modal */}
+      {/* Add Students Modal - Desert Sunset Theme */}
       <Modal
         isOpen={addStudentsModalOpen}
         onClose={() => setAddStudentsModalOpen(false)}
         title="Добавить участников"
       >
-        <div className="space-y-4">
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">
-            Поделитесь ссылкой-приглашением с участниками. После перехода по ссылке они смогут оплатить и получить доступ.
-          </p>
+        <div className="space-y-5">
+          {/* Иконка и описание */}
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-[var(--terracotta-main)]/10 flex items-center justify-center">
+              <Icons.Upload className="w-8 h-8 text-[var(--terracotta-main)]" />
+            </div>
+            <p className="text-[14px] text-secondary">
+              Поделитесь ссылкой-приглашением с участниками
+            </p>
+          </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-2">
+          {/* Ссылка-приглашение */}
+          <div className="p-4 bg-white/60 backdrop-blur-soft rounded-2xl border border-[var(--purple-main)]/10">
+            <label className="flex items-center gap-2 text-[13px] font-medium text-secondary mb-2">
+              <Icons.Link className="w-4 h-4" />
               Ссылка-приглашение
             </label>
-            <div className="p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl break-all text-sm text-[var(--tg-theme-text-color)]">
+            <div className="p-3 bg-[var(--purple-main)]/5 rounded-xl break-all text-[14px] text-dark font-mono">
               {inviteLink}
             </div>
           </div>
 
-          {/* Кнопка копирования - динамичная */}
+          {/* Кнопка копирования */}
           <button
             onClick={handleCopyLink}
-            className={`w-full py-4 rounded-xl font-medium text-white transition-all duration-300 flex items-center justify-center gap-2 ${
+            className={`w-full py-4 rounded-2xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 shadow-soft ${
               isCopied 
-                ? 'bg-green-500 scale-[1.02]' 
-                : 'bg-[var(--tg-theme-button-color)] hover:opacity-90 active:scale-[0.98]'
+                ? 'bg-[var(--green-success)] scale-[1.02]' 
+                : 'bg-gradient-to-r from-[var(--terracotta-main)] to-[#F29C7F] hover:opacity-90 active:scale-[0.98]'
             }`}
           >
             {isCopied ? (
               <>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+                <Icons.Check className="w-5 h-5" />
                 Скопировано!
               </>
             ) : (
               <>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                </svg>
+                <Icons.Copy className="w-5 h-5" />
                 Скопировать ссылку
               </>
             )}
           </button>
 
-          <div className="border-t border-[var(--tg-theme-hint-color)]/20 pt-4">
-            <h4 className="font-medium text-sm text-[var(--tg-theme-text-color)] mb-3">
-              Или поделиться через:
-            </h4>
-            <Button
-              variant="secondary"
-              fullWidth
-              onClick={() => {
-                const text = encodeURIComponent(`Приглашаю в проект "${stream?.name}"\n${inviteLink}`);
-                window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`, '_blank');
-              }}
-            >
-              <Icons.Telegram className="w-4 h-4" /> Telegram
-            </Button>
+          {/* Разделитель */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-[var(--purple-main)]/10"></div>
+            <span className="text-[12px] text-muted">или</span>
+            <div className="flex-1 h-px bg-[var(--purple-main)]/10"></div>
           </div>
+
+          {/* Поделиться через Telegram */}
+          <Button
+            variant="secondary"
+            fullWidth
+            size="lg"
+            onClick={() => {
+              const text = encodeURIComponent(`Приглашаю в проект "${stream?.name}"\n${inviteLink}`);
+              window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`, '_blank');
+            }}
+          >
+            <Icons.Telegram className="w-5 h-5" /> Поделиться в Telegram
+          </Button>
         </div>
       </Modal>
 
