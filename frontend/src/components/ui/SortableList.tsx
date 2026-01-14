@@ -10,6 +10,7 @@ import {
   DragEndEvent,
   DragStartEvent,
   DragOverlay,
+  Modifier,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -19,7 +20,18 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-// restrictToVerticalAxis будем реализовывать через кастомный модификатор
+
+// Кастомный модификатор для ограничения вертикального движения и снэппинга к пальцу
+const restrictToVerticalAxisAndSnapToFinger: Modifier = ({ transform, activatorEvent }) => {
+  // Ограничиваем только вертикальное движение
+  // Добавляем небольшой offset чтобы элемент был чуть выше пальца
+  const offsetY = activatorEvent instanceof TouchEvent ? -20 : 0;
+  return {
+    ...transform,
+    x: 0,
+    y: transform.y + offsetY,
+  };
+};
 
 interface SortableItemProps {
   id: string;
@@ -171,6 +183,7 @@ export function SortableList<T extends { id: string }>({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
+      modifiers={[restrictToVerticalAxisAndSnapToFinger]}
     >
       <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
         <div className="space-y-2">

@@ -209,7 +209,17 @@ export default function StreamDetailPage() {
 
       {/* Табы */}
       <div className="relative">
-        <div className="flex border-b border-[var(--purple-main)]/10 px-2 overflow-x-auto bg-white/40 backdrop-blur-soft hide-scrollbar">
+        <div 
+          className="flex border-b border-[var(--purple-main)]/10 px-2 overflow-x-auto bg-white/40 backdrop-blur-soft hide-scrollbar"
+          onScroll={(e) => {
+            const target = e.target as HTMLDivElement;
+            const scrollPercentage = target.scrollLeft / (target.scrollWidth - target.clientWidth);
+            const indicator = target.parentElement?.querySelector('.scroll-indicator') as HTMLDivElement;
+            if (indicator) {
+              indicator.style.left = `${4 + scrollPercentage * 75}%`;
+            }
+          }}
+        >
           {tabs.map((tab) => {
             const IconComponent = tab.icon === 'users' ? Icons.Users 
               : tab.icon === 'calendar' ? Icons.Calendar
@@ -233,8 +243,13 @@ export default function StreamDetailPage() {
             );
           })}
         </div>
-        {/* Индикатор горизонтальной прокрутки */}
-        <div className="absolute bottom-0 right-4 h-1 w-12 bg-[var(--purple-main)]/20 rounded-full pointer-events-none" />
+        {/* Прогресс-бар прокрутки */}
+        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-[var(--purple-main)]/10">
+          <div 
+            className="scroll-indicator absolute h-full w-[20%] bg-[var(--terracotta-main)]/60 rounded-full transition-all duration-150"
+            style={{ left: '4%' }}
+          />
+        </div>
       </div>
 
       <PageContent>
