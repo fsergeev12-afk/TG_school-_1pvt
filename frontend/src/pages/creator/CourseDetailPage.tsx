@@ -674,30 +674,10 @@ export default function CourseDetailPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <Icons.Folder className="w-5 h-5 text-[var(--purple-main)] flex-shrink-0" />
-                          {editingBlockId === block.id ? (
-                            <div className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
-                              <input
-                                type="text"
-                                className="w-full bg-white border-2 border-[var(--purple-main)] rounded-xl outline-none text-[var(--tg-theme-text-color)] px-4 py-3 text-[16px] shadow-sm"
-                                value={editBlockTitle}
-                                onChange={(e) => setEditBlockTitle(e.target.value)}
-                                onKeyDown={handleEditBlockKeyDown} 
-                                onBlur={handleSaveBlockTitle}
-                                autoFocus
-                                onTouchStart={(e) => e.stopPropagation()}
-                                onTouchMove={(e) => e.stopPropagation()}
-                                style={{ 
-                                  WebkitUserSelect: 'text',
-                                  userSelect: 'text',
-                                }}
-                              />
-                            </div>
-                          ) : (
-                            <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
-                              {blockIndex + 1}. {block.title}
-                              {block.isNew && <span className="text-xs text-green-500 ml-2">новый</span>}
-                            </span>
-                          )}
+                          <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
+                            {blockIndex + 1}. {editingBlockId === block.id ? editBlockTitle : block.title}
+                            {block.isNew && <span className="text-xs text-green-500 ml-2">новый</span>}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                           <span className="text-xs text-[var(--tg-theme-hint-color)] whitespace-nowrap">
@@ -725,7 +705,30 @@ export default function CourseDetailPage() {
                       </div>
                     </div>
 
-                    {expandedBlocks.has(block.id) && (
+                    {/* Поле редактирования названия блока - отдельно, на всю ширину */}
+                    {editingBlockId === block.id && (
+                      <div className="mt-3 pt-3 border-t border-[var(--purple-main)]/20">
+                        <input
+                          type="text"
+                          className="w-full bg-white border-2 border-[var(--purple-main)] rounded-xl outline-none text-[var(--tg-theme-text-color)] px-4 py-3 text-[16px] shadow-sm"
+                          value={editBlockTitle}
+                          onChange={(e) => setEditBlockTitle(e.target.value)}
+                          onKeyDown={handleEditBlockKeyDown}
+                          autoFocus
+                          placeholder="Название раздела"
+                        />
+                        <div className="flex gap-2 mt-3">
+                          <Button size="sm" variant="secondary" onClick={() => setEditingBlockId(null)} className="flex-1">
+                            Отмена
+                          </Button>
+                          <Button size="sm" onClick={handleSaveBlockTitle} className="flex-1">
+                            <Icons.Check className="w-4 h-4" /> Сохранить
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {expandedBlocks.has(block.id) && !editingBlockId && (
                       <div className="mt-3 pt-3 border-t border-[var(--tg-theme-hint-color)]/20">
                         {block.lessons.filter(l => !l.isDeleted).length > 0 ? (
                           <SortableList

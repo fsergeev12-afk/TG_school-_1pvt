@@ -245,11 +245,11 @@ export default function StreamDetailPage() {
             );
           })}
         </div>
-        {/* Прогресс-бар прокрутки - единственный индикатор */}
-        <div className="h-[3px] bg-[var(--purple-main)]/15 mx-4 rounded-full">
+        {/* Прогресс-бар прокрутки */}
+        <div className="h-[3px] bg-[var(--purple-main)]/15 mx-4 rounded-full overflow-hidden">
           <div 
-            className="h-full w-[25%] bg-[var(--terracotta-main)] rounded-full transition-transform duration-100"
-            style={{ transform: `translateX(${scrollProgress * 300}%)` }}
+            className="h-full w-[25%] bg-[var(--terracotta-main)] rounded-full"
+            style={{ marginLeft: `${scrollProgress * 75}%` }}
           />
         </div>
       </div>
