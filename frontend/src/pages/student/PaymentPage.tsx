@@ -108,7 +108,13 @@ export default function PaymentPage() {
   const handleAskQuestion = () => {
     // Открываем бота без параметров для создания диалога
     const botUsername = import.meta.env.VITE_TELEGRAM_BOT_USERNAME || 'Bllocklyyy_bot';
-    window.open(`https://t.me/${botUsername}`, '_blank');
+    const botUrl = `https://t.me/${botUsername}`;
+    const tg = window.Telegram?.WebApp;
+    if (tg?.openTelegramLink) {
+      tg.openTelegramLink(botUrl);
+    } else {
+      window.open(botUrl, '_blank');
+    }
   };
 
   const formatMoney = (kopecks: number) => {

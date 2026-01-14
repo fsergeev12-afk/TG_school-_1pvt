@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { PageContainer, PageContent, PageHeader } from '../../components/layout';
 import { Card, Button, Icons } from '../../components/ui';
 import { useStudentCourse } from '../../api/hooks';
+import { useTelegram } from '../../hooks/useTelegram';
 import { TELEGRAM_BOT_USERNAME } from '../../config';
 
 // Модалка "Материал откроется..."
@@ -49,6 +50,7 @@ const ScheduleModal: React.FC<ScheduleModalProps> = ({ isOpen, onClose, schedule
 
 export default function LessonsPage() {
   const navigate = useNavigate();
+  const { webApp } = useTelegram();
   const { data: course, isLoading } = useStudentCourse();
   const [expandedBlocks, setExpandedBlocks] = useState<Record<string, boolean>>({});
   const [scheduleModal, setScheduleModal] = useState<{ isOpen: boolean; scheduledAt: string | null }>({
@@ -89,7 +91,12 @@ export default function LessonsPage() {
   const handleAskQuestion = () => {
     // Открываем чат с ботом для вопросов
     // Бот перенаправит сообщение создателю курса
-    window.open(`https://t.me/${TELEGRAM_BOT_USERNAME}?start=question`, '_blank');
+    const botUrl = `https://t.me/${TELEGRAM_BOT_USERNAME}?start=question`;
+    if (webApp?.openTelegramLink) {
+      webApp.openTelegramLink(botUrl);
+    } else {
+      window.open(botUrl, '_blank');
+    }
   };
 
   if (isLoading) {

@@ -112,17 +112,16 @@ export function SortableList<T extends { id: string }>({
     })
   );
 
-  // Блокируем ВСЁ при начале drag
+  // Блокируем скролл при начале drag (без position: fixed чтобы не ломать layout)
   const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
     
-    // Полная блокировка скролла
+    // Мягкая блокировка скролла - только overflow: hidden
+    // НЕ используем position: fixed, чтобы не вызывать "сворачивание" интерфейса
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
-    document.body.style.position = 'fixed';
-    document.body.style.width = '100%';
-    document.body.style.top = `-${window.scrollY}px`;
+    document.body.style.overscrollBehavior = 'none';
     document.documentElement.style.overflow = 'hidden';
+    document.documentElement.style.overscrollBehavior = 'none';
     
     // Вибрация для тактильного фидбека (если поддерживается)
     if (navigator.vibrate) {
@@ -132,18 +131,11 @@ export function SortableList<T extends { id: string }>({
 
   // Возвращаем scroll после drag
   const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const scrollY = document.body.style.top;
-    
     // Восстанавливаем скролл
     document.body.style.overflow = '';
-    document.body.style.touchAction = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
+    document.body.style.overscrollBehavior = '';
     document.documentElement.style.overflow = '';
-    
-    // Восстанавливаем позицию скролла
-    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    document.documentElement.style.overscrollBehavior = '';
     
     setActiveId(null);
     
@@ -163,14 +155,10 @@ export function SortableList<T extends { id: string }>({
   }, [items, onReorder]);
 
   const handleDragCancel = useCallback(() => {
-    const scrollY = document.body.style.top;
     document.body.style.overflow = '';
-    document.body.style.touchAction = '';
-    document.body.style.position = '';
-    document.body.style.width = '';
-    document.body.style.top = '';
+    document.body.style.overscrollBehavior = '';
     document.documentElement.style.overflow = '';
-    window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    document.documentElement.style.overscrollBehavior = '';
     setActiveId(null);
   }, []);
 
