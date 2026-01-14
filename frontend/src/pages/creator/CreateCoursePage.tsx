@@ -417,7 +417,7 @@ export default function CreateCoursePage() {
                 Структура проекта
               </h2>
               <span className="text-xs text-[var(--tg-theme-hint-color)]">
-                {blocks.length} разделов • {totalLessons} материалов
+                разделов: {blocks.length} • материалов: {totalLessons}
               </span>
             </div>
 
@@ -452,8 +452,8 @@ export default function CreateCoursePage() {
                         )}
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="text-xs text-[var(--tg-theme-hint-color)] mr-2">
-                          {block.lessons.length} материалов
+                        <span className="text-xs text-[var(--tg-theme-hint-color)] mr-2 whitespace-nowrap">
+                          материалов: {block.lessons.length}
                         </span>
                         <button
                           onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}

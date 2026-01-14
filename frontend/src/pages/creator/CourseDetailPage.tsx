@@ -635,7 +635,7 @@ export default function CourseDetailPage() {
             </div>
             <div className="flex-1">
               <p className="text-sm text-[var(--tg-theme-hint-color)]">
-                {visibleBlocks.length} разделов • {totalLessons} материалов
+                разделов: {visibleBlocks.length} • материалов: {totalLessons}
               </p>
               {course.description && (
                 <p className="text-sm text-[var(--tg-theme-text-color)] mt-1 line-clamp-2">
@@ -668,49 +668,51 @@ export default function CourseDetailPage() {
                 renderItem={(block, blockIndex) => (
                   <Card padding="sm" className="bg-[var(--tg-theme-secondary-bg-color)]">
                     <div 
-                      className="flex items-center justify-between cursor-pointer"
+                      className="flex flex-col gap-2 cursor-pointer"
                       onClick={() => toggleBlockExpanded(block.id)}
                     >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <Icons.Folder className="w-5 h-5 text-[var(--purple-main)]" />
-                        {editingBlockId === block.id ? (
-                          <input
-                            className="flex-1 bg-transparent border-b border-[var(--tg-theme-button-color)] outline-none text-[var(--tg-theme-text-color)]"
-                            value={editBlockTitle}
-                            onChange={(e) => setEditBlockTitle(e.target.value)}
-                            onKeyDown={handleEditBlockKeyDown}
-                            onBlur={handleSaveBlockTitle}
-                            autoFocus
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        ) : (
-                          <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
-                            {blockIndex + 1}. {block.title}
-                            {block.isNew && <span className="text-xs text-green-500 ml-2">новый</span>}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <Icons.Folder className="w-5 h-5 text-[var(--purple-main)] flex-shrink-0" />
+                          {editingBlockId === block.id ? (
+                            <input
+                              className="flex-1 min-w-0 bg-transparent border-b-2 border-[var(--purple-main)] outline-none text-[var(--tg-theme-text-color)] py-1"
+                              value={editBlockTitle}
+                              onChange={(e) => setEditBlockTitle(e.target.value)}
+                              onKeyDown={handleEditBlockKeyDown}
+                              onBlur={handleSaveBlockTitle}
+                              autoFocus
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          ) : (
+                            <span className="font-medium text-[var(--tg-theme-text-color)] truncate">
+                              {blockIndex + 1}. {block.title}
+                              {block.isNew && <span className="text-xs text-green-500 ml-2">новый</span>}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0 ml-2">
+                          <span className="text-xs text-[var(--tg-theme-hint-color)] whitespace-nowrap">
+                            материалов: {block.lessons.filter(l => !l.isDeleted).length}
                           </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs text-[var(--tg-theme-hint-color)] mr-2">
-                          {block.lessons.filter(l => !l.isDeleted).length} материалов
-                        </span>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}
-                          className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
-                        >
-                          <Icons.Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); confirmDeleteBlock(block); }}
-                          className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
-                        >
-                          <Icons.Trash className="w-4 h-4" />
-                        </button>
-                        {/* Accordion стрелка - крупная и понятная */}
-                        <div className={`w-6 h-6 flex items-center justify-center transition-transform duration-200 ${expandedBlocks.has(block.id) ? 'rotate-180' : ''}`}>
-                          <svg className="w-5 h-5 text-[var(--tg-theme-hint-color)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                          </svg>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); startEditBlock(block); }}
+                            className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
+                          >
+                            <Icons.Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); confirmDeleteBlock(block); }}
+                            className="p-1.5 text-[var(--tg-theme-hint-color)] hover:text-red-500"
+                          >
+                            <Icons.Trash className="w-4 h-4" />
+                          </button>
+                          {/* Accordion стрелка - крупная и понятная */}
+                          <div className={`w-6 h-6 flex items-center justify-center transition-transform duration-200 ${expandedBlocks.has(block.id) ? 'rotate-180' : ''}`}>
+                            <svg className="w-5 h-5 text-[var(--tg-theme-hint-color)]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -30,7 +30,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-10 bg-gradient-to-b from-[var(--bg-lavender)] to-[var(--bg-powder)] px-4 py-6 safe-area-pt border-b border-[var(--purple-main)]/10 backdrop-blur-soft">
+    <header className="sticky top-0 z-10 bg-gradient-to-b from-[var(--bg-lavender)] to-[var(--bg-powder)] px-4 pt-10 pb-5 border-b border-[var(--purple-main)]/10 backdrop-blur-soft">
       <div className="flex items-center justify-between min-h-[48px]">
         <div className="flex items-center gap-3">
           {showBack && (

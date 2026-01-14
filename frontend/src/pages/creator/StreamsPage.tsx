@@ -207,9 +207,9 @@ export default function StreamsPage() {
                           {course.title}
                         </div>
                         <div className="text-sm text-[var(--tg-theme-hint-color)]">
-                          {course.blocks?.length || 0} разделов • {
+                          разделов: {course.blocks?.length || 0} • материалов: {
                             course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0
-                          } материалов
+                          }
                         </div>
                       </div>
                     </div>

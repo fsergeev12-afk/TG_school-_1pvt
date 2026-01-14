@@ -46,8 +46,8 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children, isDrag
 
   if (isDragOverlay) {
     return (
-      <div className="relative shadow-2xl scale-105 bg-[var(--tg-theme-bg-color)] rounded-xl ring-2 ring-[var(--tg-theme-button-color)]">
-        <div className="pl-14">
+      <div className="relative shadow-2xl scale-[1.02] bg-white/90 backdrop-blur-sm rounded-xl ring-2 ring-[var(--purple-main)]">
+        <div className="pl-12">
           {children}
         </div>
       </div>
@@ -56,16 +56,15 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children, isDrag
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
-      <div className={`relative ${isDragging ? 'invisible' : ''} transition-all`}>
-        {/* Drag Handle - БОЛЬШАЯ кнопка для мобилки */}
+      <div className={`relative ${isDragging ? 'opacity-30' : ''} transition-opacity`}>
+        {/* Drag Handle - компактная кнопка */}
         <div
           {...listeners}
-          className="absolute left-0 top-0 bottom-0 w-14 flex items-center justify-center cursor-grab active:cursor-grabbing z-10"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-full flex items-center justify-center cursor-grab active:cursor-grabbing z-10"
           style={{ touchAction: 'none' }}
         >
-          {/* Крупная иконка перетаскивания */}
-          <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-[var(--tg-theme-secondary-bg-color)] active:bg-[var(--tg-theme-button-color)] active:text-white transition-colors">
-            <svg className="w-6 h-6 text-[var(--tg-theme-hint-color)]" viewBox="0 0 24 24" fill="currentColor">
+          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/50 active:bg-[var(--purple-main)] active:text-white transition-colors">
+            <svg className="w-5 h-5 text-[var(--tg-theme-hint-color)]" viewBox="0 0 24 24" fill="currentColor">
               <rect x="4" y="5" width="16" height="2" rx="1" />
               <rect x="4" y="11" width="16" height="2" rx="1" />
               <rect x="4" y="17" width="16" height="2" rx="1" />
@@ -73,7 +72,7 @@ export const SortableItem: React.FC<SortableItemProps> = ({ id, children, isDrag
           </div>
         </div>
         {/* Content with padding for handle */}
-        <div className="pl-14">
+        <div className="pl-12">
           {children}
         </div>
       </div>
@@ -94,17 +93,17 @@ export function SortableList<T extends { id: string }>({
 }: SortableListProps<T>) {
   const [activeId, setActiveId] = useState<string | null>(null);
   
-  // МГНОВЕННЫЙ отклик для drag-n-drop
+  // Настройки для быстрого отклика drag-n-drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
+        distance: 3, // Минимальное расстояние для активации
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 150, // Небольшая задержка чтобы отличить scroll от drag
-        tolerance: 8,
+        delay: 100, // Маленькая задержка для тач
+        tolerance: 5, // Допустимое смещение
       },
     }),
     useSensor(KeyboardSensor, {

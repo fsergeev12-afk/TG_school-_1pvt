@@ -79,9 +79,9 @@ export default function CoursesPage() {
                     {course.title}
                   </h3>
                   <p className="text-[13px] text-secondary mt-0.5">
-                    {course.blocks?.length || 0} разделов • {
+                    разделов: {course.blocks?.length || 0} • материалов: {
                       course.blocks?.reduce((sum, b) => sum + (b.lessons?.length || 0), 0) || 0
-                    } материалов
+                    }
                   </p>
                   
                   <div className="flex gap-2 mt-3">
