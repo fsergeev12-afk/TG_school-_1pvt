@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePromoCodes, useCreatePromoCode, useDeletePromoCode, useStream } from '../../api/hooks';
 import { PageContainer, PageContent, PageHeader } from '../../components/layout';
-import { Button, Card, Input } from '../../components/ui';
+import { Button, Card, Input, Icons } from '../../components/ui';
 import { useUIStore } from '../../store';
 
 type PromoType = 'free' | 'percent_discount' | 'fixed_discount';
@@ -67,9 +67,9 @@ export default function PromoCodesPage() {
 
   const getTypeIcon = (t: PromoType) => {
     switch (t) {
-      case 'free': return '🎁';
-      case 'percent_discount': return '📊';
-      case 'fixed_discount': return '💰';
+      case 'free': return <Icons.Gift className="w-5 h-5 text-[var(--terracotta-main)]" />;
+      case 'percent_discount': return <Icons.Chart className="w-5 h-5 text-[var(--purple-main)]" />;
+      case 'fixed_discount': return <Icons.Money className="w-5 h-5 text-green-600" />;
     }
   };
 
@@ -98,7 +98,7 @@ export default function PromoCodesPage() {
         {/* Кнопка создания */}
         {!isCreating && (
           <Button fullWidth onClick={() => setIsCreating(true)}>
-            ➕ Создать промокод
+            <Icons.Plus className="w-4 h-4" /> Создать промокод
           </Button>
         )}
 
@@ -232,7 +232,7 @@ export default function PromoCodesPage() {
         {/* Пустой список */}
         {!isLoading && promoCodes?.length === 0 && !isCreating && (
           <div className="text-center py-12">
-            <div className="text-4xl mb-3">🎟️</div>
+            <Icons.Ticket className="w-12 h-12 mx-auto mb-3 text-[var(--purple-main)]" />
             <p className="text-[var(--tg-theme-hint-color)]">
               Пока нет промокодов
             </p>
@@ -270,7 +270,7 @@ export default function PromoCodesPage() {
               </div>
             ) : (
               <div className="flex items-start gap-3">
-                <div className="text-2xl">{getTypeIcon(promo.type)}</div>
+                <div className="flex-shrink-0">{getTypeIcon(promo.type)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-[var(--tg-theme-text-color)] text-lg">
                     {promo.code}
@@ -291,7 +291,7 @@ export default function PromoCodesPage() {
                   onClick={() => setDeletingId(promo.id)}
                   className="p-2 text-red-500 hover:bg-red-50 rounded"
                 >
-                  🗑️
+                  <Icons.Trash className="w-5 h-5" />
                 </button>
               </div>
             )}

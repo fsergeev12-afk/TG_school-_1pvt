@@ -63,7 +63,7 @@ export default function ChatsPage() {
                 onClick={() => setSearchQuery('')}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-secondary hover:text-dark"
               >
-                ✕
+                <Icons.Close className="w-4 h-4" />
               </button>
             )}
           </div>

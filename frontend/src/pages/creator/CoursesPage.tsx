@@ -120,8 +120,8 @@ export default function CoursesPage() {
             <p className="text-sm text-[var(--tg-theme-hint-color)]">Проверка связанных потоков...</p>
           ) : streamsCount && streamsCount > 0 ? (
             <div className="p-3 bg-red-50 border border-red-200 rounded-xl">
-              <p className="text-sm text-red-700 font-medium">
-                ⚠️ Внимание! К этому проекту привязано {streamsCount} потоков.
+              <p className="text-sm text-red-700 font-medium flex items-center gap-1">
+                <Icons.Warning className="w-4 h-4" /> Внимание! К этому проекту привязано {streamsCount} потоков.
               </p>
               <p className="text-xs text-red-600 mt-1">
                 При удалении проекта все потоки и доступ участников будут потеряны.

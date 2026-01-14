@@ -253,7 +253,8 @@ export default function StreamDetailPage() {
                 setAddStudentsModalOpen(true);
               }}
             >
-              📤 Добавить участников
+              <Icons.Upload className="w-4 h-4" />
+              Добавить участников
             </Button>
 
             {/* Статистика */}
@@ -282,7 +283,7 @@ export default function StreamDetailPage() {
 
             {students?.length === 0 && (
               <div className="text-center py-8">
-                <div className="text-4xl mb-3">👥</div>
+                <Icons.Users className="w-12 h-12 mx-auto mb-3 text-[var(--purple-main)]" />
                 <p className="text-[var(--tg-theme-hint-color)]">
                   Пока нет участников
                 </p>
@@ -313,14 +314,16 @@ export default function StreamDetailPage() {
                           ? 'bg-green-100 text-green-700'
                           : 'bg-gray-100 text-gray-600'
                       }`}>
-                        {student.invitationStatus === 'activated' ? '✅ Активен' : '⏳ Приглашён'}
+                        {student.invitationStatus === 'activated' 
+                          ? <><Icons.Check className="w-3 h-3 inline" /> Активен</> 
+                          : <><Icons.Clock className="w-3 h-3 inline" /> Приглашён</>}
                       </span>
-                      <span className={`px-2 py-0.5 rounded ${
+                      <span className={`px-2 py-0.5 rounded flex items-center gap-1 ${
                         student.paymentStatus === 'paid'
                           ? 'bg-blue-100 text-blue-700'
                           : 'bg-orange-100 text-orange-600'
                       }`}>
-                        {student.paymentStatus === 'paid' ? '💳 Оплачено' : '🏃 Не оплачено'}
+                        {student.paymentStatus === 'paid' ? <><Icons.CreditCard className="w-3 h-3" /> Оплачено</> : <><Icons.Clock className="w-3 h-3" /> Не оплачено</>}
                       </span>
                     </div>
                   </div>
@@ -337,14 +340,14 @@ export default function StreamDetailPage() {
                       }}
                       title="Написать сообщение"
                     >
-                      💬
+                      <Icons.Chat className="w-5 h-5" />
                     </button>
                     <button
                       className="w-10 h-10 flex items-center justify-center rounded-full text-red-400 hover:bg-red-50"
                       onClick={() => setDeleteStudentConfirm({ id: student.id, name: student.firstName || student.telegramFirstName || 'Участник' })}
                       title="Удалить из потока"
                     >
-                      🗑️
+                      <Icons.Trash className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -357,12 +360,13 @@ export default function StreamDetailPage() {
         {activeTab === 'schedule' && (
           <div className="space-y-4">
             <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
-              📅 Расписание материалов
+              <Icons.Calendar className="w-5 h-5" />
+              Расписание материалов
             </h3>
 
             {!stream.scheduleEnabled ? (
               <Card className="text-center py-8">
-                <div className="text-4xl mb-3">📅</div>
+                <Icons.Calendar className="w-12 h-12 mx-auto mb-3 text-[var(--purple-main)]" />
                 <p className="text-[var(--tg-theme-hint-color)]">
                   Расписание отключено
                 </p>
@@ -379,7 +383,8 @@ export default function StreamDetailPage() {
                     fullWidth
                     onClick={() => setOpenAllConfirm(true)}
                   >
-                    🎉 Открыть все материалы
+                    <Icons.Unlock className="w-4 h-4" />
+                    Открыть все материалы
                   </Button>
                 )}
 
@@ -410,7 +415,9 @@ export default function StreamDetailPage() {
                           {schedule ? (
                             <>
                               <div className={`text-xs ${schedule.isOpened ? 'text-green-600' : 'text-[var(--tg-theme-hint-color)]'}`}>
-                                {schedule.isOpened ? '✅ Открыт' : formatDate(schedule.scheduledOpenAt)}
+                                {schedule.isOpened 
+                                  ? <><Icons.Check className="w-3 h-3 inline" /> Открыт</> 
+                                  : formatDate(schedule.scheduledOpenAt)}
                               </div>
                               <svg className="w-4 h-4 text-[var(--tg-theme-hint-color)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -442,7 +449,8 @@ export default function StreamDetailPage() {
         {activeTab === 'broadcast' && (
           <div className="space-y-4">
             <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
-              📢 Отправить сообщение
+              <Icons.Broadcast className="w-5 h-5" />
+              Отправить сообщение
             </h3>
             <textarea
               className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] min-h-[120px] resize-none"
@@ -452,11 +460,11 @@ export default function StreamDetailPage() {
               maxLength={1000}
             />
             <div className="flex justify-between text-xs text-[var(--tg-theme-hint-color)]">
-              <span>👥 Получатели: {activatedCount} активированных участников</span>
+              <span className="flex items-center gap-1"><Icons.Users className="w-3 h-3" /> Получатели: {activatedCount} активированных участников</span>
               <span>{broadcastMessage.length} / 1000</span>
             </div>
-            <p className="text-xs text-[var(--tg-theme-hint-color)]">
-              ℹ️ Ссылка на платформу добавится автоматически
+            <p className="text-xs text-[var(--tg-theme-hint-color)] flex items-center gap-1">
+              <Icons.Info className="w-3 h-3" /> Ссылка на платформу добавится автоматически
             </p>
             <Button
               fullWidth
@@ -472,8 +480,8 @@ export default function StreamDetailPage() {
         {/* Вкладка "Оплаты" */}
         {activeTab === 'payments' && (
           <div className="space-y-4">
-            <h3 className="font-semibold text-[var(--tg-theme-text-color)]">
-              💳 Статистика оплат
+            <h3 className="font-semibold text-[var(--tg-theme-text-color)] flex items-center gap-2">
+              <Icons.CreditCard className="w-5 h-5" /> Статистика оплат
             </h3>
             
             <div className="grid grid-cols-2 gap-3">
@@ -521,8 +529,8 @@ export default function StreamDetailPage() {
                       <span className="text-[var(--tg-theme-text-color)]">
                         {student.firstName} {student.lastName}
                       </span>
-                      <span className="text-sm text-green-600">
-                        🎟️ Промокод
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <Icons.Ticket className="w-4 h-4" /> Промокод
                       </span>
                     </div>
                   </Card>
@@ -565,8 +573,8 @@ export default function StreamDetailPage() {
             </Card>
 
             <Card>
-              <h4 className="font-medium text-[var(--tg-theme-text-color)] mb-3">
-                🎟️ Промокоды
+              <h4 className="font-medium text-[var(--tg-theme-text-color)] mb-3 flex items-center gap-2">
+                <Icons.Ticket className="w-4 h-4" /> Промокоды
               </h4>
               <Button 
                 variant="secondary" 
@@ -579,10 +587,12 @@ export default function StreamDetailPage() {
 
             <Card className="border-2 border-red-200">
               <h4 className="font-medium text-red-600 mb-2">
-                🗑️ Опасная зона
+                <Icons.Warning className="w-4 h-4" />
+                Опасная зона
               </h4>
-              <p className="text-xs text-[var(--tg-theme-hint-color)] mb-3">
-                ⚠️ Это действие нельзя отменить. Все участники потеряют доступ к проекту.
+              <p className="text-xs text-[var(--tg-theme-hint-color)] mb-3 flex items-center gap-1">
+                <Icons.Warning className="w-4 h-4" />
+                Это действие нельзя отменить. Все участники потеряют доступ к проекту.
               </p>
               {isDeleting ? (
                 <div className="space-y-2">
@@ -623,7 +633,7 @@ export default function StreamDetailPage() {
       <Modal
         isOpen={addStudentsModalOpen}
         onClose={() => setAddStudentsModalOpen(false)}
-        title="📤 Добавить участников"
+        title="Добавить участников"
       >
         <div className="space-y-4">
           <p className="text-sm text-[var(--tg-theme-hint-color)]">
@@ -677,7 +687,7 @@ export default function StreamDetailPage() {
                 window.open(`https://t.me/share/url?url=${encodeURIComponent(inviteLink)}&text=${text}`, '_blank');
               }}
             >
-              📱 Telegram
+              <Icons.Telegram className="w-4 h-4" /> Telegram
             </Button>
           </div>
         </div>
@@ -725,8 +735,8 @@ export default function StreamDetailPage() {
           <p className="text-sm text-[var(--tg-theme-text-color)]">
             Все запланированные материалы станут доступны студентам сразу.
           </p>
-          <p className="text-sm text-[var(--tg-theme-hint-color)]">
-            📬 Студенты получат одно уведомление о том, что все материалы открыты.
+          <p className="text-sm text-[var(--tg-theme-hint-color)] flex items-center gap-1">
+            <Icons.Bell className="w-4 h-4" /> Студенты получат одно уведомление о том, что все материалы открыты.
           </p>
           <div className="flex gap-3">
             <Button
@@ -773,8 +783,8 @@ export default function StreamDetailPage() {
               className="w-full p-3 rounded-xl border border-[var(--tg-theme-hint-color)]/30 bg-[var(--tg-theme-bg-color)] text-[var(--tg-theme-text-color)] text-base"
             />
           </div>
-          <p className="text-xs text-[var(--tg-theme-hint-color)]">
-            ℹ️ Материал откроется автоматически в указанное время. Студенты получат уведомление.
+          <p className="text-xs text-[var(--tg-theme-hint-color)] flex items-center gap-1">
+            <Icons.Info className="w-3 h-3" /> Материал откроется автоматически в указанное время. Студенты получат уведомление.
           </p>
           <div className="flex gap-3">
             <Button

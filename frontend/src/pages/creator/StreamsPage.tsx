@@ -238,14 +238,15 @@ export default function StreamsPage() {
             {/* Шаг 2: Расписание */}
             {step === 2 && (
               <>
-                <p className="font-medium text-[var(--tg-theme-text-color)]">
-                  📅 Доступ к материалам
-                </p>
+                <div className="flex items-center gap-2 font-medium text-[var(--tg-theme-text-color)]">
+                  <Icons.Calendar className="w-5 h-5 text-[var(--purple-main)]" />
+                  Доступ к материалам
+                </div>
 
                 {/* Сначала информация о режиме по умолчанию */}
                 <div className="p-4 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">📖</span>
+                    <Icons.Book className="w-6 h-6 text-[var(--purple-main)] flex-shrink-0" />
                     <div>
                       <p className="font-medium text-[var(--tg-theme-text-color)]">
                         По умолчанию: все материалы сразу
@@ -258,7 +259,7 @@ export default function StreamsPage() {
                 </div>
 
                 {/* Потом галочка включения расписания */}
-                <label className="flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors hover:border-[var(--tg-theme-button-color)]/30 ${scheduleEnabled ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/5' : 'border-[var(--tg-theme-hint-color)]/30'}">
+                <label className={`flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-colors hover:border-[var(--tg-theme-button-color)]/30 ${scheduleEnabled ? 'border-[var(--tg-theme-button-color)] bg-[var(--tg-theme-button-color)]/5' : 'border-[var(--tg-theme-hint-color)]/30'}`}>
                   <input
                     type="checkbox"
                     checked={scheduleEnabled}
@@ -270,8 +271,9 @@ export default function StreamsPage() {
                     className="mt-1 w-5 h-5 accent-[var(--tg-theme-button-color)]"
                   />
                   <div>
-                    <div className="font-medium text-[var(--tg-theme-text-color)]">
-                      🗓️ Открывать материалы по расписанию
+                    <div className="flex items-center gap-2 font-medium text-[var(--tg-theme-text-color)]">
+                      <Icons.Calendar className="w-4 h-4" />
+                      Открывать материалы по расписанию
                     </div>
                     <p className="text-sm text-[var(--tg-theme-hint-color)] mt-1">
                       Укажите дату открытия для каждого материала вручную
@@ -286,7 +288,7 @@ export default function StreamsPage() {
                       {selectedCourse.blocks?.map((block, blockIdx) => (
                         <div key={block.id}>
                           <div className="flex items-center gap-2 py-1">
-                            <span className="text-sm">📂</span>
+                            <Icons.Folder className="w-4 h-4 text-[var(--purple-main)]" />
                             <span className="text-sm font-medium text-[var(--tg-theme-text-color)]">
                               {blockIdx + 1}. {block.title}
                             </span>
@@ -313,8 +315,9 @@ export default function StreamsPage() {
                                     </span>
                                   </div>
                                   {schedule && (
-                                    <p className="text-xs text-green-700 mt-1">
-                                      📅 {formatDateTime(schedule.scheduledOpenAt)}
+                                    <p className="text-xs text-green-700 mt-1 flex items-center gap-1">
+                                      <Icons.Calendar className="w-3 h-3" />
+                                      {formatDateTime(schedule.scheduledOpenAt)}
                                     </p>
                                   )}
                                 </div>
@@ -325,21 +328,22 @@ export default function StreamsPage() {
                                         onClick={() => openDatePicker({ ...lesson, blockIndex: blockIdx + 1, lessonIndex: lessonIdx + 1 })}
                                         className="p-2 text-[var(--tg-theme-hint-color)] hover:text-[var(--tg-theme-text-color)]"
                                       >
-                                        ✏️
+                                        <Icons.Edit className="w-4 h-4" />
                                       </button>
                                       <button
                                         onClick={() => removeLessonDate(lesson.id)}
                                         className="p-2 text-red-400 hover:text-red-500"
                                       >
-                                        ✕
+                                        <Icons.Close className="w-4 h-4" />
                                       </button>
                                     </>
                                   ) : (
                                     <button
                                       onClick={() => openDatePicker({ ...lesson, blockIndex: blockIdx + 1, lessonIndex: lessonIdx + 1 })}
-                                      className="px-4 py-2 bg-[var(--tg-theme-button-color)] text-white rounded-xl text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all"
+                                      className="px-4 py-2 bg-[var(--tg-theme-button-color)] text-white rounded-xl text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all flex items-center gap-1"
                                     >
-                                      📅 Выбрать дату
+                                      <Icons.Calendar className="w-4 h-4" />
+                                      Выбрать дату
                                     </button>
                                   )}
                                 </div>
@@ -352,10 +356,10 @@ export default function StreamsPage() {
 
                     {/* Статус заполнения */}
                     <div className={`p-3 rounded-xl ${allLessonsScheduled ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
-                      <p className={`text-sm font-medium ${allLessonsScheduled ? 'text-green-700' : 'text-orange-700'}`}>
+                      <p className={`text-sm font-medium flex items-center gap-2 ${allLessonsScheduled ? 'text-green-700' : 'text-orange-700'}`}>
                         {allLessonsScheduled 
-                          ? `✓ Все ${allLessons.length} материалов запланировано`
-                          : `⚠️ Запланировано ${lessonSchedules.length} из ${allLessons.length} материалов`
+                          ? <><Icons.Check className="w-4 h-4" /> Все {allLessons.length} материалов запланировано</>
+                          : <><Icons.Warning className="w-4 h-4" /> Запланировано {lessonSchedules.length} из {allLessons.length} материалов</>
                         }
                       </p>
                       {!allLessonsScheduled && (
@@ -385,9 +389,10 @@ export default function StreamsPage() {
             {/* Шаг 3: Уведомления */}
             {step === 3 && (
               <>
-                <p className="font-medium text-[var(--tg-theme-text-color)]">
-                  🔔 Уведомления участникам
-                </p>
+                <div className="flex items-center gap-2 font-medium text-[var(--tg-theme-text-color)]">
+                  <Icons.Bell className="w-5 h-5 text-[var(--purple-main)]" />
+                  Уведомления участникам
+                </div>
 
                 <div className="space-y-4">
                   <label className="flex items-start gap-3 p-3 rounded-xl bg-[var(--tg-theme-secondary-bg-color)] cursor-pointer opacity-70">
@@ -398,8 +403,9 @@ export default function StreamsPage() {
                       className="mt-1 w-5 h-5 accent-[var(--tg-theme-button-color)]"
                     />
                     <div>
-                      <div className="font-medium text-[var(--tg-theme-text-color)]">
-                        ✅ Приветственное сообщение
+                      <div className="flex items-center gap-2 font-medium text-[var(--tg-theme-text-color)]">
+                        <Icons.Check className="w-4 h-4 text-green-500" />
+                        Приветственное сообщение
                       </div>
                       <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">
                         Отправляется при первой активации участника
@@ -442,32 +448,38 @@ export default function StreamsPage() {
             {/* Шаг 4: Название */}
             {step === 4 && (
               <>
-                <p className="font-medium text-[var(--tg-theme-text-color)]">
-                  ✍️ Название потока
-                </p>
+                <div className="flex items-center gap-2 font-medium text-[var(--tg-theme-text-color)]">
+                  <Icons.Edit className="w-5 h-5 text-[var(--purple-main)]" />
+                  Название потока
+                </div>
                 <Input
                   placeholder="Группа декабрь 2024"
                   value={streamName}
                   onChange={(e) => setStreamName(e.target.value)}
                   autoFocus
                 />
-                <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                  💡 Это название только для вас, ученики его не видят
+                <p className="text-xs text-[var(--tg-theme-hint-color)] flex items-center gap-1">
+                  <Icons.Lightbulb className="w-3 h-3" />
+                  Это название только для вас, ученики его не видят
                 </p>
 
                 {/* Summary */}
                 <div className="p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl space-y-2">
-                  <p className="text-sm font-medium text-[var(--tg-theme-text-color)]">
-                    📋 Итого:
+                  <p className="text-sm font-medium text-[var(--tg-theme-text-color)] flex items-center gap-2">
+                    <Icons.Document className="w-4 h-4" />
+                    Итого:
                   </p>
-                  <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                    📚 Проект: {selectedCourse?.title}
+                  <p className="text-xs text-[var(--tg-theme-hint-color)] flex items-center gap-1">
+                    <Icons.Book className="w-3 h-3" />
+                    Проект: {selectedCourse?.title}
                   </p>
-                  <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                    📅 Доступ: {scheduleEnabled ? `По расписанию (${lessonSchedules.length} материалов)` : 'Все материалы сразу'}
+                  <p className="text-xs text-[var(--tg-theme-hint-color)] flex items-center gap-1">
+                    <Icons.Calendar className="w-3 h-3" />
+                    Доступ: {scheduleEnabled ? `По расписанию (${lessonSchedules.length} материалов)` : 'Все материалы сразу'}
                   </p>
-                  <p className="text-xs text-[var(--tg-theme-hint-color)]">
-                    🔔 Уведомления: {notifyOnLessonOpen ? 'Включены' : 'Только приветствие'}
+                  <p className="text-xs text-[var(--tg-theme-hint-color)] flex items-center gap-1">
+                    <Icons.Bell className="w-3 h-3" />
+                    Уведомления: {notifyOnLessonOpen ? 'Включены' : 'Только приветствие'}
                   </p>
                 </div>
 
@@ -481,7 +493,8 @@ export default function StreamsPage() {
                     loading={createStream.isPending}
                     disabled={!streamName.trim()}
                   >
-                    🚀 Создать поток
+                    <Icons.Rocket className="w-4 h-4" />
+                    Создать поток
                   </Button>
                 </div>
               </>
@@ -499,7 +512,7 @@ export default function StreamsPage() {
         {/* Пустой список */}
         {!isLoading && streams?.length === 0 && !isCreating && (
           <div className="text-center py-12">
-            <div className="text-4xl mb-3">📊</div>
+            <Icons.Chart className="w-12 h-12 mx-auto mb-3 text-[var(--purple-main)]" />
             <p className="text-[var(--tg-theme-hint-color)]">
               У вас пока нет потоков
             </p>
@@ -562,7 +575,7 @@ export default function StreamsPage() {
       <Modal
         isOpen={dateModalOpen}
         onClose={() => setDateModalOpen(false)}
-        title="📅 Выбор даты открытия"
+        title="Выбор даты открытия"
         size="sm"
       >
         <div className="space-y-4">

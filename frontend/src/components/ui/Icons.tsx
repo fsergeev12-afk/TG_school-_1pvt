@@ -271,6 +271,63 @@ export const UserIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', size }) =
   </svg>
 );
 
+// 📂 Папка
+export const FolderIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', size }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+  </svg>
+);
+
+// ✕ Закрыть
+export const CloseIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', size }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+  </svg>
+);
+
+// 📤 Загрузить/Поделиться
+export const UploadIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', size }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+  </svg>
+);
+
+// 👁️ Просмотр
+export const EyeIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', size }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+  </svg>
+);
+
+// ⚠️ Предупреждение
+export const WarningIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', size }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+  </svg>
+);
+
+// 💡 Лампочка/Идея
+export const LightbulbIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', size }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+  </svg>
+);
+
+// 📊 График/Статистика
+export const ChartIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', size }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+  </svg>
+);
+
+// 🚀 Ракета/Запуск
+export const RocketIcon: React.FC<IconProps> = ({ className = 'w-5 h-5', size }) => (
+  <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/>
+  </svg>
+);
+
 // ✓✓ Прочитано (двойная галочка)
 export const DoubleCheckIcon: React.FC<IconProps> = ({ className = 'w-4 h-4', size }) => (
   <svg className={className} width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -334,6 +391,14 @@ export const Icons = {
   Dots: DotsIcon,
   User: UserIcon,
   DoubleCheck: DoubleCheckIcon,
+  Folder: FolderIcon,
+  Close: CloseIcon,
+  Upload: UploadIcon,
+  Eye: EyeIcon,
+  Warning: WarningIcon,
+  Lightbulb: LightbulbIcon,
+  Chart: ChartIcon,
+  Rocket: RocketIcon,
   StatusDot,
 };
 

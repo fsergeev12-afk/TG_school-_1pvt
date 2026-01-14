@@ -629,7 +629,7 @@ export default function CourseDetailPage() {
                       onClick={() => toggleBlockExpanded(block.id)}
                     >
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-lg">📂</span>
+                        <Icons.Folder className="w-5 h-5 text-[var(--purple-main)]" />
                         {editingBlockId === block.id ? (
                           <input
                             className="flex-1 bg-transparent border-b border-[var(--tg-theme-button-color)] outline-none text-[var(--tg-theme-text-color)]"
@@ -691,7 +691,9 @@ export default function CourseDetailPage() {
                                   {lesson.isNew && <span className="text-xs text-green-500 ml-2">новый</span>}
                                 </span>
                                 {lesson.videoType && (
-                                  <span className="text-xs">{lesson.videoType === 'telegram' ? '🎬' : '🔗'}</span>
+                                  lesson.videoType === 'telegram' 
+                                    ? <Icons.Video className="w-3 h-3 text-[var(--purple-main)]" />
+                                    : <Icons.Link className="w-3 h-3 text-[var(--purple-main)]" />
                                 )}
                                 <button
                                   onClick={(e) => { e.stopPropagation(); confirmDeleteLesson(block.id, lesson); }}
@@ -740,12 +742,12 @@ export default function CourseDetailPage() {
           loading={isSaving}
           disabled={!hasChanges}
         >
-          {hasChanges ? '✓ Сохранить изменения' : '✓ Все изменения сохранены'}
+          {hasChanges ? <><Icons.Check className="w-4 h-4" /> Сохранить изменения</> : <><Icons.Check className="w-4 h-4" /> Все изменения сохранены</>}
         </Button>
       </div>
 
       {/* Add Block Modal */}
-      <Modal isOpen={addBlockModalOpen} onClose={() => setAddBlockModalOpen(false)} title="📂 Новый раздел" size="sm">
+      <Modal isOpen={addBlockModalOpen} onClose={() => setAddBlockModalOpen(false)} title="Новый раздел" size="sm">
         <div className="space-y-4">
           <Input
             label="Название раздела *"
@@ -773,7 +775,7 @@ export default function CourseDetailPage() {
             disabled={!lessonForm.title.trim()}
             className="text-lg py-4"
           >
-            {editingLessonId ? '✓ Сохранить материал' : '+ Создать материал'}
+            {editingLessonId ? <><Icons.Check className="w-4 h-4" /> Сохранить материал</> : <><Icons.Plus className="w-4 h-4" /> Создать материал</>}
           </Button>
         }
       >
@@ -802,7 +804,7 @@ export default function CourseDetailPage() {
 
           {/* Ссылка */}
           <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
-            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3">🔗 Ссылка</label>
+            <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3 flex items-center gap-2"><Icons.Link className="w-4 h-4" /> Ссылка</label>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: 'telegram', videoUrl: '' })}
@@ -812,7 +814,7 @@ export default function CourseDetailPage() {
                     : 'border-[var(--tg-theme-hint-color)]/30'
                 }`}
               >
-                📹 Загрузить файл
+                <div className="flex items-center gap-2 justify-center"><Icons.Video className="w-4 h-4" /> Загрузить файл</div>
                 <div className="text-xs text-[var(--tg-theme-hint-color)] mt-1">до 50MB</div>
               </button>
               <button
@@ -823,14 +825,14 @@ export default function CourseDetailPage() {
                     : 'border-[var(--tg-theme-hint-color)]/30'
                 }`}
               >
-                🔗 Внешняя ссылка
+                <div className="flex items-center gap-2 justify-center"><Icons.Link className="w-4 h-4" /> Внешняя ссылка</div>
                 <div className="text-xs text-[var(--tg-theme-hint-color)] mt-1">Любой URL</div>
               </button>
             </div>
 
             {lessonForm.videoType === 'telegram' && (
               <div className="border-2 border-dashed border-[var(--tg-theme-hint-color)]/30 rounded-xl p-6 text-center">
-                <div className="text-3xl mb-2">📤</div>
+                <Icons.Upload className="w-8 h-8 mx-auto mb-2 text-[var(--purple-main)]" />
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">Загрузка видео через Telegram-бота</p>
                 <p className="text-xs text-[var(--tg-theme-hint-color)] mt-1">Функция в разработке</p>
               </div>
@@ -847,9 +849,9 @@ export default function CourseDetailPage() {
             {lessonForm.videoType && (
               <button
                 onClick={() => setLessonForm({ ...lessonForm, videoType: null, videoUrl: '' })}
-                className="text-sm text-red-500 mt-3 p-2"
+                className="text-sm text-red-500 mt-3 p-2 flex items-center gap-1"
               >
-                ✕ Убрать ссылку
+                <Icons.Close className="w-4 h-4" /> Убрать ссылку
               </button>
             )}
           </div>
@@ -857,7 +859,7 @@ export default function CourseDetailPage() {
           {/* Материалы (только для существующих уроков) */}
           {editingLessonId && !editingLesson?.isNew && (
             <div className="pt-4 border-t border-[var(--tg-theme-hint-color)]/20">
-              <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3">📄 Документы</label>
+              <label className="block text-sm font-medium text-[var(--tg-theme-text-color)] mb-3 flex items-center gap-2"><Icons.Document className="w-4 h-4" /> Документы</label>
               
               {materials && materials.length > 0 && (
                 <div className="space-y-2 mb-4">
@@ -867,7 +869,7 @@ export default function CourseDetailPage() {
                       className="flex items-center gap-3 p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl cursor-pointer active:opacity-80 transition-opacity"
                       onClick={() => openFilePreview(material)}
                     >
-                      <span className="text-2xl">{material.fileType === 'pdf' ? '📕' : '📄'}</span>
+                      <Icons.Document className="w-6 h-6 text-[var(--terracotta-main)]" />
                       <div className="flex-1 min-w-0">
                         <p className="text-[var(--tg-theme-text-color)] truncate">{material.fileName}</p>
                         <p className="text-xs text-[var(--tg-theme-hint-color)]">{formatFileSize(material.fileSizeBytes)}</p>
@@ -893,7 +895,7 @@ export default function CourseDetailPage() {
                   <span className="animate-pulse">Загрузка...</span>
                 ) : (
                   <>
-                    <span className="text-xl">📤</span>
+                    <Icons.Upload className="w-5 h-5" />
                     <span>Добавить документ</span>
                   </>
                 )}
@@ -904,8 +906,9 @@ export default function CourseDetailPage() {
 
           {editingLesson?.isNew && (
             <div className="p-4 bg-blue-50 rounded-xl">
-              <p className="text-sm text-blue-600 text-center">
-                💡 Документы можно добавить после сохранения изменений
+              <p className="text-sm text-blue-600 text-center flex items-center justify-center gap-2">
+                <Icons.Lightbulb className="w-4 h-4" />
+                Документы можно добавить после сохранения изменений
               </p>
             </div>
           )}
@@ -916,13 +919,13 @@ export default function CourseDetailPage() {
       <Modal
         isOpen={filePreviewOpen}
         onClose={() => { setFilePreviewOpen(false); setSelectedMaterial(null); setFileUrl(null); }}
-        title="📄 Документ"
+        title="Документ"
         size="sm"
       >
         {selectedMaterial && (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-3 bg-[var(--tg-theme-secondary-bg-color)] rounded-xl">
-              <span className="text-3xl">{selectedMaterial.fileType === 'pdf' ? '📕' : '📄'}</span>
+              <Icons.Document className="w-8 h-8 text-[var(--terracotta-main)]" />
               <div className="flex-1 min-w-0">
                 <p className="text-[var(--tg-theme-text-color)] font-medium truncate">{selectedMaterial.fileName}</p>
                 <p className="text-sm text-[var(--tg-theme-hint-color)]">
@@ -940,8 +943,8 @@ export default function CourseDetailPage() {
 
             {fileUrl && !loadingFileUrl && (
               <div className="space-y-2">
-                <Button fullWidth onClick={handleViewFile}>👁️ Посмотреть</Button>
-                <Button fullWidth variant="secondary" onClick={handleDownloadFile}>⬇️ Скачать</Button>
+                <Button fullWidth onClick={handleViewFile}><Icons.Eye className="w-4 h-4" /> Посмотреть</Button>
+                <Button fullWidth variant="secondary" onClick={handleDownloadFile}><Icons.Download className="w-4 h-4" /> Скачать</Button>
               </div>
             )}
 
@@ -976,7 +979,7 @@ export default function CourseDetailPage() {
       </Modal>
 
       {/* Exit Confirmation */}
-      <Modal isOpen={exitConfirmOpen} onClose={() => setExitConfirmOpen(false)} title="⚠️ Несохранённые изменения" size="sm">
+      <Modal isOpen={exitConfirmOpen} onClose={() => setExitConfirmOpen(false)} title="Несохранённые изменения" size="sm">
         <div className="space-y-4">
           <p className="text-[var(--tg-theme-text-color)]">
             У вас есть несохранённые изменения. Если вы покинете страницу, они будут потеряны.
